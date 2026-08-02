@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:uiff}/swiftUI",
+            "name": "Debug swiftUI (swiftUI)",
+            "target": "swiftUI",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug swiftUI (swiftUI)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:uiff}/swiftUI",
+            "name": "Release swiftUI (swiftUI)",
+            "target": "swiftUI",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release swiftUI (swiftUI)"
+        }
+    ]
+}
