@@ -2,6 +2,7 @@
 # 1byte: chunk type
 # 2byte: chunk size
 # chunk data
+# 0... 4byte境界にpaddingする
 
 # 基本系
 TYPE = 0x01
