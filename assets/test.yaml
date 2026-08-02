@@ -1,0 +1,39 @@
+- Type: TYPE_WINDOW
+  ID: "win:title"
+  W: 68
+  H: 26
+  children:
+  - Type: TYPE_AREA
+    W: 50  # 幅を決めないとAlignが効かない
+    AlignCenterX: true
+    children:
+    - Type: TYPE_TITLE
+      Y: 3
+    - Type: TYPE_AREA
+      Y: 14
+      W: 16
+      H: 2
+      AlignCenterX: true
+      children:
+      - Type: TYPE_START
+        Text: "START, CONTINUE"
+        RowsNum: 1
+        Events: ["key:up", "key:down", "key:enter"]
+        script: >
+          (if (match "key:enter" @Event)
+            ($action 
+              (switch @SelectNo "next:START" "next:CONTINUE")))
+        children:
+        - Type: TYPE_CLOSE_WIN
+          ID: "close_win"
+          Events: ["next:START", "next:CONTINUE"]
+    - Type: TYPE_LABEL
+      Text: "-MESSAGE SPEAD-"
+      X: 16
+      Y: 19
+    - Type: TYPE_SPEED
+      X: 3 
+      Y: 20
+      Text: "SLOW, NORMAL, FAST"
+      RowsNum: 3
+      Events: ["key:left", "key:right"]

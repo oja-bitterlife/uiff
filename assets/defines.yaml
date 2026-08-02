@@ -1,0 +1,7 @@
+Type:
+  - TYPE_WINDOW
+  - TYPE_AREA
+  - TYPE_TITLE
+  - TYPE_START
+  - TYPE_LABEL
+  - TYPE_SPEED
