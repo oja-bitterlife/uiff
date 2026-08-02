@@ -1,0 +1,57 @@
+[
+  {
+    "Type": "TYPE_WINDOW",
+    "ID": "win:title",
+    "W": 8,
+    "H": 3,
+    "children": [
+      {
+        "Type": "TYPE_AREA",
+        "W": 6,
+        "AlignCenterX": true,
+        "children": [
+          {
+            "Type": "TYPE_TITLE"
+          },
+          {
+            "Type": "TYPE_AREA",
+            "Y": 2,
+            "W": 2,
+            "AlignCenterX": true,
+            "children": [
+              {
+                "Type": "TYPE_START",
+                "Text": "START, CONTINUE",
+                "RowsNum": 1,
+                "Events": [
+                  "EVENT_KEY_UP",
+                  "EVENT_KEY_DOWN",
+                  "EVENT_KEY_ENTER"
+                ],
+                "CloseID": "win:title",
+                "script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_ENTER:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
+              }
+            ]
+          },
+          {
+            "Type": "TYPE_LABEL",
+            "Text": "-MESSAGE SPEAD-",
+            "X": 2,
+            "Y": 2
+          },
+          {
+            "Type": "TYPE_SPEED",
+            "X": 1,
+            "Y": 2,
+            "Text": "SLOW, NORMAL, FAST",
+            "RowsNum": 3,
+            "Events": [
+              "EVENT_KEY_LEFT",
+              "EVENT_KEY_RIGHT"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
