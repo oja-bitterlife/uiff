@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 # JSONファイルを読み込む
 with open(args.input_file, 'r') as f:
-    data = json.load(f)
+    ui_data = json.load(f)
 
 # 定義用jsonを-def <filename>で指定されたファイルから読み込む
 # ---------------------------------------------------------
@@ -41,10 +41,36 @@ def collect_ids(obj):
     elif isinstance(obj, list):
         for item in obj:
             collect_ids(item)
-collect_ids(data)
+collect_ids(ui_data)
 print("Collected IDs:", ids)
 
 
 # コンバート開始
 # *****************************************************************************
+buf = bytearray()
 
+def convert(obj):
+    for key, value in obj.items():
+        match key.upper():
+            case "TYPE":
+                type_id = define_data.get("Type").get(value)
+                buf.append(type_id)
+                print(value, "->", type_id)
+
+            case "CHILDREN":
+                children = obj.get('value', [])
+                for child in children:
+                    convert(child)
+
+            # 知らないkeyが来た場合はエラーにする
+            case _:
+                print(f"Error: Unknown key found: {key}")
+                sys.exit(1)
+
+# 配列ならループで
+if isinstance(ui_data, list):
+    for item in ui_data:
+        convert(item)
+else:
+    # 配列でなければそのまま
+    convert(ui_data)

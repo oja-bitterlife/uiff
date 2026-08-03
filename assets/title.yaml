@@ -1,38 +1,38 @@
-- Type: TYPE_WINDOW
-  ID: "win:title"
-  W: 8
-  H: 3
+Type: TYPE_WINDOW
+ID: "win:title"
+W: 8
+H: 3
+children:
+- Type: TYPE_AREA
+  W: 6  # 幅を決めないとAlignが効かない
+  AlignCenterX: true
   children:
+  - Type: TYPE_TITLE
   - Type: TYPE_AREA
-    W: 6  # 幅を決めないとAlignが効かない
+    Y: 2
+    W: 2
     AlignCenterX: true
     children:
-    - Type: TYPE_TITLE
-    - Type: TYPE_AREA
-      Y: 2
-      W: 2
-      AlignCenterX: true
-      children:
-      - Type: TYPE_START
-        Text: "START, CONTINUE"
-        RowsNum: 1  # 縦並び
-        Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_ENTER]
-        CloseID: "win:title"
-        script: |-
-          import "assets/vm.yaml"
-          if VM[VM_EVENT] == EVENT_KEY_ENTER:
-            match VM[VM_SELECT_NO]:
-              case 0:
-                return 1
-              case 1:
-                return 2
-    - Type: TYPE_LABEL
-      Text: "-MESSAGE SPEAD-"
-      X: 2
-      Y: 2
-    - Type: TYPE_SPEED
-      X: 1 
-      Y: 2
-      Text: "SLOW, NORMAL, FAST"
-      RowsNum: 3  # 横並び
-      Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
+    - Type: TYPE_START
+      Text: "START, CONTINUE"
+      RowsNum: 1  # 縦並び
+      Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_ENTER]
+      CloseID: "win:title"
+      script: |-
+        import "assets/vm.yaml"
+        if VM[VM_EVENT] == EVENT_KEY_ENTER:
+          match VM[VM_SELECT_NO]:
+            case 0:
+              return 1
+            case 1:
+              return 2
+  - Type: TYPE_LABEL
+    Text: "-MESSAGE SPEAD-"
+    X: 2
+    Y: 2
+  - Type: TYPE_SPEED
+    X: 1 
+    Y: 2
+    Text: "SLOW, NORMAL, FAST"
+    RowsNum: 3  # 横並び
+    Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
