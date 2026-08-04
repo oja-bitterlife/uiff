@@ -12,23 +12,24 @@
 # chank typeの定義
 # *****************************************************************************
 # 基本系
-TYPE = 0x01  # [TYPE][chunk_size][type_id(2byte)]
-ID = 0x02  # [ID][chunk_size][id(1byte)]
-CHILDREN = 0x03  # [CHILDREN][chunk_size][chiled][child]...
-TEXT = 0x04  # [TEXT][chunk_size][text format]
-SCRIPT = 0x05  # [SCRIPT][chunk_size][script(bytecode)]
+IFF_TYPE = 0x01  # [TYPE][chunk_size][type_id(2byte)]
+IFF_ID = 0x02  # [ID][chunk_size][id(1byte)]
+IFF_CHILDREN = 0x03  # [CHILDREN][chunk_size][chiled][child]...
+IFF_TEXT = 0x04  # [TEXT][chunk_size][text format]
+IFF_SCRIPT = 0x05  # [SCRIPT][chunk_size][script(bytecode)]
+IFF_EVENTS = 0x06  # [EVENTS][chunk_size][event_id(2byte)][event_id(2byte)]...
 
 # 座標系
-DEF_AREA = 0x10
-X = DEF_AREA + 1  # [X][chunk_size][x(2byte)]
-Y = DEF_AREA + 2  # [Y][chunk_size][y(2byte)]
-W = DEF_AREA + 3  # [W][chunk_size][w(2byte)]
-H = DEF_AREA + 4  # [H][chunk_size][h(2byte)]
+IFF_DEF_AREA = 0x10
+IFF_X = IFF_DEF_AREA + 1  # [X][chunk_size][x(2byte)]
+IFF_Y = IFF_DEF_AREA + 2  # [Y][chunk_size][y(2byte)]
+IFF_W = IFF_DEF_AREA + 3  # [W][chunk_size][w(2byte)]
+IFF_H = IFF_DEF_AREA + 4  # [H][chunk_size][h(2byte)]
 
 # 選択系
-DEF_SELECT = 0x20
-ROWS_NUM = DEF_SELECT + 1  # [ROWS_NUM][chunk_size][rows num(1byte)]
-EVENTS = DEF_SELECT + 2  # [EVENTS][chunk_size][event_id(2byte)][event_id(2byte)]...
-CLOSE_ID = DEF_SELECT + 3  # [CLOSE_ID][chunk_size][id(1byte)]
-ITEMS = DEF_SELECT + 4  # [ITEMS][chunk_size][ITEM][ITEM]...
-ITEM = DEF_SELECT + 5  # [ITEM][chunk_size][text format]
+IFF_DEF_SELECT = 0x20
+IFF_ROWS_NUM = IFF_DEF_SELECT + 1  # [ROWS_NUM][chunk_size][rows num(1byte)]
+IFF_EVENTS = IFF_DEF_SELECT + 2  # [EVENTS][chunk_size][event_id(2byte)][event_id(2byte)]...
+IFF_CLOSE_IDS = IFF_DEF_SELECT + 3  # [CLOSE_ID][chunk_size][id(1byte)][id(1byte)]...
+IFF_ITEMS = IFF_DEF_SELECT + 4  # [ITEMS][chunk_size][ITEM][ITEM]...
+IFF_ITEM = IFF_DEF_SELECT + 5  # [ITEM][chunk_size][text format]

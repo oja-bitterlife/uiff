@@ -6,5 +6,17 @@
     "TYPE_START": 4,
     "TYPE_LABEL": 5,
     "TYPE_SPEED": 6
+  },
+  "Event": {
+    "EVENT_KEY": 16,
+    "EVENT_KEY_START": 17,
+    "EVENT_KEY_SELECT": 18,
+    "EVENT_KEY_A": 19,
+    "EVENT_KEY_B": 20,
+    "EVENT_KEY_LEFT": 21,
+    "EVENT_KEY_RIGHT": 22,
+    "EVENT_KEY_UP": 23,
+    "EVENT_KEY_DOWN": 24
   }
 }
+

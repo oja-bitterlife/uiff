@@ -17,7 +17,7 @@ children:
       Text: "START, CONTINUE"
       RowsNum: 1  # 縦並び
       Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_ENTER]
-      CloseID: "win:title"
+      CloseIDs: ["win:title"]
       script: |-
         import "assets/vm.yaml"
         if VM[VM_EVENT] == EVENT_KEY_ENTER:
