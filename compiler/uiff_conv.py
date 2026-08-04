@@ -2,30 +2,6 @@ import json, argparse, os, sys
 from unittest import case
 from iff import *
 
-# コマンドライン処理
-# *****************************************************************************
-# 引数を取得して、JSONファイルを読み込む
-# ---------------------------------------------------------
-parser = argparse.ArgumentParser(description='Convert UIFF to JSON')
-parser.add_argument('input_file', type=str, help='Input UIFF file')
-parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON file')
-args = parser.parse_args()
-
-# JSONファイルを読み込む
-with open(args.input_file, 'r') as f:
-    ui_data = json.load(f)
-
-# 定義用jsonを-def <filename>で指定されたファイルから読み込む
-# ---------------------------------------------------------
-define_data = {}
-args = parser.parse_args()
-
-# 見つけた順でマージする
-if args.define:
-    for define_file in args.define:
-        with open(define_file, 'r') as f:
-            define_data.update(json.load(f))
-
 # プリプロセス
 # *****************************************************************************
 # data中のIDを再帰しながら探してIDリストを作成する
@@ -43,33 +19,35 @@ def collect_ids(obj):
     elif isinstance(obj, list):
         for item in obj:
             collect_ids(item)
-collect_ids(ui_data)
 
 # デバッグ用
-print("Collected IDs:", ids)
+# print("Collected IDs:", ids)
 
 
 # コンバート関数
 # *****************************************************************************
 class DispatchTree:
-    def __init__(self, json_data: dict|list):
+    def __init__(self, json_data: dict|list, define_data: dict):
         self.props = {}
         self.children = []
+        self.define_data = define_data
 
         # json_dataがdictかlistかで処理を分ける
         if isinstance(json_data, list):
             # listの場合はchilrendにDispatchTreeを突っ込む
             for item in json_data:
-                self.children.append(DispatchTree(item))
+                self.children.append(DispatchTree(item, define_data))
         else:  # dict
             # 辞書のときはchildren以外をpropsに突っ込む
             for key, value in json_data.items():
                 if key == "children":
                     # childrenの場合は再帰的にDispatchTreeを作成する
-                    self.children = DispatchTree(value).children
+                    self.children = DispatchTree(value, define_data).children
                 else:
                     self.props[key] = value
 
+    # コンバート
+    # *************************************************************************
     # コンバート各処理
     def get_chunk_buf(self, chunk_type:int, data: bytes):
         data = bytearray()
@@ -84,7 +62,7 @@ class DispatchTree:
     def get_chunk_int(self, chunk_type:int, data:int):
         return self.get_chunk_buf(chunk_type, data.to_bytes(2, byteorder='little'))
 
-    # コンバート
+    # コンバートチャンク
     def get_chunk(self):
         data = bytearray()
 
@@ -103,7 +81,7 @@ class DispatchTree:
                     pass
                 case "Events":
                     for event in value:
-                        event_id = define_data.get("Event").get(event)
+                        event_id = self.define_data.get("Event").get(event)
                         if event_id is None:
                             print(f"Error: Unknown event found: {event}")
                             sys.exit(1)
@@ -128,7 +106,7 @@ class DispatchTree:
             print("Error: Type is missing in the root node.")
             sys.exit(1)
 
-        self.chunk_type = define_data.get("Type").get(self.chunk_type_str)
+        self.chunk_type = self.define_data.get("Type").get(self.chunk_type_str)
         if self.chunk_type is None:
             print(f"Error: Unknown type found: {self.chunk_type_str}")
             sys.exit(1)
@@ -139,7 +117,7 @@ class DispatchTree:
             subtype = 0  # SubTypeがない場合は0を使用する
         if not isinstance(subtype, int):
             # SubTypeがintでない場合はdefine_dataから取得する 
-            subtype = define_data.get("SubType").get(subtype)
+            subtype = self.define_data.get("SubType").get(subtype)
             if subtype is None:
                 print(f"Error: Unknown subtype found: {self.props.get('SubType')}")
                 sys.exit(1)
@@ -173,7 +151,7 @@ class DispatchTree:
         return out
 
     def check_select(self):
-        if self.chunk_type != define_data.get("Type").get("TYPE_SELECT"):
+        if self.chunk_type != self.define_data.get("Type").get("TYPE_SELECT"):
             return bytearray()  # Selectタイプ以外は無視する
 
         # SelRowsの取得
@@ -198,34 +176,68 @@ class DispatchTree:
 
         return select_buf
 
+    # 出力データ作成
+    # *****************************************************************************
+    def get_uidata(self):
+        # dispatch treeを再帰的に処理してdataを作成する
+        data = bytearray()
+        if root.props.get("Type") is None:
+            # rootがListの場合はchildrenが処理対象
+            for child in root.children:
+                data.extend(child.get_chunk())
+        else:
+            data.extend(root.get_chunk())
+
+        # header
+        out = bytearray()
+        total_size = len(data)
+        out.extend(b'UIFF')  # magic
+        out.extend(total_size.to_bytes(2, byteorder='little'))  # total size
+
+        # データを追加
+        out.extend(data)  # data
+
+        # paddingを追加
+        padding_size = (4 - (len(out) % 4)) % 4
+        out.extend(b'\x00' * padding_size)
+
+        return out
+
+    def print_uidata(self):
+        out = self.get_uidata()
+        print(" ".join(f"{byte:02X}" for byte in out))
 
 
 # jsonからDispatchTreeを作成する
-root = DispatchTree(ui_data)
+if __name__ == "__main__":
+    # コマンドライン処理
+    # *****************************************************************************
+    # 引数を取得して、JSONファイルを読み込む
+    # ---------------------------------------------------------
+    parser = argparse.ArgumentParser(description='Convert UIFF to JSON')
+    parser.add_argument('input_file', type=str, help='Input UIFF file')
+    parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON file')
+    args = parser.parse_args()
 
-# 出力データ作成
-# *****************************************************************************
-# dispatch treeを再帰的に処理してdataを作成する
-data = bytearray()
-if root.props.get("Type") is None:
-    # rootがListの場合はchildrenが処理対象
-    for child in root.children:
-        data.extend(child.get_chunk())
-else:
-    data.extend(root.get_chunk())
+    # JSONファイルを読み込む
+    with open(args.input_file, 'r') as f:
+        ui_data = json.load(f)
 
-# header
-out = bytearray()
-total_size = len(data)
-out.extend(b'UIFF')  # magic
-out.extend(total_size.to_bytes(2, byteorder='little'))  # total size
+    collect_ids(ui_data)
 
-# データを追加
-out.extend(data)  # data
+    # 定義用jsonを-def <filename>で指定されたファイルから読み込む
+    # ---------------------------------------------------------
+    define_data = {}
+    args = parser.parse_args()
 
-# paddingを追加
-padding_size = (4 - (len(out) % 4)) % 4
-out.extend(b'\x00' * padding_size)
+    # 見つけた順でマージする
+    if args.define:
+        for define_file in args.define:
+            with open(define_file, 'r') as f:
+                define_data.update(json.load(f))
 
-# お試し出力
-print(" ".join(f"{byte:02X}" for byte in out))
+
+    # 結果出力
+    root = DispatchTree(ui_data, define_data)
+    root.print_uidata()
+
