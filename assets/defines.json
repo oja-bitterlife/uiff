@@ -2,10 +2,8 @@
   "Type": {
     "TYPE_WINDOW": 1,
     "TYPE_AREA": 2,
-    "TYPE_TITLE": 3,
-    "TYPE_START": 4,
-    "TYPE_LABEL": 5,
-    "TYPE_SPEED": 6
+    "TYPE_LABEL": 3,
+    "TYPE_SELECT": 4
   },
   "Event": {
     "EVENT_KEY": 16,

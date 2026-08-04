@@ -11,7 +11,7 @@
         "AlignCenterX": true,
         "children": [
           {
-            "Type": "TYPE_TITLE"
+            "Type": "TYPE_AREA"
           },
           {
             "Type": "TYPE_AREA",
@@ -20,16 +20,21 @@
             "AlignCenterX": true,
             "children": [
               {
-                "Type": "TYPE_START",
-                "Text": "START, CONTINUE",
+                "Type": "TYPE_SELECT",
                 "RowsNum": 1,
+                "SelItems": [
+                  "START",
+                  "CONTINUE"
+                ],
                 "Events": [
                   "EVENT_KEY_UP",
                   "EVENT_KEY_DOWN",
                   "EVENT_KEY_START"
                 ],
-                "CloseIDs": ["win:title"],
-                "script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_ENTER:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
+                "Notifies": [
+                  "win:title"
+                ],
+                "script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
               }
             ]
           },
@@ -40,10 +45,14 @@
             "Y": 2
           },
           {
-            "Type": "TYPE_SPEED",
+            "Type": "TYPE_SELECT",
             "X": 1,
             "Y": 2,
-            "Text": "SLOW, NORMAL, FAST",
+            "SelItems": [
+              "SLOW",
+              "NORMAL",
+              "FAST"
+            ],
             "RowsNum": 3,
             "Events": [
               "EVENT_KEY_LEFT",

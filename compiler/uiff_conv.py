@@ -1,4 +1,5 @@
 import json, argparse, os, sys
+from unittest import case
 from iff import *
 
 # コマンドライン処理
@@ -48,112 +49,178 @@ collect_ids(ui_data)
 print("Collected IDs:", ids)
 
 
-# コンバート開始
+# コンバート関数
 # *****************************************************************************
+class DispatchTree:
+    def __init__(self, json_data: dict|list):
+        self.props = {}
+        self.children = []
 
-def write_chunk(chunk_type, chunk_data, data_size):
-    buf = bytearray()
+        # json_dataがdictかlistかで処理を分ける
+        if isinstance(json_data, list):
+            # listの場合はchilrendにDispatchTreeを突っ込む
+            for item in json_data:
+                self.children.append(DispatchTree(item))
+        else:  # dict
+            # 辞書のときはchildren以外をpropsに突っ込む
+            for key, value in json_data.items():
+                if key == "children":
+                    # childrenの場合は再帰的にDispatchTreeを作成する
+                    self.children = DispatchTree(value).children
+                else:
+                    self.props[key] = value
 
-    # chunk type
-    buf.append(chunk_type)
-    # chunk size
-    buf.extend(data_size.to_bytes(2, byteorder='little'))
-    # chunk data
-    if type(chunk_data) == bytes or type(chunk_data) == bytearray:
-        buf.extend(chunk_data)
-    else:
-        buf.extend(chunk_data.to_bytes(data_size, byteorder='little'))
+    # コンバート各処理
+    def get_chunk_buf(self, chunk_type:int, data: bytes):
+        data = bytearray()
+        # chunk_typeを1byteで書き出す
+        data.extend(int(chunk_type).to_bytes(1, byteorder='little'))
+        # chunk_sizeを2byteで書き出す
+        data.extend(len(data).to_bytes(2, byteorder='little'))
+        # dataをそのまま書き出す
+        data.extend(data)
+        return data
 
-    return buf
+    def get_chunk_int(self, chunk_type:int, data:int, size:int):
+        return self.get_chunk_buf(chunk_type, data.to_bytes(size, byteorder='little'))
 
-def convert(obj):
-    buf = bytearray()
+    # コンバート
+    def get_chunk(self):
+        data = bytearray()
 
-    for key, value in obj.items():
-        match key.upper():
-            case "TYPE":
-                type_id = define_data.get("Type").get(value)
-                buf.extend(write_chunk(IFF_TYPE, int(type_id), 2))
+        # typeのチェック
+        data.extend(self.check_type())
 
-            case "ID":
-                ui_id = ids.index(value)
-                buf.extend(write_chunk(IFF_ID, int(ui_id), 1))
+        # selectのチェック
+        data.extend(self.check_select())
 
-            case "CHILDREN":
-                child_buf = bytearray()
-                for child in value:
-                    child_buf.extend(convert(child))
-                buf.extend(write_chunk(IFF_CHILDREN, child_buf, len(child_buf)))
+        # areaのチェック
+        data.extend(self.check_area())
 
-            case "X" | "Y" | "W" | "H":
-                chunk_type = {
-                    "X": IFF_X,
-                    "Y": IFF_Y,
-                    "W": IFF_W,
-                    "H": IFF_H
-                }[key.upper()]
-                buf.extend(write_chunk(chunk_type, int(value), 2))
-
-            case "ALIGNCENTERX" | "ALIGNCENTERY":
-                pass
-
-            case "TEXT":
-                bytes_data = value.encode('ascii', 'ignore')
-                buf.extend(write_chunk(IFF_TEXT, bytes_data, len(bytes_data)))
-
-            case "ROWSNUM":
-                buf.extend(write_chunk(IFF_ROWS_NUM, int(value), 1))
-
-            case "EVENTS":
-                event_buf = bytearray()
-                for val in value:
-                    event_id = define_data.get("Event").get(val)
-                    if event_id is None:
-                        print(f"Error: Unknown event found: {val}")
+        # 残りのpropsを順番に書き出す
+        for key, value in self.props.items():
+            match key:
+                case "ID":
+                    if value not in ids:
+                        print(f"Error: ID '{value}' not found in collected IDs.")
                         sys.exit(1)
-                    event_buf.extend(int(event_id).to_bytes(2, byteorder='little'))
-                buf.extend(write_chunk(IFF_EVENTS, event_buf, len(event_buf)))
+                    data.extend(self.get_chunk_int(IFF_ID, ids.index(value), 1))
+                case "SubType":
+                    data.extend(self.get_chunk_int(IFF_SUBTYPE, value, 1))
+                case "Text":
+                    data.extend(self.get_chunk_buf(IFF_TEXT, value.encode('ascii', 'replace')))
+                case "Script":
+                    pass
+                case "Events":
+                    for event in value:
+                        event_id = define_data.get("Event").get(event)
+                        if event_id is None:
+                            print(f"Error: Unknown event found: {event}")
+                            sys.exit(1)
+                        data.extend(self.get_chunk_int(IFF_EVENTS, event_id, 1))
+                case "Notifies":
+                    for notify in value:
+                        if notify not in ids:
+                            print(f"Error: Notify ID '{notify}' not found in collected IDs.")
+                            sys.exit(1)
+                        data.extend(self.get_chunk_int(IFF_NOTIFY, ids.index(notify), 1))
+                case _:
+                    print(f"Warning: Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
 
-            case "CLOSEIDS":
-                close_id_buf = bytearray()
-                for val in value:
-                    ui_id = ids.index(val)
-                    if ui_id is None:
-                        print(f"Error: Unknown ID found in CloseID: {val}")
-                        sys.exit(1)
-                    close_id_buf.extend(int(ui_id).to_bytes(1, byteorder='little'))
-                buf.extend(write_chunk(IFF_CLOSE_IDS, close_id_buf, len(close_id_buf)))
 
-            case "SCRIPT":
-                pass
+        # 子の処理
+        children_buf = bytearray()
+        for child in self.children:
+            children_buf.extend(child.get_chunk())  # 再帰的に子を処理する
+        data.extend(children_buf)
 
-            # 知らないkeyが来た場合はエラーにする
-            case _:
-                print(f"Error: Unknown key found: {key}")
-                sys.exit(1)
+        return data
 
-    return buf
+    # 個別処理
+    # *************************************************************************
+    def check_type(self):
+        data = bytearray()
+
+        # デバッグ用に保存しながら取得
+        self.chunk_type_str = self.props.get("Type")
+        if self.chunk_type_str is None:
+            print("Error: Type is missing in the root node.")
+            sys.exit(1)
+
+        self.chunk_type = define_data.get("Type").get(self.chunk_type_str)
+        if self.chunk_type is None:
+            print(f"Error: Unknown type found: {self.chunk_type_str}")
+            sys.exit(1)
+
+        # typeをまずは書き出す
+        data.extend(self.get_chunk_int(IFF_TYPE, self.chunk_type, 1))
+        self.props.pop("Type", None)  # Typeをpropsから削除する
+
+        return data
+
+    def check_select(self):
+        if self.chunk_type != define_data.get("Type").get("TYPE_SELECT"):
+            return bytearray()  # Selectタイプ以外は無視する
+
+        # RowsNumの取得
+        rows_num = self.props.get("RowsNum", 255)
+        self.props.pop("RowsNum", None)  # RowsNumをpropsから削除する
+
+        # SelItemsの取得
+        sel_item_buf = bytearray()
+        items = self.props.get("SelItems", [])
+        for item in items:
+            sel_item_buf.extend(self.get_chunk_buf(IFF_SEL_ITEM, item.encode('ascii', 'replace')))
+        self.props.pop("SelItems", None)  # SelItemsをpropsから削除する
+
+        # Select用dataの組み立て
+        data = bytearray()
+        data.extend(self.get_chunk_int(IFF_SELECT, rows_num, 1))
+        data.extend(sel_item_buf)
+
+        select_buf = bytearray()
+        select_buf.extend(self.get_chunk_buf(IFF_SELECT, data))
+        self.props.pop("Select", None)  # Selectをpropsから削除する
+
+        return select_buf
+
+    def check_area(self):
+        # 後で実装する
+        self.props.pop("AlignCenterX", None)
+
+        area_buf = bytearray()
+        area_buf.extend(self.props.get("X", 0).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("Y", 0).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("W", 0xffff).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("H", 0xffff).to_bytes(2, byteorder='little'))
+        self.props.pop("X", None)
+        self.props.pop("Y", None)
+        self.props.pop("W", None)
+        self.props.pop("H", None)
+        return self.get_chunk_buf(IFF_AREA, area_buf)
 
 
 # 出力データ作成
-buf = bytearray()
+# *****************************************************************************
+data = bytearray()
 
 # header
-buf.extend(b'UIFF')  # magic
+total_size = len(data)
+data.extend(b'UIFF')  # magic
+data.extend(total_size.to_bytes(2, byteorder='little'))  # total size
 
-# データ部
-# *****************************************************************************
-# 配列ならループで
-if isinstance(ui_data, list):
-    for item in ui_data:
-        buf.extend(convert(item))
+
+root = DispatchTree(ui_data)
+if root.props.get("Type") is None:
+    # rootがListの場合はchildrenが処理対象
+    for child in root.children:
+        data.extend(child.get_chunk())
 else:
-    # 配列でなければそのまま
-    buf.extend(convert(ui_data))
+    data.extend(root.get_chunk())
 
 # 最後にpaddingを追加する
-padding_size = (4 - (len(buf) % 4)) % 4
-buf.extend(b'\x00' * padding_size)
+padding_size = (4 - (len(data) % 4)) % 4
+data.extend(b'\x00' * padding_size)
 
 # お試し出力
-print(" ".join(f"{byte:02X}" for byte in buf))
+print(" ".join(f"{byte:02X}" for byte in data))
