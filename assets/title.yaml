@@ -1,6 +1,7 @@
 - Type: TYPE_WINDOW
   W: 8
   H: 3
+  Events: [EVENT_WIN_CLOSE]
   children:
   - Type: TYPE_AREA
     W: 6  # 幅を決めないとAlignが効かない
@@ -20,10 +21,11 @@
         Script: |-
           import "assets/vm.yaml"
           if VM[VM_EVENT] == EVENT_KEY_START:
+            VM[VM_NOTIFY] = EVENT_WIN_CLOSE
             match VM[VM_SELECT_NO]:
               case 0:  # START
                 return 1
-              case 1:  # CONTINUE
+              case _:  # CONTINUE
                 return 2
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"

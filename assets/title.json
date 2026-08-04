@@ -3,6 +3,9 @@
     "Type": "TYPE_WINDOW",
     "W": 8,
     "H": 3,
+    "Events": [
+      "EVENT_WIN_CLOSE"
+    ],
     "children": [
       {
         "Type": "TYPE_AREA",

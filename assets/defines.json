@@ -18,7 +18,8 @@
     "EVENT_KEY_LEFT": 21,
     "EVENT_KEY_RIGHT": 22,
     "EVENT_KEY_UP": 23,
-    "EVENT_KEY_DOWN": 24
+    "EVENT_KEY_DOWN": 24,
+    "EVENT_WIN_CLOSE": 25
   }
 }
 
