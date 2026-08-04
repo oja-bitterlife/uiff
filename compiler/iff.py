@@ -19,12 +19,10 @@ IFF_DEF_SELECT = 0x10
 IFF_SELECT = IFF_DEF_SELECT + 1  # [SELECT][chunk_size][SelRows(1byte)][SEL_ITEM][SEL_ITEM]...
 IFF_SEL_ITEM = IFF_DEF_SELECT + 2  # [SEL_ITEM][chunk_size][data]
 
-# イベント系
+# イベント
 IFF_DEF_EVENT = 0x20
-# 受信
+# ブロック受信
 IFF_EVENTS = IFF_DEF_EVENT + 1  # [EVENTS][chunk_size][event_id(1byte)][event_id(1byte)]...
-# 送信
-IFF_NOTIFIES = IFF_DEF_EVENT + 2  # [NOTIFIES][chunk_size][event_id(1byte)][event_id(1byte)]...
 
 # データ系
 IFF_DEF_DATA = 0x30

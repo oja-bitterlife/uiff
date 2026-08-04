@@ -108,13 +108,6 @@ class DispatchTree:
                             print(f"Error: Unknown event found: {event}")
                             sys.exit(1)
                         data.extend(self.get_chunk_int(IFF_EVENTS, event_id, 1))
-                case "Notifies":
-                    for notify in value:
-                        notify_id = define_data.get("Event").get(notify)
-                        if notify_id is None:
-                            print(f"Error: Unknown notify found: {notify}")
-                            sys.exit(1)
-                        data.extend(self.get_chunk_int(IFF_NOTIFIES, notify_id, 1))
                 case _:
                     raise ValueError(f"Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
 

@@ -30,10 +30,7 @@
                   "EVENT_KEY_DOWN",
                   "EVENT_KEY_START"
                 ],
-                "Notifies": [
-                  "EVENT_WIN_CLOSE"
-                ],
-                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
+                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  VM[VM_NOTIFY] = EVENT_WIN_CLOSE  # ついでにウインドウを閉じる\n  match VM[VM_SELECT_NO]:\n    case 0:  # START\n      return 1\n    case 1:  # CONTINUE\n      return 2"
               }
             ]
           },
@@ -52,7 +49,6 @@
               "NORMAL",
               "FAST"
             ],
-            "SelRows": 3,
             "Events": [
               "EVENT_KEY_LEFT",
               "EVENT_KEY_RIGHT"

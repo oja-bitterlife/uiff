@@ -16,14 +16,14 @@
         SelRows: 1  # 縦並び
         SelItems: ["START", "CONTINUE"]
         Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
-        Notifies: ["EVENT_WIN_CLOSE"]
         Script: |-
           import "assets/vm.yaml"
           if VM[VM_EVENT] == EVENT_KEY_START:
+            VM[VM_NOTIFY] = EVENT_WIN_CLOSE  # ついでにウインドウを閉じる
             match VM[VM_SELECT_NO]:
-              case 0:
+              case 0:  # START
                 return 1
-              case 1:
+              case 1:  # CONTINUE
                 return 2
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"
