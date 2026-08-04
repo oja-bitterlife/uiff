@@ -2,28 +2,6 @@ import json, argparse, os, sys
 from unittest import case
 from iff import *
 
-# プリプロセス
-# *****************************************************************************
-# data中のIDを再帰しながら探してIDリストを作成する
-ids = [None]
-def collect_ids(obj):
-    if isinstance(obj, dict):
-        if 'ID' in obj:
-            # IDが重複していないかチェック
-            if obj['ID'] in ids:
-                print(f"Error: Duplicate ID found: {obj['ID']}")
-                sys.exit(1)
-            ids.append(obj['ID'])
-        for value in obj.values():
-            collect_ids(value)
-    elif isinstance(obj, list):
-        for item in obj:
-            collect_ids(item)
-
-# デバッグ用
-# print("Collected IDs:", ids)
-
-
 # コンバート関数
 # *****************************************************************************
 class DispatchTree:
@@ -222,8 +200,6 @@ if __name__ == "__main__":
     # JSONファイルを読み込む
     with open(args.input_file, 'r') as f:
         ui_data = json.load(f)
-
-    collect_ids(ui_data)
 
     # 定義用jsonを-def <filename>で指定されたファイルから読み込む
     # ---------------------------------------------------------
