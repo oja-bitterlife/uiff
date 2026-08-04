@@ -1,6 +1,6 @@
 # IFF format
 # *****************************************************************************
-# 2byte: chunk type
+# 1byte: chunk type
 # 2byte: chunk size
 # chunk data
 # 0... 4byte境界にpaddingする
