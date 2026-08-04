@@ -200,17 +200,13 @@ class DispatchTree:
         return self.get_chunk_buf(IFF_AREA, area_buf)
 
 
+# jsonからDispatchTreeを作成する
+root = DispatchTree(ui_data)
+
 # 出力データ作成
 # *****************************************************************************
+# dispatch treeを再帰的に処理してdataを作成する
 data = bytearray()
-
-# header
-total_size = len(data)
-data.extend(b'UIFF')  # magic
-data.extend(total_size.to_bytes(2, byteorder='little'))  # total size
-
-
-root = DispatchTree(ui_data)
 if root.props.get("Type") is None:
     # rootがListの場合はchildrenが処理対象
     for child in root.children:
@@ -218,9 +214,18 @@ if root.props.get("Type") is None:
 else:
     data.extend(root.get_chunk())
 
-# 最後にpaddingを追加する
-padding_size = (4 - (len(data) % 4)) % 4
-data.extend(b'\x00' * padding_size)
+# header
+out = bytearray()
+total_size = len(data)
+out.extend(b'UIFF')  # magic
+out.extend(total_size.to_bytes(2, byteorder='little'))  # total size
+
+# データを追加
+out.extend(data)  # data
+
+# paddingを追加
+padding_size = (4 - (len(out) % 4)) % 4
+out.extend(b'\x00' * padding_size)
 
 # お試し出力
-print(" ".join(f"{byte:02X}" for byte in data))
+print(" ".join(f"{byte:02X}" for byte in out))
