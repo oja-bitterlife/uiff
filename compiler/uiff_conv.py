@@ -65,7 +65,7 @@ class DispatchTree:
                             sys.exit(1)
                         data.extend(self.get_chunk_int(IFF_EVENTS, event_id))
                 case _:
-                    raise ValueError(f"Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
+                    raise ValueError(f"Unknown property '{key}' found in {self.chunk_type_str}:{self.subtype_name}. Ignoring.")
 
         # 子の処理
         children_buf = bytearray()
@@ -79,20 +79,20 @@ class DispatchTree:
     # *************************************************************************
     def check_type(self):
         # デバッグ用に保存しながらTypeを取得
-        self.chunk_type_str = self.props.get("Type")
+        self.chunk_type_str = self.props.get("Type")  # デバッグ用
         if self.chunk_type_str is None:
             print("Error: Type is missing in the root node.")
             sys.exit(1)
 
+        # Typeの取得
         self.chunk_type = self.define_data.get("Type").get(self.chunk_type_str)
         if self.chunk_type is None:
             print(f"Error: Unknown type found: {self.chunk_type_str}")
             sys.exit(1)
 
         # SubTypeの取得
-        subtype = self.props.get("SubType")
-        if subtype is None:
-            subtype = 0  # SubTypeがない場合は0を使用する
+        self.subtype_name = self.props.get("SubType", "None")  # デバッグ用
+        subtype = self.props.get("SubType", 0)  # デフォルト値は0
         if not isinstance(subtype, int):
             # SubTypeがintでない場合はdefine_dataから取得する 
             subtype = self.define_data.get("SubType").get(subtype)
