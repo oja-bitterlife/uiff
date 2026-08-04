@@ -1,7 +1,6 @@
 [
   {
     "Type": "TYPE_WINDOW",
-    "ID": "win:title",
     "W": 8,
     "H": 3,
     "children": [
@@ -32,9 +31,9 @@
                   "EVENT_KEY_START"
                 ],
                 "Notifies": [
-                  "win:title"
+                  "EVENT_WIN_CLOSE"
                 ],
-                "script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
+                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  match VM[VM_SELECT_NO]:\n    case 0:\n      return 1\n    case 1:\n      return 2"
               }
             ]
           },

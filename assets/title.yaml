@@ -1,5 +1,4 @@
 - Type: TYPE_WINDOW
-  ID: win:title
   W: 8
   H: 3
   children:
@@ -17,8 +16,8 @@
         RowsNum: 1  # 縦並び
         SelItems: ["START", "CONTINUE"]
         Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
-        Notifies: ["win:title"]
-        script: |-
+        Notifies: ["EVENT_WIN_CLOSE"]
+        Script: |-
           import "assets/vm.yaml"
           if VM[VM_EVENT] == EVENT_KEY_START:
             match VM[VM_SELECT_NO]:

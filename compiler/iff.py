@@ -1,6 +1,6 @@
 # IFF format
 # *****************************************************************************
-# 1byte: chunk type
+# 2byte: chunk type
 # 2byte: chunk size
 # chunk data
 # 0... 4byte境界にpaddingする
@@ -12,10 +12,7 @@
 # chank typeの定義
 # *****************************************************************************
 # 基本系
-IFF_TYPE = 0x01  # [TYPE][chunk_size][type_id(1byte)]
-IFF_SUBTYPE = 0x02  # [SUBTYPE][chunk_size][subtype_id(1byte)]
-IFF_ID = 0x03  # [ID][chunk_size][id(1byte)]
-IFF_AREA = 0x04  # [AREA][chunk_size][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+IFF_TYPE = 0x01  # [TYPE][chunk_size][type_id(1byte)][subtype_id(1byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
 
 # 選択系
 IFF_DEF_SELECT = 0x10
@@ -24,8 +21,10 @@ IFF_SEL_ITEM = IFF_DEF_SELECT + 2  # [SEL_ITEM][chunk_size][data]
 
 # イベント系
 IFF_DEF_EVENT = 0x20
+# 受信
 IFF_EVENTS = IFF_DEF_EVENT + 1  # [EVENTS][chunk_size][event_id(1byte)][event_id(1byte)]...
-IFF_NOTIFY = IFF_DEF_EVENT + 2  # [NOTIFY][chunk_size][id(1byte)][id(1byte)]...
+# 送信
+IFF_NOTIFIES = IFF_DEF_EVENT + 2  # [NOTIFIES][chunk_size][event_id(1byte)][event_id(1byte)]...
 
 # データ系
 IFF_DEF_DATA = 0x30

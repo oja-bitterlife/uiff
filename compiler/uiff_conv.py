@@ -94,19 +94,9 @@ class DispatchTree:
         # selectのチェック
         data.extend(self.check_select())
 
-        # areaのチェック
-        data.extend(self.check_area())
-
         # 残りのpropsを順番に書き出す
         for key, value in self.props.items():
             match key:
-                case "ID":
-                    if value not in ids:
-                        print(f"Error: ID '{value}' not found in collected IDs.")
-                        sys.exit(1)
-                    data.extend(self.get_chunk_int(IFF_ID, ids.index(value), 1))
-                case "SubType":
-                    data.extend(self.get_chunk_int(IFF_SUBTYPE, value, 1))
                 case "Text":
                     data.extend(self.get_chunk_buf(IFF_TEXT, value.encode('ascii', 'replace')))
                 case "Script":
@@ -120,13 +110,13 @@ class DispatchTree:
                         data.extend(self.get_chunk_int(IFF_EVENTS, event_id, 1))
                 case "Notifies":
                     for notify in value:
-                        if notify not in ids:
-                            print(f"Error: Notify ID '{notify}' not found in collected IDs.")
+                        notify_id = define_data.get("Event").get(notify)
+                        if notify_id is None:
+                            print(f"Error: Unknown notify found: {notify}")
                             sys.exit(1)
-                        data.extend(self.get_chunk_int(IFF_NOTIFY, ids.index(notify), 1))
+                        data.extend(self.get_chunk_int(IFF_NOTIFIES, notify_id, 1))
                 case _:
-                    print(f"Warning: Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
-
+                    raise ValueError(f"Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
 
         # 子の処理
         children_buf = bytearray()
@@ -139,9 +129,7 @@ class DispatchTree:
     # 個別処理
     # *************************************************************************
     def check_type(self):
-        data = bytearray()
-
-        # デバッグ用に保存しながら取得
+        # デバッグ用に保存しながらTypeを取得
         self.chunk_type_str = self.props.get("Type")
         if self.chunk_type_str is None:
             print("Error: Type is missing in the root node.")
@@ -152,11 +140,36 @@ class DispatchTree:
             print(f"Error: Unknown type found: {self.chunk_type_str}")
             sys.exit(1)
 
-        # typeをまずは書き出す
-        data.extend(self.get_chunk_int(IFF_TYPE, self.chunk_type, 1))
+        # SubTypeの取得
+        subtype = int(self.props.get("SubType", 0))
+        self.props.pop("SubType", None)  # SubTypeをpropsから削除する
+
+        # Areaの取得
+        # 後で実装する
+        self.props.pop("AlignCenterX", None)
+
+        area_buf = bytearray()
+        area_buf.extend(self.props.get("X", 0).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("Y", 0).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("W", 0xffff).to_bytes(2, byteorder='little'))
+        area_buf.extend(self.props.get("H", 0xffff).to_bytes(2, byteorder='little'))
+        self.props.pop("X", None)
+        self.props.pop("Y", None)
+        self.props.pop("W", None)
+        self.props.pop("H", None)
+
+        # data部を作成する
+        data = bytearray()
+        data.extend(self.chunk_type.to_bytes(1, byteorder='little'))
+        data.extend(subtype.to_bytes(1, byteorder='little'))
+        data.extend(area_buf)
+
+        # chunkの作成
+        out = bytearray()
+        out.extend(self.get_chunk_buf(IFF_TYPE, data))
         self.props.pop("Type", None)  # Typeをpropsから削除する
 
-        return data
+        return out
 
     def check_select(self):
         if self.chunk_type != define_data.get("Type").get("TYPE_SELECT"):
@@ -184,20 +197,6 @@ class DispatchTree:
 
         return select_buf
 
-    def check_area(self):
-        # 後で実装する
-        self.props.pop("AlignCenterX", None)
-
-        area_buf = bytearray()
-        area_buf.extend(self.props.get("X", 0).to_bytes(2, byteorder='little'))
-        area_buf.extend(self.props.get("Y", 0).to_bytes(2, byteorder='little'))
-        area_buf.extend(self.props.get("W", 0xffff).to_bytes(2, byteorder='little'))
-        area_buf.extend(self.props.get("H", 0xffff).to_bytes(2, byteorder='little'))
-        self.props.pop("X", None)
-        self.props.pop("Y", None)
-        self.props.pop("W", None)
-        self.props.pop("H", None)
-        return self.get_chunk_buf(IFF_AREA, area_buf)
 
 
 # jsonからDispatchTreeを作成する
