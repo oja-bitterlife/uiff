@@ -16,7 +16,7 @@ IFF_TYPE = 0x01  # [TYPE][chunk_size][type_id(1byte)][subtype_id(1byte)][X(2byte
 
 # 選択系
 IFF_DEF_SELECT = 0x10
-IFF_SELECT = IFF_DEF_SELECT + 1  # [SELECT][chunk_size][ROWS_NUM(1byte)][SEL_ITEM][SEL_ITEM]...
+IFF_SELECT = IFF_DEF_SELECT + 1  # [SELECT][chunk_size][SelRows(1byte)][SEL_ITEM][SEL_ITEM]...
 IFF_SEL_ITEM = IFF_DEF_SELECT + 2  # [SEL_ITEM][chunk_size][data]
 
 # イベント系

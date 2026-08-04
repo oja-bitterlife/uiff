@@ -20,7 +20,7 @@
             "children": [
               {
                 "Type": "TYPE_SELECT",
-                "RowsNum": 1,
+                "SelRows": 1,
                 "SelItems": [
                   "START",
                   "CONTINUE"
@@ -52,7 +52,7 @@
               "NORMAL",
               "FAST"
             ],
-            "RowsNum": 3,
+            "SelRows": 3,
             "Events": [
               "EVENT_KEY_LEFT",
               "EVENT_KEY_RIGHT"

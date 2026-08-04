@@ -175,9 +175,9 @@ class DispatchTree:
         if self.chunk_type != define_data.get("Type").get("TYPE_SELECT"):
             return bytearray()  # Selectタイプ以外は無視する
 
-        # RowsNumの取得
-        rows_num = self.props.get("RowsNum", 255)
-        self.props.pop("RowsNum", None)  # RowsNumをpropsから削除する
+        # SelRowsの取得
+        rows_num = self.props.get("SelRows", 255)
+        self.props.pop("SelRows", None)  # SelRowsをpropsから削除する
 
         # SelItemsの取得
         sel_item_buf = bytearray()
