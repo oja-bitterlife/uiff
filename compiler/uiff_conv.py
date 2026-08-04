@@ -73,16 +73,16 @@ class DispatchTree:
     # コンバート各処理
     def get_chunk_buf(self, chunk_type:int, data: bytes):
         data = bytearray()
-        # chunk_typeを1byteで書き出す
-        data.extend(int(chunk_type).to_bytes(1, byteorder='little'))
+        # chunk_typeを2byteで書き出す
+        data.extend(int(chunk_type).to_bytes(2, byteorder='little'))
         # chunk_sizeを2byteで書き出す
         data.extend(len(data).to_bytes(2, byteorder='little'))
         # dataをそのまま書き出す
         data.extend(data)
         return data
 
-    def get_chunk_int(self, chunk_type:int, data:int, size:int):
-        return self.get_chunk_buf(chunk_type, data.to_bytes(size, byteorder='little'))
+    def get_chunk_int(self, chunk_type:int, data:int):
+        return self.get_chunk_buf(chunk_type, data.to_bytes(2, byteorder='little'))
 
     # コンバート
     def get_chunk(self):
@@ -107,7 +107,7 @@ class DispatchTree:
                         if event_id is None:
                             print(f"Error: Unknown event found: {event}")
                             sys.exit(1)
-                        data.extend(self.get_chunk_int(IFF_EVENTS, event_id, 1))
+                        data.extend(self.get_chunk_int(IFF_EVENTS, event_id))
                 case _:
                     raise ValueError(f"Unknown property '{key}' found in {self.chunk_type_str}. Ignoring.")
 
@@ -161,8 +161,8 @@ class DispatchTree:
 
         # data部を作成する
         data = bytearray()
-        data.extend(self.chunk_type.to_bytes(1, byteorder='little'))
-        data.extend(subtype.to_bytes(1, byteorder='little'))
+        data.extend(self.chunk_type.to_bytes(2, byteorder='little'))
+        data.extend(subtype.to_bytes(2, byteorder='little'))
         data.extend(area_buf)
 
         # chunkの作成
@@ -177,7 +177,7 @@ class DispatchTree:
             return bytearray()  # Selectタイプ以外は無視する
 
         # SelRowsの取得
-        rows_num = self.props.get("SelRows", 255)
+        rows_num = self.props.get("SelRows", 32767)  # SelRowsがない場合は32767を使用する
         self.props.pop("SelRows", None)  # SelRowsをpropsから削除する
 
         # SelItemsの取得
@@ -189,7 +189,7 @@ class DispatchTree:
 
         # Select用dataの組み立て
         data = bytearray()
-        data.extend(self.get_chunk_int(IFF_SELECT, rows_num, 1))
+        data.extend(self.get_chunk_int(IFF_SELECT, rows_num))
         data.extend(sel_item_buf)
 
         select_buf = bytearray()
