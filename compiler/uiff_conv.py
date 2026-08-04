@@ -194,7 +194,7 @@ if __name__ == "__main__":
     # ---------------------------------------------------------
     parser = argparse.ArgumentParser(description='Convert UIFF to JSON')
     parser.add_argument('input_file', type=str, help='Input UIFF file')
-    parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON file')
+    parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON files [複数指定可]')
     args = parser.parse_args()
 
     # JSONファイルを読み込む
