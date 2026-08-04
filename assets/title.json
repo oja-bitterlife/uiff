@@ -20,6 +20,7 @@
             "children": [
               {
                 "Type": "TYPE_SELECT",
+                "SubType": "SEL_START",
                 "SelRows": 1,
                 "SelItems": [
                   "START",
@@ -30,7 +31,7 @@
                   "EVENT_KEY_DOWN",
                   "EVENT_KEY_START"
                 ],
-                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  VM[VM_NOTIFY] = EVENT_WIN_CLOSE  # ついでにウインドウを閉じる\n  match VM[VM_SELECT_NO]:\n    case 0:  # START\n      return 1\n    case 1:  # CONTINUE\n      return 2"
+                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  match VM[VM_SELECT_NO]:\n    case 0:  # START\n      return 1\n    case 1:  # CONTINUE\n      return 2"
               }
             ]
           },
@@ -42,6 +43,7 @@
           },
           {
             "Type": "TYPE_SELECT",
+            "SubType": "SEL_SPEED",
             "X": 1,
             "Y": 2,
             "SelItems": [

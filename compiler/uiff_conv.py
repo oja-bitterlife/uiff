@@ -134,7 +134,15 @@ class DispatchTree:
             sys.exit(1)
 
         # SubTypeの取得
-        subtype = int(self.props.get("SubType", 0))
+        subtype = self.props.get("SubType")
+        if subtype is None:
+            subtype = 0  # SubTypeがない場合は0を使用する
+        if not isinstance(subtype, int):
+            # SubTypeがintでない場合はdefine_dataから取得する 
+            subtype = define_data.get("SubType").get(subtype)
+            if subtype is None:
+                print(f"Error: Unknown subtype found: {self.props.get('SubType')}")
+                sys.exit(1)
         self.props.pop("SubType", None)  # SubTypeをpropsから削除する
 
         # Areaの取得

@@ -5,6 +5,10 @@
     "TYPE_LABEL": 3,
     "TYPE_SELECT": 4
   },
+  "SubType": {
+    "SEL_START": 1,
+    "SEL_SPEED": 2
+  },
   "Event": {
     "EVENT_KEY": 16,
     "EVENT_KEY_START": 17,
