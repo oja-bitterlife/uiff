@@ -5,7 +5,7 @@ vars:
   title_json: assets/title.json
 
 tasks:
-  conv_yaml:
+  yaml:
     desc: yamlをjsonに変換する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
@@ -15,12 +15,22 @@ tasks:
     generate:
       - "{{.title_json}}"
 
-  build:
+  run:
+    desc: uiffをコンパイルして結果を確認する
     cmds:
       - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json
     sources:
       - assets/defines.json
       - "{{.title_json}}"
+
+  bin:
+    desc: uiffをコンパイルしてバイナリを生成する
+    cmds:
+      - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > assets/title.bin
+    sources:
+      - assets/defines.json
+      - "{{.title_json}}"
+
 
   default:
     cmds:
