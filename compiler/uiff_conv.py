@@ -232,7 +232,7 @@ class ScriptDispatcher(DispatchBase):
         script = props.get(self.get_process_type(), "")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
-        return bc.get_bytecode()
+        return util_get_chunk_buf(IFF_SCRIPT, bc.get_bytecode())
 
 class EventsDispatcher(DispatchBase):
     def get_process_type(self):
@@ -246,8 +246,8 @@ class EventsDispatcher(DispatchBase):
             if event_id is None:
                 print(f"Error: Unknown event found: {event}")
                 sys.exit(1)
-            events_buf.extend(util_get_chunk_int(IFF_EVENTS, event_id))
-        return events_buf
+            events_buf.extend(event_id.to_bytes(2, byteorder='little'))
+        return util_get_chunk_buf(IFF_EVENTS, events_buf)
 
 
 # 特別なTypeの処理

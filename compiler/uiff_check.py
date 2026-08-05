@@ -86,7 +86,21 @@ def parse_chunk(data, size, indent=""):
             event_count = chunk_size // 2
             for i in range(event_count):
                 events.append(getUInt16(chunk_data, i * 2))
-                print(f"{indent}Event ID: {events}")
+            print(f"{indent}Event ID: {events}")
+
+            continue  # 次のchunkに進む
+
+        # Script
+        elif chunk_type == IFF_SCRIPT:
+            print(f"{indent}Script: {chunk_data.hex()}")
+
+            continue  # 次のchunkに進む
+
+        # Text
+        elif chunk_type == IFF_TEXT:
+            text_len = getUInt16(chunk_data, 0)
+            text_data = chunk_data[2:2 + text_len]
+            print(f"{indent}Text: {text_data.decode('ascii', 'replace')}")
 
             continue  # 次のchunkに進む
 
@@ -98,7 +112,7 @@ def parse_chunk(data, size, indent=""):
 
             continue  # 次のchunkに進む
 
-        raise ValueError(f"Unknown chunk type: {chunk_type}")
+        raise ValueError(f"Unknown chunk type: {chunk_type}({hex(chunk_type)})")
 
     return offset
 
