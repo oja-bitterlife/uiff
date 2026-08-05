@@ -3,6 +3,7 @@ version: 3
 
 vars:
   title_json: assets/title.json
+  bin_file: assets/title.uiff
 
 tasks:
   yaml:
@@ -26,11 +27,17 @@ tasks:
   bin:
     desc: uiffをコンパイルしてバイナリを生成する
     cmds:
-      - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > assets/title.bin
+      - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
     sources:
       - assets/defines.json
       - "{{.title_json}}"
 
+  check:
+    desc: uiffを確認する
+    cmds:
+      - python compiler/uiff_check.py {{.bin_file}}
+    sources:
+      - "{{.bin_file}}"
 
   default:
     cmds:
