@@ -213,7 +213,11 @@ class TextDispatcher(DispatchBase):
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         text = props.get(self.get_process_type(), "")
-        return util_get_chunk_buf(IFF_TEXT, text.encode('ascii', 'replace'))
+        # dataを2byte境界にして書き出す
+        data = text.encode('ascii', 'replace')
+        padding_size = (2 - (len(data) % 2)) % 2
+        # 先頭2byteにlenを付加してchunkを作成する
+        return util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size)
 
 class ScriptDispatcher(DispatchBase):
     def get_process_type(self):
@@ -255,7 +259,11 @@ class SelectDispatcher(DispatchBase):
         sel_item_buf = bytearray()
         items = props.get("SelItems", [])
         for item in items:
-            sel_item_buf.extend(util_get_chunk_buf(IFF_SEL_ITEM, item.encode('ascii', 'replace')))
+            # dataを2byte境界にして書き出す
+            data = item.encode('ascii', 'replace')
+            padding_size = (2 - (len(data) % 2)) % 2
+            # 先頭2byteにlenを付加してchunkを作成する
+            sel_item_buf.extend(util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
         props.pop("SelItems", None)  # SelItemsをpropsから削除する
 
         # Select用dataの組み立て
