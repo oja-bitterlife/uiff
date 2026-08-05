@@ -10,34 +10,21 @@ tasks:
     desc: yamlをjsonに変換する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
-    sources:
-      - assets/defines.json
-      - assets/title.yaml
-    generate:
-      - "{{.title_json}}"
 
   run:
     desc: uiffをコンパイルして結果を確認する
     cmds:
       - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json
-    sources:
-      - assets/defines.json
-      - "{{.title_json}}"
 
   bin:
     desc: uiffをコンパイルしてバイナリを生成する
     cmds:
       - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
-    sources:
-      - assets/defines.json
-      - "{{.title_json}}"
 
   check:
     desc: uiffを確認する
     cmds:
       - python compiler/uiff_check.py {{.bin_file}}
-    sources:
-      - "{{.bin_file}}"
 
   default:
     cmds:

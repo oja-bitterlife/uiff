@@ -20,3 +20,8 @@ if data[:4] != b'UIFF':
 # サイズの表示
 print("data-size:", getUInt16(data, 4))
 
+def parse_chunk(data, offset):
+    chunk_type = getUInt16(data, offset)
+    chunk_size = getUInt16(data, offset + 2)
+    chunk_data = data[offset + 4:offset + 4 + chunk_size]
+    return chunk_type, chunk_size, chunk_data

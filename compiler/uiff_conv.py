@@ -173,7 +173,10 @@ class DispatchTree(DispatchBase):
         children_buf = bytearray()
         for child in self.children:
             children_buf.extend(child.get_chunk())  # 再帰的に子を処理する
-        data.extend(children_buf)
+        # 2byte境界のはず
+        if len(children_buf) % 2 != 0:
+            raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
+        data.extend(util_get_chunk_buf(IFF_CHILD, children_buf))  # 子のchunkを追加する
 
         return data
 
