@@ -34,7 +34,7 @@
                   "EVENT_KEY_DOWN",
                   "EVENT_KEY_START"
                 ],
-                "Script": "import \"assets/vm.yaml\"\nif VM[VM_EVENT] == EVENT_KEY_START:\n  VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n  match VM[VM_SELECT_NO]:\n    case 0:  # START\n      return 1\n    case _:  # CONTINUE\n      return 2"
+                "Script": "from assets.vm import *\ndef main():\n  if VM[VM_EVENT] == EVENT_KEY_START:\n    VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n    match VM[VM_SELECT_NO]:\n      case 0:  # START\n        return 1\n      case _:  # CONTINUE\n        return 2"
               }
             ]
           },

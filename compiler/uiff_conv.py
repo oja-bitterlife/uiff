@@ -2,6 +2,10 @@ import json, argparse, os, sys
 from unittest import case
 from iff import *
 
+# script用
+sys.path.append(os.path.join(os.path.dirname(__file__), '../pyvm/compiler'))
+from pyvm_bc import BytecodeCompiler
+
 # 便利関数
 # *****************************************************************************
 class Area():
@@ -225,7 +229,9 @@ class ScriptDispatcher(DispatchBase):
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         script = props.get(self.get_process_type(), "")
-        return bytearray()
+        # scriptをコンパイルしてbytecodeに変換する
+        bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
+        return bc.get_bytecode()
 
 class EventsDispatcher(DispatchBase):
     def get_process_type(self):

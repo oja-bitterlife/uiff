@@ -19,14 +19,15 @@
         SelItems: ["START", "CONTINUE"]
         Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
         Script: |-
-          import "assets/vm.yaml"
-          if VM[VM_EVENT] == EVENT_KEY_START:
-            VM[VM_NOTIFY] = EVENT_WIN_CLOSE
-            match VM[VM_SELECT_NO]:
-              case 0:  # START
-                return 1
-              case _:  # CONTINUE
-                return 2
+          from assets.vm import *
+          def main():
+            if VM[VM_EVENT] == EVENT_KEY_START:
+              VM[VM_NOTIFY] = EVENT_WIN_CLOSE
+              match VM[VM_SELECT_NO]:
+                case 0:  # START
+                  return 1
+                case _:  # CONTINUE
+                  return 2
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"
       X: 2
