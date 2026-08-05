@@ -153,30 +153,33 @@ class DispatchTree(DispatchBase):
     def get_chunk(self):
         data = bytearray()
 
-        # ノードのtype情報を取得して以降の処理内容を決定する
-        type_info = TypeDispatcher(self.props, self.define_data)
-        data.extend(type_info.get_chunk())  # type情報もchunkとして出力
+        # list定義の場合childrenしかないのでpropsが空になる
+        if len(self.props) > 0:
+            # ノードのtype情報を取得して以降の処理内容を決定する
+            type_info = TypeDispatcher(self.props, self.define_data)
+            data.extend(type_info.get_chunk())  # type情報もchunkとして出力
 
-        # Type対象Dispatchersの処理
-        # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
-        if type_info.type_str in self.type_dispatchers:
-            data.extend(self.type_dispatchers[type_info.type_str]().get_chunk(type_info, self.props, self.define_data))
+            # Type対象Dispatchersの処理
+            # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
+            if type_info.type_str in self.type_dispatchers:
+                data.extend(self.type_dispatchers[type_info.type_str]().get_chunk(type_info, self.props, self.define_data))
 
-        # 残りのpropsを順番に書き出す
-        for key, value in self.props.items():
-            if key not in self.prop_dispatchers:
-                raise ValueError(f"Unknown property '{key}' found in {type_info.type_str}:{type_info.subtype_str}. Ignoring.")
-            data.extend(self.prop_dispatchers[key]().get_chunk(type_info, {key: value}, self.define_data))
+            # 残りのpropsを順番に書き出す
+            for key, value in self.props.items():
+                if key not in self.prop_dispatchers:
+                    raise ValueError(f"Unknown property '{key}' found in {type_info.type_str}:{type_info.subtype_str}. Ignoring.")
+                data.extend(self.prop_dispatchers[key]().get_chunk(type_info, {key: value}, self.define_data))
 
         # 子の処理
         # -----------------------------------------------------------
-        children_buf = bytearray()
-        for child in self.children:
-            children_buf.extend(child.get_chunk())  # 再帰的に子を処理する
-        # 2byte境界のはず
-        if len(children_buf) % 2 != 0:
-            raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
-        data.extend(util_get_chunk_buf(IFF_CHILD, children_buf))  # 子のchunkを追加する
+        if len(self.children) > 0:
+            children_buf = bytearray()
+            for child in self.children:
+                children_buf.extend(child.get_chunk())  # 再帰的に子を処理する
+            # 2byte境界のはず
+            if len(children_buf) % 2 != 0:
+                raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
+            data.extend(util_get_chunk_buf(IFF_CHILD, children_buf))  # 子のchunkを追加する
 
         return data
 
@@ -186,12 +189,7 @@ class DispatchTree(DispatchBase):
     def get_uidata(self):
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
-        if self.props.get("Type") is None:
-            # rootがListの場合はchildrenが処理対象
-            for child in self.children:
-                data.extend(child.get_chunk())
-        else:
-            data.extend(self.get_chunk())
+        data.extend(self.get_chunk())
 
         # header
         out = bytearray()
@@ -260,28 +258,26 @@ class SelectDispatcher(DispatchBase):
         return "TYPE_SELECT"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+        # Select用dataの組み立て
+        sel_data_buf = bytearray()
+
         # SelRowsの取得
         rows_num = props.get("SelRows", 32767)  # SelRowsがない場合は32767を使用する
+        sel_data_buf.extend(rows_num.to_bytes(2, byteorder='little'))
         props.pop("SelRows", None)  # SelRowsをpropsから削除する
 
         # SelItemsの取得
-        sel_item_buf = bytearray()
         items = props.get("SelItems", [])
         for item in items:
             # dataを2byte境界にして書き出す
             data = item.encode('ascii', 'replace')
             padding_size = (2 - (len(data) % 2)) % 2
             # 先頭2byteにlenを付加してchunkを作成する
-            sel_item_buf.extend(util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
+            sel_data_buf.extend(util_get_chunk_buf(IFF_SEL_ITEM, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
         props.pop("SelItems", None)  # SelItemsをpropsから削除する
 
-        # Select用dataの組み立て
-        data = bytearray()
-        data.extend(util_get_chunk_int(IFF_SELECT, rows_num))
-        data.extend(sel_item_buf)
-
         select_buf = bytearray()
-        select_buf.extend(util_get_chunk_buf(IFF_SELECT, data))
+        select_buf.extend(util_get_chunk_buf(IFF_SELECT, sel_data_buf))
         props.pop("Select", None)  # Selectをpropsから削除する
 
         return select_buf
