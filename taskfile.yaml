@@ -1,0 +1,28 @@
+# taskfile-go
+version: 3
+
+vars:
+  title_json: assets/title.json
+
+tasks:
+  conv_yaml:
+    desc: yamlをjsonに変換する
+    cmds:
+      - yq -o json assets/title.yaml > {{.title_json}}
+    sources:
+      - assets/defines.json
+      - assets/title.yaml
+    generate:
+      - "{{.title_json}}"
+
+  build:
+    cmds:
+      - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json
+    sources:
+      - assets/defines.json
+      - "{{.title_json}}"
+
+  default:
+    cmds:
+      - task --list
+
