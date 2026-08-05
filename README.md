@@ -119,8 +119,7 @@ in child chunk:
         Chunk Type: TYPE_SELECT:1
         Position: (0, 0), Size: (65535, 65535)
         SelRows: 1
-        SEL_ITEM: START
-        SEL_ITEM: CONTINUE
+        SEL_ITEM: ['START', 'CONTINUE']
         Event ID: [23, 24, 17]
         Script: 02010102112000112400021902030402020105020020001120000201001023000202000802000000
 
@@ -131,8 +130,6 @@ in child chunk:
       Chunk Type: TYPE_SELECT:2
       Position: (1, 2), Size: (65535, 65535)
       SelRows: 32767
-      SEL_ITEM: SLOW
-      SEL_ITEM: NORMAL
-      SEL_ITEM: FAST
+      SEL_ITEM: ['SLOW', 'NORMAL', 'FAST']
       Event ID: [21, 22]
 ```
