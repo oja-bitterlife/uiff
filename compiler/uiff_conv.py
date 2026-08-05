@@ -3,8 +3,8 @@ from unittest import case
 from iff import *
 
 # script用
-sys.path.append(os.path.join(os.path.dirname(__file__), '../pyvm/compiler'))
-from pyvm_bc import BytecodeCompiler
+sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
+from pyvm.compiler.pyvm_bc import BytecodeCompiler
 
 # 便利関数
 # *****************************************************************************
