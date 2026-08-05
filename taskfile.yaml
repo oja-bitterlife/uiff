@@ -6,19 +6,15 @@ vars:
   bin_file: assets/title.uiff
 
 tasks:
-  yaml:
-    desc: yamlをjsonに変換する
-    cmds:
-      - yq -o json assets/title.yaml > {{.title_json}}
-
   run:
     desc: uiffをコンパイルして結果を確認する
     cmds:
       - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json
 
   bin:
-    desc: uiffをコンパイルしてバイナリを生成する
+    desc: yamlをuiffに変換する
     cmds:
+      - yq -o json assets/title.yaml > {{.title_json}}
       - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
 
   check:
