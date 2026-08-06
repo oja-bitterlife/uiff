@@ -64,10 +64,9 @@ ColorはFG,BG用に複数入る形で用意してます。
 - Script
   - PYVM Script
 
-
 ## 拡張の仕方
 
-`compiler/uiff_conv`をimportして、DispatchTreeを拡張するか、そのまま使用してDispatcherを追加してください。
+追加のPropertyが欲しい場合は`compiler/uiff_conv`をimportして、DispatchTreeを拡張するか、そのまま使用してDispatcherを追加してください。
 
 ```python
 from compiler.uiff_comv import DispatchTree, DispatcherBase
@@ -83,6 +82,8 @@ root = DispatchTree(ui_data, define_dict)
 root.add_prop_dispatcher(YourPropertyDispatcher)
 root.print_uiff()
 ```
+
+特殊なType用に`add_type_dispatcher`も用意していますが、ほとんどの場合で`-def`で読む定義ファイルのTypeやSubTypeを増やすだけで事足りると思います。
 
 ## サンプル
 
