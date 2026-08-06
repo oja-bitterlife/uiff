@@ -20,6 +20,16 @@ class Area():
         self.w = w
         self.h = h
 
+    def get_area_buf(self):
+        area_buf = bytearray()
+        area_buf.extend(self.x.to_bytes(2, byteorder='little'))
+        area_buf.extend(self.y.to_bytes(2, byteorder='little'))
+        area_buf.extend(self.w.to_bytes(2, byteorder='little'))
+        area_buf.extend(self.h.to_bytes(2, byteorder='little'))
+        return area_buf
+
+    # レイアウト用
+    # ---------------------------------------------------------------
     def clip(self, parent_area):
         # 親の範囲に収まるようにclipする
         right = min(self.x + self.w, parent_area.x + parent_area.w)
@@ -30,13 +40,23 @@ class Area():
         self.w = right - self.x
         self.h = bottom - self.y
 
-    def get_area_buf(self):
-        area_buf = bytearray()
-        area_buf.extend(self.x.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.y.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.w.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.h.to_bytes(2, byteorder='little'))
-        return area_buf
+    def align_x(self, parent_area, align="left"):
+        # 親の範囲に収まるようにclipする
+        if align == "center":
+            self.x = parent_area.x + (parent_area.w - self.w) // 2
+        elif align == "left":
+            self.x = parent_area.x
+        elif align == "right":
+            self.x = parent_area.x + parent_area.w - self.w
+
+    def align_y(self, parent_area, align="top"):
+        # 親の範囲に収まるようにclipする
+        if align == "center":
+            self.y = parent_area.y + (parent_area.h - self.h) // 2
+        elif align == "top":
+            self.y = parent_area.y
+        elif align == "bottom":
+            self.y = parent_area.y + parent_area.h - self.h
 
 # コンバート各処理
 def util_get_chunk_buf(chunk_type:int, data: bytes):
@@ -107,8 +127,19 @@ class TypeDispatcher():
             self.area.clip(parent_area)  # 親の範囲に収まるようにclipする
         props.pop("Abs", None)
 
-        # 後で実装する
+        if props.get("AlignCenterX", False):
+            self.area.align_x(parent_area, "center")
         props.pop("AlignCenterX", None)
+        if props.get("AlignRightX", False):
+            self.area.align_x(parent_area, "right")
+        props.pop("AlignRightX", None)
+        if props.get("AlignCenterY", False):
+            self.area.align_y(parent_area, "center")
+        props.pop("AlignCenterY", None)
+        if props.get("AlignBottomY", False):
+            self.area.align_y(parent_area, "bottom")
+        props.pop("AlignBottomY", None)
+
 
     def get_chunk(self):
         type_chunk = bytearray()

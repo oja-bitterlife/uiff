@@ -11,7 +11,9 @@
     "children": [
       {
         "Type": "TYPE_LAYOUT",
-        "Abs": true
+        "Abs": true,
+        "Y": 2,
+        "AlignCenterX": true
       },
       {
         "Type": "TYPE_LAYOUT",

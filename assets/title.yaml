@@ -7,6 +7,8 @@
   children:
   - Type: TYPE_LAYOUT  # タイトルロゴ
     Abs: true
+    Y: 2
+    AlignCenterX: true
   - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT
