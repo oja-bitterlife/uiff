@@ -10,7 +10,7 @@
   - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT
-      SubType: START
+      SubType: TITLE_START
       SelRows: 1  # 縦並び
       SelItems: ["START", "CONTINUE"]
       Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
@@ -29,13 +29,13 @@
     children:
     - Type: TYPE_LABEL
       AlignCenterX: true
-      Text: "-MESSAGE SPEAD-"
+      Text: "-MESSAGE SPEED-"
       X: 2
       Y: 1
       W: 15
       H: 1
     - Type: TYPE_SELECT
-      SubType: SPEED
+      SubType: TITLE_SPEED
       X: 1 
       Y: 2
       SelItems: ["SLOW", "NORMAL", "FAST"]

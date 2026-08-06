@@ -18,7 +18,7 @@
         "children": [
           {
             "Type": "TYPE_SELECT",
-            "SubType": "START",
+            "SubType": "TITLE_START",
             "SelRows": 1,
             "SelItems": [
               "START",
@@ -40,7 +40,7 @@
           {
             "Type": "TYPE_LABEL",
             "AlignCenterX": true,
-            "Text": "-MESSAGE SPEAD-",
+            "Text": "-MESSAGE SPEED-",
             "X": 2,
             "Y": 1,
             "W": 15,
@@ -48,7 +48,7 @@
           },
           {
             "Type": "TYPE_SELECT",
-            "SubType": "SPEED",
+            "SubType": "TITLE_SPEED",
             "X": 1,
             "Y": 2,
             "SelItems": [

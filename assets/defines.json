@@ -6,8 +6,8 @@
     "TYPE_SELECT": 4
   },
   "SubType": {
-    "START": 1,
-    "SPEED": 2
+    "TITLE_START": 1,
+    "TITLE_SPEED": 2
   },
   "Event": {
     "EVENT_KEY": 16,

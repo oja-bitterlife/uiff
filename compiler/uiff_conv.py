@@ -101,8 +101,7 @@ class TypeDispatcher():
         self.type_str = props.get("Type")  # デバッグ用
         self.type_id = define_data.get("Type").get(self.type_str)
         if self.type_id is None:
-            print(f"Error: Unknown type found: {self.type_str}")
-            sys.exit(1)
+            raise ValueError(f"Error: Unknown type found: {self.type_str}")
         props.pop("Type", None)  # Typeをpropsから削除する
 
         # SubTypeの取得
@@ -112,8 +111,7 @@ class TypeDispatcher():
             # SubTypeがintでない場合(名前指定)はdefine_dataから取得する 
             subtype_id = define_data.get("SubType").get(subtype_id)
             if subtype_id is None:
-                print(f"Error: Unknown subtype_id found: {self.subtype_str}")
-                sys.exit(1)
+                raise ValueError(f"Error: Unknown subtype_id found: {self.subtype_str}")
         self.subtype_id = subtype_id
         props.pop("SubType", None)  # SubTypeをpropsから削除する
 
@@ -128,15 +126,21 @@ class TypeDispatcher():
         if props.get("AlignCenterX", False):
             self.area.align_x(parent_area, "center")
         props.pop("AlignCenterX", None)
-        if props.get("AlignRightX", False):
+        if props.get("AlignLeft", False):
+            self.area.align_x(parent_area, "left")
+        props.pop("AlignLeft", None)
+        if props.get("AlignRight", False):
             self.area.align_x(parent_area, "right")
-        props.pop("AlignRightX", None)
+        props.pop("AlignRight", None)
         if props.get("AlignCenterY", False):
             self.area.align_y(parent_area, "center")
         props.pop("AlignCenterY", None)
-        if props.get("AlignBottomY", False):
+        if props.get("AlignTop", False):
+            self.area.align_y(parent_area, "top")
+        props.pop("AlignTop", None)
+        if props.get("AlignBottom", False):
             self.area.align_y(parent_area, "bottom")
-        props.pop("AlignBottomY", None)
+        props.pop("AlignBottom", None)
 
         # 親の範囲に収まるようにclipする
         if not props.get("Popup", False):
@@ -298,8 +302,7 @@ class EventsDispatcher(DispatchBase):
         for event in events:
             event_id = define_data.get("Event").get(event)
             if event_id is None:
-                print(f"Error: Unknown event found: {event}")
-                sys.exit(1)
+                raise ValueError(f"Error: Unknown event found: {event}")
             events_buf.extend(event_id.to_bytes(2, byteorder='little'))
         return util_get_chunk_buf(IFF_EVENTS, events_buf)
 
