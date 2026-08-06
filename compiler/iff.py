@@ -21,7 +21,6 @@ IFF_CHILD = 0x02  # [child chunk][child_chunk]...
 # 選択系
 IFF_DEF_SELECT = 0x10
 IFF_SELECT = IFF_DEF_SELECT + 1  # [SelRows(2byte)][SEL_ITEM][SEL_ITEM]...
-IFF_SEL_ITEM = IFF_DEF_SELECT + 2  # [len][data + padding(2)]
 
 # イベント
 IFF_DEF_EVENT = 0x20

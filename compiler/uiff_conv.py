@@ -273,7 +273,7 @@ class SelectDispatcher(DispatchBase):
             data = item.encode('ascii', 'replace')
             padding_size = (2 - (len(data) % 2)) % 2
             # 先頭2byteにlenを付加してchunkを作成する
-            sel_data_buf.extend(util_get_chunk_buf(IFF_SEL_ITEM, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
+            sel_data_buf.extend(util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
         props.pop("SelItems", None)  # SelItemsをpropsから削除する
 
         select_buf = bytearray()
