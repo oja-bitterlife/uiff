@@ -60,6 +60,24 @@ class Area():
         elif align == "bottom":
             self.y = parent_area.y + parent_area.h - self.h
 
+# 大文字小文字を無視したdictアクセス
+def ignore_pop(props: dict, key: str):
+    key_upper = key.upper()
+    target_key = None
+    for k in list(props.keys()):
+        if k.upper() == key_upper:
+            target_key = k
+            break
+    if target_key is not None:
+        props.pop(target_key, None)
+
+def ignore_get(props: dict, key: str, default=None):
+    key_upper = key.upper()
+    for k in props.keys():
+        if k.upper() == key_upper:
+            return props[k]
+    return default
+
 # コンバート各処理
 def util_get_chunk_buf(chunk_type:int, data: bytes):
     chunk = bytearray()
@@ -98,35 +116,37 @@ class TypeDispatcher():
 
     def __init__(self, parent_area: Area, props: dict, define_data: dict):
         # Typeの取得
-        self.type_str = props.get("Type")  # デバッグ用
+        self.type_str = ignore_get(props, "Type")  # デバッグ用
+        if self.type_str is None:
+            raise ValueError("Error: Type is not specified in props")
         self.type_id = define_data.get("Type").get(self.type_str)
         if self.type_id is None:
             raise ValueError(f"Error: Unknown type found: {self.type_str}")
-        props.pop("Type", None)  # Typeをpropsから削除する
+        ignore_pop(props, "Type")  # Typeをpropsから削除する
 
         # SubTypeの取得
-        self.subtype_str = str(props.get("SubType"))  # デバッグ用
-        subtype_id = props.get("SubType", 0)  # デフォルト値は0
+        self.subtype_str = ignore_get(props, "SubType")  # デバッグ用
+        subtype_id = ignore_get(props, "SubType", 0)  # デフォルト値は0
         if not isinstance(subtype_id, int):
             # SubTypeがintでない場合(名前指定)はdefine_dataから取得する 
             subtype_id = define_data.get("SubType").get(subtype_id)
             if subtype_id is None:
                 raise ValueError(f"Error: Unknown subtype_id found: {self.subtype_str}")
         self.subtype_id = subtype_id
-        props.pop("SubType", None)  # SubTypeをpropsから削除する
+        ignore_pop(props, "SubType")  # SubTypeをpropsから削除する
 
         # Areaの取得
-        self.area = Area(props.get("X", 0), props.get("Y", 0), props.get("W", INT16_MAX), props.get("H", INT16_MAX))
-        props.pop("X", None)
-        props.pop("Y", None)
-        props.pop("W", None)
-        props.pop("H", None)
+        self.area = Area(ignore_get(props, "X", 0), ignore_get(props, "Y", 0), ignore_get(props, "W", INT16_MAX), ignore_get(props, "H", INT16_MAX))
+        ignore_pop(props, "X")
+        ignore_pop(props, "Y")
+        ignore_pop(props, "W")
+        ignore_pop(props, "H")
 
         # Areaの更新
         # Popupがさいつよ
-        if props.get("Popup", False):
-            props.pop("Popup", None)
-        elif props.get("Extend", False):
+        if ignore_get(props, "Popup", False):
+            ignore_pop(props, "Popup")
+        elif ignore_get(props, "Extend", False):
             # 自分の範囲がはみ出たら範囲を広げる
             self.area.x += parent_area.x
             self.area.y += parent_area.y
@@ -134,27 +154,27 @@ class TypeDispatcher():
             bottom = max(self.area.y + self.area.h, parent_area.y + parent_area.h)
             self.area.w = right - self.area.x
             self.area.h = bottom - self.area.y
-            props.pop("Extend", None)
+            ignore_pop(props, "Extend")
         else:
             # Align系の処理
-            if props.get("AlignCenterX", False):
+            if ignore_get(props, "AlignCenterX", False):
                 self.area.align_x(parent_area, "center")
-                props.pop("AlignCenterX", None)
-            if props.get("AlignLeft", False):
+                ignore_pop(props, "AlignCenterX")
+            if ignore_get(props, "AlignLeft", False):
                 self.area.align_x(parent_area, "left")
-                props.pop("AlignLeft", None)
-            if props.get("AlignRight", False):
+                ignore_pop(props, "AlignLeft")
+            if ignore_get(props, "AlignRight", False):
                 self.area.align_x(parent_area, "right")
-                props.pop("AlignRight", None)
-            if props.get("AlignCenterY", False):
+                ignore_pop(props, "AlignRight")
+            if ignore_get(props, "AlignCenterY", False):
                 self.area.align_y(parent_area, "center")
-                props.pop("AlignCenterY", None)
-            if props.get("AlignTop", False):
+                ignore_pop(props, "AlignCenterY")
+            if ignore_get(props, "AlignTop", False):
                 self.area.align_y(parent_area, "top")
-                props.pop("AlignTop", None)
-            if props.get("AlignBottom", False):
+                ignore_pop(props, "AlignTop")
+            if ignore_get(props, "AlignBottom", False):
                 self.area.align_y(parent_area, "bottom")
-                props.pop("AlignBottom", None)
+                ignore_pop(props, "AlignBottom")
 
             # 親の範囲に収まるようにclipする
             self.area.clip(parent_area)
@@ -191,11 +211,12 @@ class DispatchTree(DispatchBase):
         else:  # dict
             # 辞書のときはchildren以外をpropsに突っ込む
             for key, value in json_data.items():
-                if key == "children":
+                key_upper = key.upper()
+                if key_upper == "CHILDREN":
                     # childrenの場合は再帰的にDispatchTreeを作成する
                     self.children = DispatchTree(value, define_data).children
                 else:
-                    self.props[key] = value
+                    self.props[key_upper] = value
 
         # type_dispatchersの登録
         self.add_type_dispatcher(SelectDispatcher)  # TYPE_SELECT用のディスパッチャを登録する
@@ -209,10 +230,10 @@ class DispatchTree(DispatchBase):
     # Dispatchersの追加
     # *************************************************************************
     def add_type_dispatcher(self, dispatcher_class:DispatchBase):
-        self.type_dispatchers[dispatcher_class().get_process_type()] = dispatcher_class
+        self.type_dispatchers[dispatcher_class().get_process_type().upper()] = dispatcher_class
 
     def add_prop_dispatcher(self, dispatcher_class:DispatchBase):
-        self.prop_dispatchers[dispatcher_class().get_process_type()] = dispatcher_class
+        self.prop_dispatchers[dispatcher_class().get_process_type().upper()] = dispatcher_class
 
     # コンバート
     # *************************************************************************
@@ -231,13 +252,15 @@ class DispatchTree(DispatchBase):
             # Type対象Dispatchersの処理
             # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
             if type_info.type_str in self.type_dispatchers:
-                data.extend(self.type_dispatchers[type_info.type_str]().get_chunk(type_info, self.props, self.define_data))
+                user_type = type_info.type_str.upper()
+                data.extend(self.type_dispatchers[user_type]().get_chunk(type_info, self.props, self.define_data))
 
             # 残りのpropsを順番に書き出す
             for key, value in self.props.items():
-                if key not in self.prop_dispatchers:
+                key_upper = key.upper()
+                if key_upper not in self.prop_dispatchers:
                     raise ValueError(f"Unknown property '{key}' found in {type_info.type_str}:{type_info.subtype_str}. Ignoring.")
-                data.extend(self.prop_dispatchers[key]().get_chunk(type_info, {key: value}, self.define_data))
+                data.extend(self.prop_dispatchers[key_upper]().get_chunk(type_info, {key: value}, self.define_data))
 
         # 子の処理
         # -----------------------------------------------------------
@@ -286,7 +309,7 @@ class TextDispatcher(DispatchBase):
         return "Text"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        text = props.get(self.get_process_type(), "")
+        text = ignore_get(props, self.get_process_type(), "")
         # dataを2byte境界にして書き出す
         data = text.encode('ascii', 'replace')
         padding_size = (2 - (len(data) % 2)) % 2
@@ -298,7 +321,9 @@ class ScriptDispatcher(DispatchBase):
         return "Script"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        script = props.get(self.get_process_type(), "")
+        script = ignore_get(props, self.get_process_type(), None)
+        if script is None:
+            raise ValueError(f"Error: Script is not specified in props for {type_info.type_str}:{type_info.subtype_str}")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
         return util_get_chunk_buf(IFF_SCRIPT, bc.get_bytecode())
@@ -309,7 +334,7 @@ class EventsDispatcher(DispatchBase):
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         events_buf = bytearray()
-        events = props.get(self.get_process_type(), [])
+        events = ignore_get(props, self.get_process_type(), [])
         for event in events:
             event_id = define_data.get("Event").get(event)
             if event_id is None:
@@ -323,7 +348,7 @@ class ColorDispatcher(DispatchBase):
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         color_buf = bytearray()
-        value = props.get(self.get_process_type(), [])
+        value = ignore_get(props, self.get_process_type(), [])
         for color in value:
             if not isinstance(color, int):
                 raise ValueError(f"Error: Color value must be an integer, got {color}")
@@ -343,23 +368,23 @@ class SelectDispatcher(DispatchBase):
         sel_data_buf = bytearray()
 
         # SelRowsの取得
-        rows_num = props.get("SelRows", INT16_MAX)  # SelRowsがない場合は最大値を使用する
+        rows_num = ignore_get(props, "SelRows", INT16_MAX)  # SelRowsがない場合は最大値を使用する
         sel_data_buf.extend(rows_num.to_bytes(2, byteorder='little'))
-        props.pop("SelRows", None)  # SelRowsをpropsから削除する
+        ignore_pop(props, "SelRows")  # SelRowsをpropsから削除する
 
         # SelItemsの取得
-        items = props.get("SelItems", [])
+        items = ignore_get(props, "SelItems", [])
         for item in items:
             # dataを2byte境界にして書き出す
             data = item.encode('ascii', 'replace')
             padding_size = (2 - (len(data) % 2)) % 2
             # 先頭2byteにlenを付加してchunkを作成する
             sel_data_buf.extend(util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size))
-        props.pop("SelItems", None)  # SelItemsをpropsから削除する
+        ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する
 
         select_buf = bytearray()
         select_buf.extend(util_get_chunk_buf(IFF_SELECT, sel_data_buf))
-        props.pop("Select", None)  # Selectをpropsから削除する
+        ignore_pop(props, "Select")  # Selectをpropsから削除する
 
         return select_buf
 
