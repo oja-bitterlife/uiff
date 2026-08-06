@@ -3,7 +3,9 @@
     "Type": "TYPE_WINDOW",
     "W": 30,
     "H": 20,
-    "Color": 10535167,
+    "Colors": [
+      10535167
+    ],
     "Events": [
       "EVENT_WIN_CLOSE"
     ],

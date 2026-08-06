@@ -17,7 +17,7 @@
 # 基本系
 IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
 IFF_CHILD = 0x02  # [child chunk][child_chunk]...
-IFF_COLOR = 0x03  # [color(4byte)]
+IFF_COLOR = 0x03  # [color(4byte)][color(4byte)]...
 
 # 選択系
 IFF_DEF_SELECT = 0x10

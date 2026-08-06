@@ -102,8 +102,11 @@ def parse_chunk(data, size, indent=""):
             continue  # 次のchunkに進む
 
         elif chunk_type == IFF_COLOR:
-            color_value = int.from_bytes(chunk_data[:4], byteorder='little')
-            print(f"{indent}Color: {color_value:#010x}")
+            colors = []
+            color_count = chunk_size // 4
+            for i in range(color_count):
+                colors.append(int.from_bytes(chunk_data[i*4:(i+1)*4], byteorder='little'))
+            print(f"{indent}Colors: {[f'{color:#010x}' for color in colors]}")
 
             continue  # 次のchunkに進む
 

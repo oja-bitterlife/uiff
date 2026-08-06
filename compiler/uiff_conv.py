@@ -319,11 +319,16 @@ class EventsDispatcher(DispatchBase):
 
 class ColorDispatcher(DispatchBase):
     def get_process_type(self):
-        return "Color"
+        return "Colors"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        color = props.get(self.get_process_type(), 0)
-        return util_get_chunk_buf(IFF_COLOR, color.to_bytes(4, byteorder='little'))
+        color_buf = bytearray()
+        value = props.get(self.get_process_type(), [])
+        for color in value:
+            if not isinstance(color, int):
+                raise ValueError(f"Error: Color value must be an integer, got {color}")
+            color_buf.extend(color.to_bytes(4, byteorder='little'))
+        return util_get_chunk_buf(IFF_COLOR, color_buf)
 
 
 # 特別なTypeの処理
