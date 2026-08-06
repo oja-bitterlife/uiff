@@ -120,7 +120,10 @@ def parse_chunk(data, size, indent=""):
 
             continue  # 次のchunkに進む
 
-        raise ValueError(f"Unknown chunk type: {chunk_type}({hex(chunk_type)})")
+        # チェッカでは警告を出して飛ばす
+        else:
+            print(f"{indent}☒ Unknown chunk type: {hex(chunk_type)}({chunk_type}), chunk size: {chunk_size}")
+            continue  # 次のchunkに進む
 
     return offset
 

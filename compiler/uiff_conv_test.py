@@ -2,7 +2,16 @@ import json, argparse, os, sys
 
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
-from compiler.uiff_conv_lib import DispatchTree
+
+
+from compiler.uiff_conv_lib import DispatchTree, DispatcherBase
+
+class MyDispatcher(DispatcherBase):
+    def get_dispatch_name(self):
+        return "MyProp"
+    def get_chunk(self, type_info, props, define_data):
+        # MyPropの値(int)をChunkに変換する
+        return self.create_chunk_buf(0x1000, props.get(self.get_dispatch_name()).to_bytes(2, byteorder='little'))
 
 # コマンドライン処理
 # *****************************************************************************
@@ -31,5 +40,5 @@ if __name__ == "__main__":
 
     # 結果出力
     root = DispatchTree(ui_data, define_dict)
+    root.add_prop_dispatcher(MyDispatcher)
     root.print_uiff()
-

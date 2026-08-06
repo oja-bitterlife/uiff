@@ -1,6 +1,7 @@
 [
   {
     "Type": "TYPE_WINDOW",
+    "MyProp": 4660,
     "W": 30,
     "H": 20,
     "Colors": [
