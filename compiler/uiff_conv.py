@@ -97,8 +97,8 @@ def util_get_chunk_int(chunk_type:int, data:int):
 # *****************************************************************************
 class DispatchBase():
     # 処理するType名を返す
-    def get_process_type(self) -> str:
-        raise NotImplementedError("get_process_type must be implemented in subclasses")
+    def get_process_name(self) -> str:
+        raise NotImplementedError("get_process_name must be implemented in subclasses")
 
     # chunkを作成する
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict) -> bytes:
@@ -231,10 +231,10 @@ class DispatchTree(DispatchBase):
     # Dispatchersの追加
     # *************************************************************************
     def add_type_dispatcher(self, dispatcher_class:DispatchBase):
-        self.type_dispatchers[dispatcher_class().get_process_type().upper()] = dispatcher_class
+        self.type_dispatchers[dispatcher_class().get_process_name().upper()] = dispatcher_class
 
     def add_prop_dispatcher(self, dispatcher_class:DispatchBase):
-        self.prop_dispatchers[dispatcher_class().get_process_type().upper()] = dispatcher_class
+        self.prop_dispatchers[dispatcher_class().get_process_name().upper()] = dispatcher_class
 
     # コンバート
     # *************************************************************************
@@ -279,7 +279,7 @@ class DispatchTree(DispatchBase):
 
     # 出力データ作成
     # *****************************************************************************
-    def get_uidata(self):
+    def get_uiff(self):
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
         data.extend(self.get_chunk(Area(0, 0, INT16_MAX, INT16_MAX)))  # 親の範囲は最大値で初期化する
@@ -299,18 +299,18 @@ class DispatchTree(DispatchBase):
 
         return out
 
-    def print_uidata(self):
-        out = self.get_uidata()
+    def print_uiff(self):
+        out = self.get_uiff()
         print(" ".join(f"{byte:02X}" for byte in out))
 
 # 個々のPropの処理
 # *****************************************************************************
 class TextDispatcher(DispatchBase):
-    def get_process_type(self):
+    def get_process_name(self):
         return "Text"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        text = ignore_get(props, self.get_process_type(), "")
+        text = ignore_get(props, self.get_process_name(), "")
         # dataを2byte境界にして書き出す
         data = text.encode('ascii', 'replace')
         padding_size = (2 - (len(data) % 2)) % 2
@@ -318,22 +318,22 @@ class TextDispatcher(DispatchBase):
         return util_get_chunk_buf(IFF_TEXT, len(data).to_bytes(2, byteorder='little') + data + b'\x00' * padding_size)
 
 class ScriptDispatcher(DispatchBase):
-    def get_process_type(self):
+    def get_process_name(self):
         return "Script"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        script = ignore_get(props, self.get_process_type(), "")
+        script = ignore_get(props, self.get_process_name(), "")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
         return util_get_chunk_buf(IFF_SCRIPT, bc.get_bytecode())
 
 class EventsDispatcher(DispatchBase):
-    def get_process_type(self):
+    def get_process_name(self):
         return "Events"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         events_buf = bytearray()
-        events = ignore_get(props, self.get_process_type(), [])
+        events = ignore_get(props, self.get_process_name(), [])
         for event in events:
             event_id = define_data.get("Event").get(event)
             if event_id is None:
@@ -342,12 +342,12 @@ class EventsDispatcher(DispatchBase):
         return util_get_chunk_buf(IFF_EVENTS, events_buf)
 
 class ColorDispatcher(DispatchBase):
-    def get_process_type(self):
+    def get_process_name(self):
         return "Colors"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         color_buf = bytearray()
-        value = ignore_get(props, self.get_process_type(), [])
+        value = ignore_get(props, self.get_process_name(), [])
         for color in value:
             if not isinstance(color, int):
                 raise ValueError(f"Error: Color value must be an integer, got {color}")
@@ -359,7 +359,7 @@ class ColorDispatcher(DispatchBase):
 # *****************************************************************************
 # TYPE_SELECTの処理
 class SelectDispatcher(DispatchBase):
-    def get_process_type(self):
+    def get_process_name(self):
         return "TYPE_SELECT"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
@@ -404,16 +404,16 @@ if __name__ == "__main__":
 
     # 定義用jsonを-def <filename>で指定されたファイルから読み込む
     # ---------------------------------------------------------
-    define_data = {}
+    define_dict = {}
     args = parser.parse_args()
 
     # 見つけた順でマージする
     if args.define:
         for define_file in args.define:
             with open(define_file, 'r') as f:
-                define_data.update(json.load(f))
+                define_dict.update(json.load(f))
 
     # 結果出力
-    root = DispatchTree(ui_data, define_data)
-    root.print_uidata()
+    root = DispatchTree(ui_data, define_dict)
+    root.print_uiff()
 

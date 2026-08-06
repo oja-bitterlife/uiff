@@ -36,7 +36,24 @@ IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
 
 ColorはFG,BG用に複数入る形で用意してます。
 
-`compiler/iff.py`に定義されているので、ユーザーディスパッチャを追加するときは数字が被らないようにしてください。
+## 拡張時
+
+`compiler/uiff_conv`をimportして、DispatchTreeを拡張するか、そのまま使用してDispatcherを追加してください。
+
+```python
+from compiler.uiff_comv import DispatchTree, DispatcherBase
+
+# override methods
+class YourPropertyDispatcher(DispatcherBase):
+  def get_process_name(self) -> str:
+    return "YourPropertyName"
+  def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict) -> bytes:
+    # make & return chunk data
+
+root = DispatchTree(ui_data, define_dict)
+root.add_prop_dispatcher(YourPropertyDispatcher)
+root.print_uiff()
+```
 
 ## サンプル
 
