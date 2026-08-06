@@ -98,6 +98,15 @@ root.add_prop_dispatcher(MyDispatcher)
 root.print_uiff()
 ```
 
+ユーザー定義プロパティはチェッカーを通すと`unknown chunk type`として表示されます
+
+```
+  Chunk Type: 1:0
+  Position: (0, 0), Size: (30, 20)
+  ☒ Unknown chunk type: 0x1000(4096), chunk size: 2
+```
+
+
 特殊なType用に`add_type_dispatcher`も用意していますが、ほとんどの場合プロパティを増やすだけでいけると思います。
 
 ## サンプル
