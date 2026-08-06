@@ -211,12 +211,13 @@ class DispatchTree(DispatchBase):
         else:  # dict
             # 辞書のときはchildren以外をpropsに突っ込む
             for key, value in json_data.items():
-                key_upper = key.upper()
-                if key_upper == "CHILDREN":
+                if key.upper() == "CHILDREN":
                     # childrenの場合は再帰的にDispatchTreeを作成する
                     self.children = DispatchTree(value, define_data).children
                 else:
-                    self.props[key_upper] = value
+                    self.props[key] = value
+
+        print(self.props)
 
         # type_dispatchersの登録
         self.add_type_dispatcher(SelectDispatcher)  # TYPE_SELECT用のディスパッチャを登録する
