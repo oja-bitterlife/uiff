@@ -1,7 +1,7 @@
 - Type: TYPE_WINDOW
   W: 30
   H: 20
-  Colors: [0x00a0c0ff]
+  Colors: [0xffffff, 0xa0c0ff]
   Events: [EVENT_WIN_CLOSE]
   children:
   - Type: TYPE_LAYOUT  # タイトルロゴ
