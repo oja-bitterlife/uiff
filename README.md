@@ -73,13 +73,16 @@ ColorはFG,BG用に複数入る形で用意してます。
 
 ### 定義済みProperty
 
-- Type,SubType
-  - int or ID(str)
+- Type
+  - ID(str)
   - 定義済みID
     - TYPE_LAYOUT
     - TYPE_WINDOW
     - TYPE_LABEL
     - TYPE_SELECT
+
+- SubType
+  - int or ID(str)
 - children
   - child components
 - X,Y,W,H
