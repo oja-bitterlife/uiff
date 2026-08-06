@@ -25,7 +25,7 @@
               case _:  # CONTINUE
                 return 2
   - Type: TYPE_LAYOUT  # メッセージスピード
-    Abs: true
+    Popup: true
     children:
     - Type: TYPE_LABEL
       AlignCenterX: true

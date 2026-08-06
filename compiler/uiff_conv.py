@@ -125,10 +125,6 @@ class TypeDispatcher():
         props.pop("H", None)
 
         # Areaの更新
-        if not props.get("Abs", False):
-            self.area.clip(parent_area)  # 親の範囲に収まるようにclipする
-        props.pop("Abs", None)
-
         if props.get("AlignCenterX", False):
             self.area.align_x(parent_area, "center")
         props.pop("AlignCenterX", None)
@@ -141,6 +137,11 @@ class TypeDispatcher():
         if props.get("AlignBottomY", False):
             self.area.align_y(parent_area, "bottom")
         props.pop("AlignBottomY", None)
+
+        # 親の範囲に収まるようにclipする
+        if not props.get("Popup", False):
+            self.area.clip(parent_area)
+        props.pop("Popup", None)
 
 
     def get_chunk(self):

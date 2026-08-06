@@ -35,7 +35,7 @@
       },
       {
         "Type": "TYPE_LAYOUT",
-        "Abs": true,
+        "Popup": true,
         "children": [
           {
             "Type": "TYPE_LABEL",
