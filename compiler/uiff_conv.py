@@ -123,30 +123,41 @@ class TypeDispatcher():
         props.pop("H", None)
 
         # Areaの更新
-        if props.get("AlignCenterX", False):
-            self.area.align_x(parent_area, "center")
-        props.pop("AlignCenterX", None)
-        if props.get("AlignLeft", False):
-            self.area.align_x(parent_area, "left")
-        props.pop("AlignLeft", None)
-        if props.get("AlignRight", False):
-            self.area.align_x(parent_area, "right")
-        props.pop("AlignRight", None)
-        if props.get("AlignCenterY", False):
-            self.area.align_y(parent_area, "center")
-        props.pop("AlignCenterY", None)
-        if props.get("AlignTop", False):
-            self.area.align_y(parent_area, "top")
-        props.pop("AlignTop", None)
-        if props.get("AlignBottom", False):
-            self.area.align_y(parent_area, "bottom")
-        props.pop("AlignBottom", None)
+        # Popupがさいつよ
+        if props.get("Popup", False):
+            props.pop("Popup", None)
+        elif props.get("Extend", False):
+            # 自分の範囲がはみ出たら範囲を広げる
+            self.area.x += parent_area.x
+            self.area.y += parent_area.y
+            right = max(self.area.x + self.area.w, parent_area.x + parent_area.w)
+            bottom = max(self.area.y + self.area.h, parent_area.y + parent_area.h)
+            self.area.w = right - self.area.x
+            self.area.h = bottom - self.area.y
+            props.pop("Extend", None)
+        else:
+            # Align系の処理
+            if props.get("AlignCenterX", False):
+                self.area.align_x(parent_area, "center")
+                props.pop("AlignCenterX", None)
+            if props.get("AlignLeft", False):
+                self.area.align_x(parent_area, "left")
+                props.pop("AlignLeft", None)
+            if props.get("AlignRight", False):
+                self.area.align_x(parent_area, "right")
+                props.pop("AlignRight", None)
+            if props.get("AlignCenterY", False):
+                self.area.align_y(parent_area, "center")
+                props.pop("AlignCenterY", None)
+            if props.get("AlignTop", False):
+                self.area.align_y(parent_area, "top")
+                props.pop("AlignTop", None)
+            if props.get("AlignBottom", False):
+                self.area.align_y(parent_area, "bottom")
+                props.pop("AlignBottom", None)
 
-        # 親の範囲に収まるようにclipする
-        if not props.get("Popup", False):
+            # 親の範囲に収まるようにclipする
             self.area.clip(parent_area)
-        props.pop("Popup", None)
-
 
     def get_chunk(self):
         type_chunk = bytearray()

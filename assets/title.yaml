@@ -7,6 +7,7 @@
   - Type: TYPE_LAYOUT  # タイトルロゴ
     X: -10
     Y: 2
+    Extend: true
   - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT

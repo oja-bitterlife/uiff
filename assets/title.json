@@ -11,7 +11,8 @@
       {
         "Type": "TYPE_LAYOUT",
         "X": -10,
-        "Y": 2
+        "Y": 2,
+        "Extend": true
       },
       {
         "Type": "TYPE_LAYOUT",
