@@ -36,7 +36,36 @@ IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
 
 ColorはFG,BG用に複数入る形で用意してます。
 
-## 拡張時
+### 定義済みProperty
+
+- Type,SubType
+  - ID from JSON(-def)
+- children
+  - child components
+- X,Y,W,H
+  - int
+  - offset from parent
+- Popup
+  - bool
+  - x,y,w,hの直接設定
+- Extend
+  - bool
+  - 親より大きい場合x,y,w,hが拡張されます
+- AlignLeft,AlignCenterX,AlignRight,AlignTop,AlignCenterY,AlignBottom
+  - bool
+- Colors
+  - int Array
+- Events
+  - ID Array from JSON(-def)
+- SelRows
+  - int
+- SelItems
+  - text Array
+- Script
+  - PYVM Script
+
+
+## 拡張の仕方
 
 `compiler/uiff_conv`をimportして、DispatchTreeを拡張するか、そのまま使用してDispatcherを追加してください。
 
