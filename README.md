@@ -80,7 +80,6 @@ ColorはFG,BG用に複数入る形で用意してます。
     - TYPE_WINDOW
     - TYPE_LABEL
     - TYPE_SELECT
-
 - SubType
   - int or ID(str)
 - children
