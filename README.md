@@ -75,8 +75,9 @@ from compiler.uiff_comv import DispatchTree, DispatcherBase
 
 # ディスパッチャの作成
 class MyDispatcher(DispatcherBase):
-    def get_dispatch_name(self):
-        return "MyProp"
+  def get_dispatch_name(self):
+      return "MyProp"
+
   def get_chunk(self, type_info, props, define_data):
       # ユーザー定義チャンク(0x1000)で、numを書き込む
       num = props.get(self.get_dispatch_name(), 0)
