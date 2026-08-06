@@ -32,3 +32,8 @@ IFF_DEF_DATA = 0x30
 IFF_TEXT = IFF_DEF_DATA + 1  # [len(2byte)][data + padding(2)]
 IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
 IFF_COLORS = IFF_DEF_DATA + 3  # [color(4byte)][color(4byte)]...
+
+
+# ユーザー定義 chunk type
+# *****************************************************************************
+IFF_DEF_USER = 0x100  # これ以降はユーザー定義chunk typeとして使用
