@@ -137,11 +137,21 @@ class DispatcherBase():
 
         return chunk
 
-    def create_chunk_int16(self, chunk_type:int, data:int):
-        return self.create_chunk_buf(chunk_type, data.to_bytes(2, byteorder='little'))
+    def create_chunk_int16(self, chunk_type:int, data:int|list):
+        buf = bytearray()
+        if isinstance(data, int):
+            data = [data]
+        for d in data:
+            buf.extend(d.to_bytes(2, byteorder='little'))
+        return self.create_chunk_buf(chunk_type, bytes(buf))
 
-    def create_chunk_int32(self, chunk_type:int, data:int):
-        return self.create_chunk_buf(chunk_type, data.to_bytes(4, byteorder='little'))
+    def create_chunk_int32(self, chunk_type:int, data:int|list):
+        buf = bytearray()
+        if isinstance(data, int):
+            data = [data]
+        for d in data:
+            buf.extend(d.to_bytes(4, byteorder='little'))
+        return self.create_chunk_buf(chunk_type, bytes(buf))
 
     def create_chunk_str(self, chunk_type:int, data: bytes):
         # 先頭2byteにlenを付加してchunkを作成する
@@ -259,11 +269,15 @@ class DispatchTree(DispatcherBase):
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
         screen = Area(0, 0, INT16_MAX, INT16_MAX)  # areaは最大値で初期化する
-        data.extend(self.get_chunk(screen))  # 再帰的にchunkを作成する
+
+        # 再帰的にchunkを作成する
+        data.extend(self.get_chunk(screen))
 
         # header
         out = bytearray()
         total_size = len(data)
+        if total_size > 0xffff:
+            raise ValueError(f"Total size of data exceeds 0xffff: {total_size}")
         out.extend(b'UIFF')  # magic
         out.extend(total_size.to_bytes(2, byteorder='little'))  # total size
 
@@ -422,30 +436,26 @@ class EventsDispatcher(DispatcherBase):
         return "Events"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        events_buf = bytearray()
-
         # Eventsのvalue部の取得
         events = self.ignore_get(props, self.get_dispatch_name(), [])
-        for event in events:
-            event_id = self.prop_def_get("Event", define_data, event)
-            if event_id is None:
-                raise ValueError(f"Error: Unknown event found: {event}")
-            events_buf.extend(event_id.to_bytes(2, byteorder='little'))
+
+        # define_dataからイベントIDを取得する
+        event_ids = [self.prop_def_get("Event", define_data, event) for event in events]
+        if None in event_ids:
+            raise ValueError(f"Error: Unknown event found in {events}.")
 
         # chunkを作成して返す
-        return self.create_chunk_buf(IFF_EVENTS, events_buf)
+        return self.create_chunk_int16(IFF_EVENTS, event_ids)
 
 class ColorDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Colors"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        color_buf = bytearray()
-        value = self.ignore_get(props, self.get_dispatch_name(), [])
-        for color in value:
-            if not isinstance(color, int):
-                raise ValueError(f"Error: Color value must be an integer, got {color}")
-            color_buf.extend(color.to_bytes(4, byteorder='little'))
-        return self.create_chunk_buf(IFF_COLORS, color_buf)
+        colors = self.ignore_get(props, self.get_dispatch_name(), [])
+        # colorsの値がintであることを確認する
+        if not all(isinstance(color, int) for color in colors):
+            raise ValueError(f"Error: Color value must be an integer, got {color}")
+        return self.create_chunk_int32(IFF_COLORS, colors)
 
 
