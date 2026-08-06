@@ -83,7 +83,7 @@ root.add_prop_dispatcher(YourPropertyDispatcher)
 root.print_uiff()
 ```
 
-特殊なType用に`add_type_dispatcher`も用意していますが、ほとんどの場合で`-def`で読む定義ファイルのTypeやSubTypeを増やすだけで事足りると思います。
+特殊なType用に`add_type_dispatcher`も用意していますが、ほとんどの場合プロパティを増やすだけでいけると思います。
 
 ## サンプル
 
