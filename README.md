@@ -3,47 +3,40 @@
 
 UIをIFF(Interchange File Format)形式のバイナリで扱うためのコンバーター
 
-## 予定
 
-相対座標、アライメントの解決を、UIFFのコンバート時に行う
+## 実装済みチャンク
 
-絶対座標指定Type(相対座標のリセット)を作る
+### チャンク部の構成
 
-## 実装済み
+[chank_id(2byte)][payload_size(2byte)][payload...]
 
-たぶんそのまま再生させるだけならもうイケル
+### 定義済みchunk_id
 
-- IFF_TYPE
+```
+IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+IFF_CHILD = 0x02  # [child chunk][child_chunk]...
+IFF_COLORS = 0x03  # [color(4byte)][color(4byte)]...
 
-    [type_id(2byte)][subtype_id(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+# 選択系
+IFF_DEF_SELECT = 0x10
+IFF_SELECT = IFF_DEF_SELECT + 1  # [SelRows(2byte)][SEL_ITEM][SEL_ITEM]...
 
-- IFF_CHILD = 0x02
+# イベント
+IFF_DEF_EVENT = 0x20
+# ブロック受信
+IFF_EVENTS = IFF_DEF_EVENT + 1  # [event_id(2byte)][event_id(2byte)]...
 
-    [child chunk][child_chunk]...
+# データ系
+IFF_DEF_DATA = 0x30
+IFF_TEXT = IFF_DEF_DATA + 1  # [len(2byte)][data + padding(2)]
+IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
+```
 
-- IFF_SELECT
+スクリプト部分はpyvmでpythonスクリプトをByteCodeにコンパイルされます。
 
-    [SelRows(2byte)][IFF_TEXT][IFF_TEXT]...
+ColorはFG,BG用に複数入る形で用意してます。
 
-- IFF_EVENTS
-
-    [event_id(2byte)][event_id(2byte)]...
-
-- IFF_TEXT
-
-    [len(2byte)][data + padding(2)]
-
-- IFF_SCRIPT
-
-    [bytecode]
-
-    スクリプト部分はpyvmでpythonスクリプトをByteCodeにコンパイル。
-
-- IFF_COLORS
-
-  [color(4byte)][color(4byte)]...
-
-  FG,BG用に複数入る形で用意
+`compiler/iff.py`に定義されているので、ユーザーディスパッチャを追加するときは数字が被らないようにしてください。
 
 ## サンプル
 

@@ -322,9 +322,7 @@ class ScriptDispatcher(DispatchBase):
         return "Script"
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
-        script = ignore_get(props, self.get_process_type(), None)
-        if script is None:
-            raise ValueError(f"Error: Script is not specified in props for {type_info.type_str}:{type_info.subtype_str}")
+        script = ignore_get(props, self.get_process_type(), "")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
         return util_get_chunk_buf(IFF_SCRIPT, bc.get_bytecode())
