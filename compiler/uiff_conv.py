@@ -22,10 +22,10 @@ class Area():
 
     def get_area_buf(self):
         area_buf = bytearray()
-        area_buf.extend(self.x.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.y.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.w.to_bytes(2, byteorder='little'))
-        area_buf.extend(self.h.to_bytes(2, byteorder='little'))
+        area_buf.extend((self.x & 0xffff).to_bytes(2, byteorder='little'))
+        area_buf.extend((self.y & 0xffff).to_bytes(2, byteorder='little'))
+        area_buf.extend((self.w & 0xffff).to_bytes(2, byteorder='little'))
+        area_buf.extend((self.h & 0xffff).to_bytes(2, byteorder='little'))
         return area_buf
 
     # レイアウト用
