@@ -68,18 +68,23 @@ ColorはFG,BG用に複数入る形で用意してます。
 
 追加のPropertyが欲しい場合は`compiler/uiff_conv`をimportして、DispatchTreeを拡張するか、そのまま使用してDispatcherを追加してください。
 
+`MyProp`というプロパティを追加する例
+
 ```python
 from compiler.uiff_comv import DispatchTree, DispatcherBase
 
-# override methods
-class YourPropertyDispatcher(DispatcherBase):
-  def get_process_name(self) -> str:
-    return "YourPropertyName"
-  def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict) -> bytes:
-    # make & return chunk data
+# ディスパッチャの作成
+class MyDispatcher(DispatcherBase):
+    def get_dispatch_name(self):
+        return "MyProp"
+  def get_chunk(self, type_info, props, define_data):
+      # ユーザー定義チャンク(0x1000)で、numを書き込む
+      num = props.get(self.get_dispatch_name(), 0)
+      return self.create_chunk_buf(0x1000, num.to_bytes(2, byteorder='little'))
 
+# ディスパッチャを登録してUIFFバイナリを出力
 root = DispatchTree(ui_data, define_dict)
-root.add_prop_dispatcher(YourPropertyDispatcher)
+root.add_prop_dispatcher(MyDispatcher)
 root.print_uiff()
 ```
 
