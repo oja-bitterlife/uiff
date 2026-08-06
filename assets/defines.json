@@ -1,13 +1,14 @@
 {
   "Type": {
     "TYPE_WINDOW": 1,
-    "TYPE_AREA": 2,
-    "TYPE_LABEL": 3,
-    "TYPE_SELECT": 4
+    "TYPE_LAYOUT": 2,
+    "TYPE_POPUP": 3,
+    "TYPE_LABEL": 4,
+    "TYPE_SELECT": 5
   },
   "SubType": {
-    "SEL_START": 1,
-    "SEL_SPEED": 2
+    "START": 1,
+    "SPEED": 2
   },
   "Event": {
     "EVENT_KEY": 16,

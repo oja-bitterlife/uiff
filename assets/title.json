@@ -1,52 +1,45 @@
 [
   {
     "Type": "TYPE_WINDOW",
-    "W": 8,
-    "H": 3,
     "Events": [
       "EVENT_WIN_CLOSE"
     ],
     "children": [
       {
-        "Type": "TYPE_AREA",
-        "W": 6,
-        "AlignCenterX": true,
+        "Type": "TYPE_POPUP"
+      },
+      {
+        "Type": "TYPE_LAYOUT",
         "children": [
           {
-            "Type": "TYPE_AREA"
-          },
-          {
-            "Type": "TYPE_AREA",
-            "Y": 2,
-            "W": 2,
-            "AlignCenterX": true,
-            "children": [
-              {
-                "Type": "TYPE_SELECT",
-                "SubType": "SEL_START",
-                "SelRows": 1,
-                "SelItems": [
-                  "START",
-                  "CONTINUE"
-                ],
-                "Events": [
-                  "EVENT_KEY_UP",
-                  "EVENT_KEY_DOWN",
-                  "EVENT_KEY_START"
-                ],
-                "Script": "from assets.vm import *\ndef main():\n  if VM[VM_EVENT] == EVENT_KEY_START:\n    VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n    match VM[VM_SELECT_NO]:\n      case 0:  # START\n        return 1\n      case _:  # CONTINUE\n        return 2"
-              }
-            ]
-          },
+            "Type": "TYPE_SELECT",
+            "SubType": "START",
+            "SelRows": 1,
+            "SelItems": [
+              "START",
+              "CONTINUE"
+            ],
+            "Events": [
+              "EVENT_KEY_UP",
+              "EVENT_KEY_DOWN",
+              "EVENT_KEY_START"
+            ],
+            "Script": "from assets.vm import *\ndef main():\n  if VM[VM_EVENT] == EVENT_KEY_START:\n    VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n    match VM[VM_SELECT_NO]:\n      case 0:  # START\n        return 1\n      case _:  # CONTINUE\n        return 2"
+          }
+        ]
+      },
+      {
+        "Type": "TYPE_LAYOUT",
+        "children": [
           {
             "Type": "TYPE_LABEL",
             "Text": "-MESSAGE SPEAD-",
             "X": 2,
-            "Y": 2
+            "Y": 1
           },
           {
             "Type": "TYPE_SELECT",
-            "SubType": "SEL_SPEED",
+            "SubType": "SPEED",
             "X": 1,
             "Y": 2,
             "SelItems": [

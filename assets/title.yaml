@@ -1,39 +1,32 @@
 - Type: TYPE_WINDOW
-  W: 8
-  H: 3
   Events: [EVENT_WIN_CLOSE]
   children:
-  - Type: TYPE_AREA
-    W: 6  # 幅を決めないとAlignが効かない
-    AlignCenterX: true
+  - Type: TYPE_POPUP  # タイトルロゴ
+  - Type: TYPE_LAYOUT  # スタートメニュー
     children:
-    - Type: TYPE_AREA
-    - Type: TYPE_AREA
-      Y: 2
-      W: 2
-      AlignCenterX: true
-      children:
-      - Type: TYPE_SELECT
-        SubType: SEL_START
-        SelRows: 1  # 縦並び
-        SelItems: ["START", "CONTINUE"]
-        Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
-        Script: |-
-          from assets.vm import *
-          def main():
-            if VM[VM_EVENT] == EVENT_KEY_START:
-              VM[VM_NOTIFY] = EVENT_WIN_CLOSE
-              match VM[VM_SELECT_NO]:
-                case 0:  # START
-                  return 1
-                case _:  # CONTINUE
-                  return 2
+    - Type: TYPE_SELECT
+      SubType: START
+      SelRows: 1  # 縦並び
+      SelItems: ["START", "CONTINUE"]
+      Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
+      Script: |-
+        from assets.vm import *
+        def main():
+          if VM[VM_EVENT] == EVENT_KEY_START:
+            VM[VM_NOTIFY] = EVENT_WIN_CLOSE
+            match VM[VM_SELECT_NO]:
+              case 0:  # START
+                return 1
+              case _:  # CONTINUE
+                return 2
+  - Type: TYPE_LAYOUT  # メッセージスピード
+    children:
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"
       X: 2
-      Y: 2
+      Y: 1
     - Type: TYPE_SELECT
-      SubType: SEL_SPEED
+      SubType: SPEED
       X: 1 
       Y: 2
       SelItems: ["SLOW", "NORMAL", "FAST"]

@@ -40,17 +40,7 @@ def parse_chunk(data, size, indent=""):
 
             type_ = getUInt16(chunk_data, 0)
             subtype = getUInt16(chunk_data, 2)
-            match type_:
-                case 1:
-                    print(f"{indent}Chunk Type: TYPE_WINDOW:{subtype}")
-                case 2:
-                    print(f"{indent}Chunk Type: TYPE_AREA:{subtype}")
-                case 3:
-                    print(f"{indent}Chunk Type: TYPE_LABEL:{subtype}")
-                case 4:
-                    print(f"{indent}Chunk Type: TYPE_SELECT:{subtype}")
-                case _:
-                    print(f"{indent}Chunk Type: Unknown ({type_}:{subtype})")
+            print(f"{indent}Chunk Type: {type_}:{subtype}")
 
             x = getUInt16(chunk_data, 4)
             y = getUInt16(chunk_data, 6)

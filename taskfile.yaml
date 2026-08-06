@@ -15,7 +15,7 @@ tasks:
     desc: yamlをuiffに変換する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
-      - python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
+      - set -o pipefail; python compiler/uiff_conv.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
 
   check:
     desc: uiffを確認する
