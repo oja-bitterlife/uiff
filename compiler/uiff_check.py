@@ -122,7 +122,7 @@ def parse_chunk(data, size, indent=""):
 
         # チェッカでは警告を出して飛ばす
         else:
-            print(f"{indent}☒ Unknown chunk type: {hex(chunk_type)}({chunk_type}), chunk size: {chunk_size}")
+            print(f"{indent}🐥 User chunk type: {hex(chunk_type)}({chunk_type}), chunk size: {chunk_size}")
             continue  # 次のchunkに進む
 
     return offset
