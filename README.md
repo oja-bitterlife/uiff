@@ -103,7 +103,7 @@ root.print_uiff()
 ```
   Chunk Type: 1:0
   Position: (0, 0), Size: (30, 20)
-  ☒ Unknown chunk type: 0x1000(4096), chunk size: 2
+  🐥 User chunk type: 0x1000(4096), chunk size: 2
 ```
 
 
