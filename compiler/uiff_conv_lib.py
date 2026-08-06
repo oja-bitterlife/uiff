@@ -1,11 +1,12 @@
-import json, argparse, os, sys
-from unittest import case
 from iff import *
 
 # script用
+import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 from pyvm.compiler.pyvm_bc import BytecodeCompiler
 
+# 定数
+# *****************************************************************************
 INT16_MAX = 0x7fff
 
 # 便利関数
@@ -217,8 +218,6 @@ class DispatchTree(DispatchBase):
                 else:
                     self.props[key] = value
 
-        print(self.props)
-
         # type_dispatchersの登録
         self.add_type_dispatcher(SelectDispatcher)  # TYPE_SELECT用のディスパッチャを登録する
 
@@ -386,34 +385,3 @@ class SelectDispatcher(DispatchBase):
         ignore_pop(props, "Select")  # Selectをpropsから削除する
 
         return select_buf
-
-
-# コマンドライン処理
-# *****************************************************************************
-if __name__ == "__main__":
-    # 引数を取得して、JSONファイルを読み込む
-    # ---------------------------------------------------------
-    parser = argparse.ArgumentParser(description='Convert UIFF to JSON')
-    parser.add_argument('input_file', type=str, help='Input UIFF file')
-    parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON files [複数指定可]')
-    args = parser.parse_args()
-
-    # JSONファイルを読み込む
-    with open(args.input_file, 'r') as f:
-        ui_data = json.load(f)
-
-    # 定義用jsonを-def <filename>で指定されたファイルから読み込む
-    # ---------------------------------------------------------
-    define_dict = {}
-    args = parser.parse_args()
-
-    # 見つけた順でマージする
-    if args.define:
-        for define_file in args.define:
-            with open(define_file, 'r') as f:
-                define_dict.update(json.load(f))
-
-    # 結果出力
-    root = DispatchTree(ui_data, define_dict)
-    root.print_uiff()
-
