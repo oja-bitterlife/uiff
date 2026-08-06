@@ -14,6 +14,22 @@ class Area():
     w: int
     h: int
 
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+    def clip(self, parent_area):
+        # 親の範囲に収まるようにclipする
+        right = min(self.x + self.w, parent_area.x + parent_area.w)
+        bottom = min(self.y + self.h, parent_area.y + parent_area.h)
+
+        self.x = max(self.x, parent_area.x)
+        self.y = max(self.y, parent_area.y)
+        self.w = right - self.x
+        self.h = bottom - self.y
+
     def get_area_buf(self):
         area_buf = bytearray()
         area_buf.extend(self.x.to_bytes(2, byteorder='little'))
@@ -58,7 +74,7 @@ class TypeDispatcher():
 
     area: Area
 
-    def __init__(self, props: dict, define_data: dict):
+    def __init__(self, parent_area: Area, props: dict, define_data: dict):
         # Typeの取得
         self.type_str = props.get("Type")  # デバッグ用
         self.type_id = define_data.get("Type").get(self.type_str)
@@ -80,18 +96,19 @@ class TypeDispatcher():
         props.pop("SubType", None)  # SubTypeをpropsから削除する
 
         # Areaの取得
-        # 後で実装する
-        props.pop("AlignCenterX", None)
-
-        self.area = Area()
-        self.area.x = props.get("X", 0)
-        self.area.y = props.get("Y", 0)
-        self.area.w = props.get("W", 0xffff)
-        self.area.h = props.get("H", 0xffff)
+        self.area = Area(props.get("X", 0), props.get("Y", 0), props.get("W", 0xffff), props.get("H", 0xffff))
         props.pop("X", None)
         props.pop("Y", None)
         props.pop("W", None)
         props.pop("H", None)
+
+        # Areaの更新
+        if not props.get("Abs", False):
+            self.area.clip(parent_area)  # 親の範囲に収まるようにclipする
+        props.pop("Abs", None)
+
+        # 後で実装する
+        props.pop("AlignCenterX", None)
 
     def get_chunk(self):
         type_chunk = bytearray()
@@ -150,14 +167,16 @@ class DispatchTree(DispatchBase):
     # コンバート
     # *************************************************************************
     # ノードを再帰的に処理してchunkデータを作成する
-    def get_chunk(self):
+    def get_chunk(self, parent_area: Area):
         data = bytearray()
+        node_area = parent_area  # ノードの範囲を初期化する
 
         # list定義の場合childrenしかないのでpropsが空になる
         if len(self.props) > 0:
             # ノードのtype情報を取得して以降の処理内容を決定する
-            type_info = TypeDispatcher(self.props, self.define_data)
+            type_info = TypeDispatcher(parent_area, self.props, self.define_data)
             data.extend(type_info.get_chunk())  # type情報もchunkとして出力
+            node_area = type_info.area  # 範囲を更新する
 
             # Type対象Dispatchersの処理
             # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
@@ -175,7 +194,7 @@ class DispatchTree(DispatchBase):
         if len(self.children) > 0:
             children_buf = bytearray()
             for child in self.children:
-                children_buf.extend(child.get_chunk())  # 再帰的に子を処理する
+                children_buf.extend(child.get_chunk(node_area))  # 再帰的に子を処理する
             # 2byte境界のはず
             if len(children_buf) % 2 != 0:
                 raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
@@ -189,7 +208,7 @@ class DispatchTree(DispatchBase):
     def get_uidata(self):
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
-        data.extend(self.get_chunk())
+        data.extend(self.get_chunk(Area(0, 0, 0xffff, 0xffff)))  # 親の範囲は最大値で初期化する
 
         # header
         out = bytearray()

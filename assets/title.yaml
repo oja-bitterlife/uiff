@@ -1,8 +1,13 @@
 - Type: TYPE_WINDOW
+  X: 1
+  Y: 2
+  W: 3
+  H: 4
   Events: [EVENT_WIN_CLOSE]
   children:
-  - Type: TYPE_POPUP  # タイトルロゴ
-  - Type: TYPE_LAYOUT  # スタートメニュー
+  - Type: TYPE_AREA  # タイトルロゴ
+    Abs: true
+  - Type: TYPE_AREA  # スタートメニュー
     children:
     - Type: TYPE_SELECT
       SubType: START
@@ -19,7 +24,7 @@
                 return 1
               case _:  # CONTINUE
                 return 2
-  - Type: TYPE_LAYOUT  # メッセージスピード
+  - Type: TYPE_AREA  # メッセージスピード
     children:
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"
