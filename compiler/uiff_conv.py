@@ -260,7 +260,7 @@ class DispatchTree(DispatchBase):
                 key_upper = key.upper()
                 if key_upper not in self.prop_dispatchers:
                     raise ValueError(f"Unknown property '{key}' found in {type_info.type_str}:{type_info.subtype_str}. Ignoring.")
-                data.extend(self.prop_dispatchers[key_upper]().get_chunk(type_info, {key: value}, self.define_data))
+                data.extend(self.prop_dispatchers[key_upper]().get_chunk(type_info, self.props, self.define_data))
 
         # 子の処理
         # -----------------------------------------------------------
