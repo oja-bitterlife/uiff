@@ -6,6 +6,8 @@ from iff import *
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 from pyvm.compiler.pyvm_bc import BytecodeCompiler
 
+INT16_MAX = 0x7fff
+
 # 便利関数
 # *****************************************************************************
 class Area():
@@ -116,7 +118,7 @@ class TypeDispatcher():
         props.pop("SubType", None)  # SubTypeをpropsから削除する
 
         # Areaの取得
-        self.area = Area(props.get("X", 0), props.get("Y", 0), props.get("W", 0xffff), props.get("H", 0xffff))
+        self.area = Area(props.get("X", 0), props.get("Y", 0), props.get("W", INT16_MAX), props.get("H", INT16_MAX))
         props.pop("X", None)
         props.pop("Y", None)
         props.pop("W", None)
@@ -239,7 +241,7 @@ class DispatchTree(DispatchBase):
     def get_uidata(self):
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
-        data.extend(self.get_chunk(Area(0, 0, 0xffff, 0xffff)))  # 親の範囲は最大値で初期化する
+        data.extend(self.get_chunk(Area(0, 0, INT16_MAX, INT16_MAX)))  # 親の範囲は最大値で初期化する
 
         # header
         out = bytearray()
@@ -312,7 +314,7 @@ class SelectDispatcher(DispatchBase):
         sel_data_buf = bytearray()
 
         # SelRowsの取得
-        rows_num = props.get("SelRows", 32767)  # SelRowsがない場合は32767を使用する
+        rows_num = props.get("SelRows", INT16_MAX)  # SelRowsがない場合は最大値を使用する
         sel_data_buf.extend(rows_num.to_bytes(2, byteorder='little'))
         props.pop("SelRows", None)  # SelRowsをpropsから削除する
 
