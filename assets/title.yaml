@@ -1,5 +1,4 @@
 - Type: TYPE_WINDOW
-  MyProp: 0x1234
   W: 30
   H: 20
   Colors: [0xffffff, 0xa0c0ff]

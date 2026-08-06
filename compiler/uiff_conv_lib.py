@@ -9,6 +9,14 @@ from pyvm.compiler.pyvm_bc import BytecodeCompiler
 # *****************************************************************************
 INT16_MAX = 0x7fff
 
+# 定義済みSystemType
+SYSTEM_TYPE = {
+    "TYPE_LAYOUT": 1,
+    "TYPE_WINDOW": 2,
+    "TYPE_LABEL": 3,
+    "TYPE_SELECT": 4
+}
+
 # 便利関数
 # *****************************************************************************
 class Area():
@@ -66,6 +74,8 @@ class Area():
 # *****************************************************************************
 # ディスパッチャーベース
 class DispatcherBase():
+    # 実装すべきメソッド
+    # ---------------------------------------------------------------
     # 処理するType名を返す
     def get_dispatch_name(self) -> str:
         raise NotImplementedError("get_dispatch_name must be implemented in subclasses")
@@ -74,6 +84,8 @@ class DispatcherBase():
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict) -> bytes:
         raise NotImplementedError("get_chunk must be implemented in subclasses")
 
+    # Propの値処理用
+    # ---------------------------------------------------------------
     # 大文字小文字を無視したdictアクセス
     def ignore_pop(self, props: dict, key: str):
         key_upper = key.upper()
@@ -92,7 +104,24 @@ class DispatcherBase():
                 return props[k]
         return default
 
+    # 大小文字を無視したprop名のdictをdefine_dataから探し、keyの値を返す。見つからなければdefaultを返す
+    def prop_def_get(self, ignore_prop_name: str, define_data: dict, key: str|int, default=None):
+        # keyがintの場合はそのまま返す
+        if isinstance(key, int):
+            return key
+
+        # keyがstrの場合はdefine_dataから取得する
+        def_keys = [k for k in define_data.keys() if k.upper() == ignore_prop_name.upper()]
+        match len(def_keys):
+            case 0:
+                return default
+            case 1:
+                return define_data[def_keys[0]].get(key, default)
+            case _:
+                raise ValueError(f"Multiple '{ignore_prop_name}' definitions found in define_data: {def_keys}")
+
     # コンバート各処理
+    # ---------------------------------------------------------------
     def create_chunk_buf(self, chunk_type:int, data: bytes):
         chunk = bytearray()
         padding_size = (2 - (len(data) % 2)) % 2
@@ -117,6 +146,7 @@ class DispatcherBase():
     def create_chunk_str(self, chunk_type:int, data: bytes):
         # 先頭2byteにlenを付加してchunkを作成する
         return self.create_chunk_buf(chunk_type, len(data).to_bytes(2, byteorder='little') + data)
+
 
 # コンバーター本体
 # *****************************************************************************
@@ -210,11 +240,26 @@ class DispatchTree(DispatcherBase):
     # *****************************************************************************
     def get_uiff(self):
         # システムの初期化
+        # -----------------------------------------------------------
         self.set_default_dispatchers()  # デフォルトのディスパッチャを登録する
 
+        # 定義済みSystemTypeを追加する
+        def_types = [key for key in self.define_data.keys() if key.upper() == "TYPE"]
+        match len(def_types):
+            case 0:
+                # Typeが定義されていない場合は新規に追加する
+                self.define_data["Type"] = SYSTEM_TYPE
+            case 1:
+                self.define_data[def_types[0]].update(SYSTEM_TYPE)
+            case _:
+                raise ValueError(f"Multiple 'Type' definitions found in define_data: {def_types}")
+
+        # コンバート
+        # -----------------------------------------------------------
         # dispatch treeを再帰的に処理してdataを作成する
         data = bytearray()
-        data.extend(self.get_chunk(Area(0, 0, INT16_MAX, INT16_MAX)))  # 親の範囲は最大値で初期化する
+        screen = Area(0, 0, INT16_MAX, INT16_MAX)  # areaは最大値で初期化する
+        data.extend(self.get_chunk(screen))  # 再帰的にchunkを作成する
 
         # header
         out = bytearray()
@@ -261,13 +306,10 @@ class TypeDispatcher(DispatcherBase):
 
         # SubTypeの取得
         self.subtype_str = self.ignore_get(props, "SubType")  # デバッグ用
-        subtype_id = self.ignore_get(props, "SubType", 0)  # デフォルト値は0
-        if not isinstance(subtype_id, int):
-            # SubTypeがintでない場合(名前指定)はdefine_dataから取得する 
-            subtype_id = define_data.get("SubType").get(subtype_id)
-            if subtype_id is None:
-                raise ValueError(f"Error: Unknown subtype_id found: {self.subtype_str}")
-        self.subtype_id = subtype_id
+        subtype_val = self.ignore_get(props, "SubType", 0)  # デフォルト値は0
+        self.subtype_id = self.prop_def_get("SubType", define_data, subtype_val)
+        if self.subtype_id is None:
+            raise ValueError(f"Error: Unknown SubType found: {subtype_val}")
         self.ignore_pop(props, "SubType")  # SubTypeをpropsから削除する
 
         # Areaの取得
@@ -381,12 +423,16 @@ class EventsDispatcher(DispatcherBase):
 
     def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
         events_buf = bytearray()
+
+        # Eventsのvalue部の取得
         events = self.ignore_get(props, self.get_dispatch_name(), [])
         for event in events:
-            event_id = define_data.get("Event").get(event)
+            event_id = self.prop_def_get("Event", define_data, event)
             if event_id is None:
                 raise ValueError(f"Error: Unknown event found: {event}")
             events_buf.extend(event_id.to_bytes(2, byteorder='little'))
+
+        # chunkを作成して返す
         return self.create_chunk_buf(IFF_EVENTS, events_buf)
 
 class ColorDispatcher(DispatcherBase):

@@ -3,6 +3,38 @@
 
 UIをIFF(Interchange File Format)形式のバイナリで扱うためのコンバーター
 
+## 使い方
+
+```bash
+usage: uiff_conv_test.py [-h] [-def DEFINE] input_file
+
+Convert UIFF to JSON
+
+positional arguments:
+  input_file            Input UIFF file
+
+options:
+  -h, --help            show this help message and exit
+  -def, --define DEFINE
+                        Define JSON files [複数指定可]
+```
+
+Define JSON
+```json
+{
+  "SubType": {
+    "TITLE_START": 1,
+    "TITLE_SPEED": 2
+  },
+  "Event": {
+    "EVENT_KEY": 16,
+    "EVENT_KEY_START": 17,
+    "EVENT_KEY_SELECT": 18,
+  }
+```
+
+基本的にはPropertyと同じ名前の置換用辞書を作ってください。
+
 
 ## 実装済みチャンク
 
@@ -42,7 +74,12 @@ ColorはFG,BG用に複数入る形で用意してます。
 ### 定義済みProperty
 
 - Type,SubType
-  - ID from JSON(-def)
+  - int or ID(str)
+  - 定義済みID
+    - TYPE_LAYOUT
+    - TYPE_WINDOW
+    - TYPE_LABEL
+    - TYPE_SELECT
 - children
   - child components
 - X,Y,W,H
@@ -59,7 +96,7 @@ ColorはFG,BG用に複数入る形で用意してます。
 - Colors
   - int Array
 - Events
-  - ID Array from JSON(-def)
+  - int or ID(str) Array
 - SelRows
   - int
 - SelItems
