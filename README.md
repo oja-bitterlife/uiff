@@ -98,7 +98,7 @@ root.add_prop_dispatcher(MyDispatcher)
 root.print_uiff()
 ```
 
-ユーザー定義プロパティはチェッカーを通すと`unknown chunk type`として表示されます
+ユーザー定義プロパティはチェッカーを通すと`User chunk type`として表示されます
 
 ```
   Chunk Type: 1:0
