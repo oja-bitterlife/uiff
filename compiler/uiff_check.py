@@ -43,9 +43,14 @@ def parse_chunk(data, size, indent=""):
             print(f"{indent}Chunk Type: {type_}:{subtype}")
 
             x = getUInt16(chunk_data, 4)
-            y = getUInt16(chunk_data, 6)
             w = getUInt16(chunk_data, 8)
             h = getUInt16(chunk_data, 10)
+            # x,yは32768以上の値を負の値として扱う
+            if x >= 32768:
+                x -= 65536
+            y = getUInt16(chunk_data, 6)
+            if y >= 32768:
+                y -= 65536
             print(f"{indent}Position: ({x}, {y}), Size: ({w}, {h})")
 
             continue  # 次のchunkに進む
