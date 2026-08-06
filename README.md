@@ -70,6 +70,7 @@ ColorはFG,BG用に複数入る形で用意してます。
 
 `MyProp`というプロパティを追加する例
 
+YAML
 ```yaml
 - Type: TYPE_LAYOUT
   MyProp: 0x1234  # 追加
@@ -77,6 +78,7 @@ ColorはFG,BG用に複数入る形で用意してます。
   H: 20
 ```
 
+Python
 ```python
 from compiler.uiff_comv import DispatchTree, DispatcherBase
 
