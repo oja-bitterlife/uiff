@@ -10,11 +10,11 @@
     ],
     "children": [
       {
-        "Type": "TYPE_AREA",
+        "Type": "TYPE_LAYOUT",
         "Abs": true
       },
       {
-        "Type": "TYPE_AREA",
+        "Type": "TYPE_LAYOUT",
         "children": [
           {
             "Type": "TYPE_SELECT",
@@ -34,7 +34,7 @@
         ]
       },
       {
-        "Type": "TYPE_AREA",
+        "Type": "TYPE_LAYOUT",
         "children": [
           {
             "Type": "TYPE_LABEL",

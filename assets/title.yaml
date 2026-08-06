@@ -5,9 +5,9 @@
   H: 4
   Events: [EVENT_WIN_CLOSE]
   children:
-  - Type: TYPE_AREA  # タイトルロゴ
+  - Type: TYPE_LAYOUT  # タイトルロゴ
     Abs: true
-  - Type: TYPE_AREA  # スタートメニュー
+  - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT
       SubType: START
@@ -24,7 +24,7 @@
                 return 1
               case _:  # CONTINUE
                 return 2
-  - Type: TYPE_AREA  # メッセージスピード
+  - Type: TYPE_LAYOUT  # メッセージスピード
     children:
     - Type: TYPE_LABEL
       Text: "-MESSAGE SPEAD-"
