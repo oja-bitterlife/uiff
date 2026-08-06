@@ -354,7 +354,7 @@ class ColorDispatcher(DispatchBase):
             if not isinstance(color, int):
                 raise ValueError(f"Error: Color value must be an integer, got {color}")
             color_buf.extend(color.to_bytes(4, byteorder='little'))
-        return util_get_chunk_buf(IFF_COLOR, color_buf)
+        return util_get_chunk_buf(IFF_COLORS, color_buf)
 
 
 # 特別なTypeの処理

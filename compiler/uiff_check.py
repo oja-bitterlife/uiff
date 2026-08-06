@@ -101,7 +101,7 @@ def parse_chunk(data, size, indent=""):
 
             continue  # 次のchunkに進む
 
-        elif chunk_type == IFF_COLOR:
+        elif chunk_type == IFF_COLORS:
             colors = []
             color_count = chunk_size // 4
             for i in range(color_count):

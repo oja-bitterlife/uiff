@@ -23,11 +23,7 @@ UIをIFF(Interchange File Format)形式のバイナリで扱うためのコン�
 
 - IFF_SELECT
 
-    [SelRows(2byte)][SEL_ITEM][SEL_ITEM]...
-
-- IFF_SEL_ITEM
-
-    [len][data + padding(2)]
+    [SelRows(2byte)][IFF_TEXT][IFF_TEXT]...
 
 - IFF_EVENTS
 
@@ -43,6 +39,11 @@ UIをIFF(Interchange File Format)形式のバイナリで扱うためのコン�
 
     スクリプト部分はpyvmでpythonスクリプトをByteCodeにコンパイル。
 
+- IFF_COLORS
+
+  [color(4byte)][color(4byte)]...
+
+  FG,BG用に複数入る形で用意
 
 ## サンプル
 
