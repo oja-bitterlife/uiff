@@ -188,6 +188,7 @@ class DispatchTree(DispatchBase):
         self.add_prop_dispatcher(TextDispatcher)  # Text用のディスパッチャを登録する
         self.add_prop_dispatcher(ScriptDispatcher)  # Script用のディスパッチャを登録する
         self.add_prop_dispatcher(EventsDispatcher)  # Events用のディスパッチャを登録する
+        self.add_prop_dispatcher(ColorDispatcher)  # Color用のディスパッチャを登録する
 
     # Dispatchersの追加
     # *************************************************************************
@@ -300,6 +301,14 @@ class EventsDispatcher(DispatchBase):
                 sys.exit(1)
             events_buf.extend(event_id.to_bytes(2, byteorder='little'))
         return util_get_chunk_buf(IFF_EVENTS, events_buf)
+
+class ColorDispatcher(DispatchBase):
+    def get_process_type(self):
+        return "Color"
+
+    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+        color = props.get(self.get_process_type(), 0)
+        return util_get_chunk_buf(IFF_COLOR, color.to_bytes(4, byteorder='little'))
 
 
 # 特別なTypeの処理

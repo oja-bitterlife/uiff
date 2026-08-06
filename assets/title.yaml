@@ -1,14 +1,12 @@
 - Type: TYPE_WINDOW
-  X: 1
-  Y: 2
-  W: 3
-  H: 4
+  W: 30
+  H: 20
+  Color: 0x00a0c0ff
   Events: [EVENT_WIN_CLOSE]
   children:
   - Type: TYPE_LAYOUT  # タイトルロゴ
-    Abs: true
+    X: -10
     Y: 2
-    AlignCenterX: true
   - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT
@@ -27,11 +25,15 @@
               case _:  # CONTINUE
                 return 2
   - Type: TYPE_LAYOUT  # メッセージスピード
+    Abs: true
     children:
     - Type: TYPE_LABEL
+      AlignCenterX: true
       Text: "-MESSAGE SPEAD-"
       X: 2
       Y: 1
+      W: 15
+      H: 1
     - Type: TYPE_SELECT
       SubType: SPEED
       X: 1 
