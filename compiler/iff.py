@@ -15,10 +15,8 @@
 # chank typeの定義
 # *****************************************************************************
 # 基本系
-IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][Enable(2byte)][Visible(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
 IFF_CHILD = 0x02  # [child chunk][child_chunk]...
-IFF_ENABLE = 0x03  # [enable(2byte)]
-IFF_VISIBLE = 0x04  # [visible(2byte)]
 
 # 選択系
 IFF_DEF_SELECT = 0x10
@@ -32,7 +30,7 @@ IFF_LISTEN = IFF_DEF_EVENT + 2  # リスナー [event_id(2byte)][event_id(2byte)
 # データ系
 IFF_DEF_DATA = 0x30
 IFF_TEXT = IFF_DEF_DATA + 1  # [len(2byte)][data + padding(2)]
-IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
+IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode(padding4)]
 IFF_COLORS = IFF_DEF_DATA + 3  # [color(4byte)][color(4byte)]...
 
 

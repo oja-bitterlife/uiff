@@ -45,7 +45,8 @@ Define JSON
 ### 定義済みchunk_id
 
 ```
-IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+# 基本系
+IFF_TYPE = 0x01  # [type_id(2byte)][subtype_id(2byte)][Enable(2byte)][Visible(2byte)][X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
 IFF_CHILD = 0x02  # [child chunk][child_chunk]...
 
 # 選択系
@@ -54,13 +55,13 @@ IFF_SELECT = IFF_DEF_SELECT + 1  # [SelRows(2byte)][SEL_ITEM][SEL_ITEM]...
 
 # イベント
 IFF_DEF_EVENT = 0x20
-# ブロック受信
-IFF_EVENTS = IFF_DEF_EVENT + 1  # [event_id(2byte)][event_id(2byte)]...
+IFF_EVENTS = IFF_DEF_EVENT + 1  # ブロック受信 [event_id(2byte)][event_id(2byte)]...
+IFF_LISTEN = IFF_DEF_EVENT + 2  # リスナー [event_id(2byte)][event_id(2byte)]...  
 
 # データ系
 IFF_DEF_DATA = 0x30
 IFF_TEXT = IFF_DEF_DATA + 1  # [len(2byte)][data + padding(2)]
-IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode]
+IFF_SCRIPT = IFF_DEF_DATA + 2  # [bytecode(padding4)]
 IFF_COLORS = IFF_DEF_DATA + 3  # [color(4byte)][color(4byte)]...
 
 # ユーザー定義 chunk type
@@ -84,6 +85,10 @@ ColorはFG,BG用に複数入る形で用意してます。
   - int or ID(str)
 - children
   - child components
+- Enable
+  - bool
+- Visible
+  - bool
 - X,Y,W,H
   - int
   - offset from parent
