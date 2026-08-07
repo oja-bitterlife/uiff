@@ -442,7 +442,7 @@ class EventsDispatcher(DispatcherBase):
         # define_dataからイベントIDを取得する
         event_ids = [self.prop_def_get("Event", define_data, event) for event in events]
         if None in event_ids:
-            raise ValueError(f"Error: Unknown event found in {events}.")
+            raise ValueError(f"Error: Unknown event found in {list(zip(events, event_ids))}.")
 
         # chunkを作成して返す
         return self.create_chunk_int16(IFF_EVENTS, event_ids)
@@ -455,7 +455,7 @@ class ColorDispatcher(DispatcherBase):
         colors = self.ignore_get(props, self.get_dispatch_name(), [])
         # colorsの値がintであることを確認する
         if not all(isinstance(color, int) for color in colors):
-            raise ValueError(f"Error: Color value must be an integer, got {color}")
+            raise ValueError(f"Error: Color value must be an integer, got {colors}")
         return self.create_chunk_int32(IFF_COLORS, colors)
 
 

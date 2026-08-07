@@ -6,18 +6,19 @@ vars:
   bin_file: assets/title.uiff
 
 tasks:
-  run:
-    desc: uiffをコンパイルして結果を確認する
-    cmds:
-      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json
-
-  bin:
+  data-mk:
     desc: yamlをuiffに変換する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
       - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
 
-  check:
+  data-hex:
+    desc: yamlをuiffに変換する
+    cmds:
+      - yq -o json assets/title.yaml > {{.title_json}}
+      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json
+
+  data-ck:
     desc: uiffを確認する
     cmds:
       - python compiler/uiff_check.py {{.bin_file}}
