@@ -414,6 +414,7 @@ class SelectDispatcher(DispatcherBase):
 
         # SelItemsの取得
         items = self.ignore_get(props, "SelItems", [])
+        sel_data_buf.extend(len(items).to_bytes(2, byteorder='little'))  # item_numを追加する
         for item in items:
             sel_data_buf.extend(self.create_chunk_str(IFF_TEXT, item.encode('ascii', 'replace')))
         self.ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する

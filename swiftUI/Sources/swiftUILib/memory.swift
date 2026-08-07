@@ -4,6 +4,7 @@ public struct WorkMemory {
     private let size: Int
 
     public init(address: UInt, size: Int) {
+        assert(size % 2 == 0, "WorkMemory size must be even")
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
         self.size = size / 2  // UInt16のサイズで割る
     }
@@ -34,6 +35,7 @@ public struct StackMemory {
     #endif
 
     public init(address: UInt, size: Int) {
+        assert(size % 2 == 0, "StackMemory size must be even")
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
         self.size = size / 2  // UInt16のサイズで割る
         self.sp = 0

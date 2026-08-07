@@ -64,8 +64,10 @@ def parse_chunk(data, size, indent=""):
             sel_rows = getUInt16(chunk_data, 0)
             print(f"{indent}SelRows: {sel_rows}")
 
+            item_num = getUInt16(chunk_data, 2)
+
             # SEL_ITEMの解析
-            sel_offset = 2
+            sel_offset = 4
             sel_items = []
             while sel_offset < chunk_size:
                 sel_item_type = getUInt16(chunk_data, sel_offset)
@@ -77,6 +79,8 @@ def parse_chunk(data, size, indent=""):
                 sel_str_data = chunk_data[sel_offset + 6:sel_offset + 6 + sel_str_len]
                 sel_items.append(sel_str_data.decode('ascii', 'replace'))
                 sel_offset += 4 + sel_item_size
+            if len(sel_items) != item_num:
+                raise ValueError(f"Expected {item_num} SEL_ITEMs, got {len(sel_items)}")
             print(f"{indent}SelItems: {sel_items}")
 
             continue
