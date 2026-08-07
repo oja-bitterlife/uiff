@@ -2,7 +2,7 @@
   W: 30
   H: 20
   Colors: [0xffffff, 0xa0c0ff]
-  Events: [EVENT_WIN_CLOSE, EVENT_FAIL]
+  Events: [EVENT_WIN_CLOSE]
   children:
   - Type: TYPE_LAYOUT  # タイトルロゴ
     X: -10

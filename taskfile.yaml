@@ -13,7 +13,7 @@ tasks:
       - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
 
   data-hex:
-    desc: yamlをuiffに変換する
+    desc: yamlをuiffの16進数で出力する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
       - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json

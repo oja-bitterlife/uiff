@@ -8,8 +8,7 @@
       10535167
     ],
     "Events": [
-      "EVENT_WIN_CLOSE",
-      "EVENT_FAIL"
+      "EVENT_WIN_CLOSE"
     ],
     "children": [
       {
