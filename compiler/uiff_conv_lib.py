@@ -302,11 +302,14 @@ class TypeDispatcher(DispatcherBase):
     type_id: int
     subtype_id: int
 
+    area: Area  # 表示エリア
+
+    enable: bool
+    visible: bool
+
     # デバッグ表示用
     type_str: str
     subtype_str: str
-
-    area: Area
 
     def __init__(self, parent_area: Area, props: dict, define_data: dict):
         # Typeの取得
@@ -326,7 +329,15 @@ class TypeDispatcher(DispatcherBase):
             raise ValueError(f"Error: Unknown SubType found: {subtype_val}")
         self.ignore_pop(props, "SubType")  # SubTypeをpropsから削除する
 
+        # Enable/Visibleの処理
+        # ---------------------------------------------------------------
+        self.enable = self.ignore_get(props, "Enable", True)  # デフォルトはTrue
+        self.ignore_pop(props, "Enable")
+        self.visible = self.ignore_get(props, "Visible", True)  # デフォルトはTrue
+        self.ignore_pop(props, "Visible")
+
         # Areaの取得
+        # ---------------------------------------------------------------
         self.area = Area(self.ignore_get(props, "X", 0), self.ignore_get(props, "Y", 0), self.ignore_get(props, "W", INT16_MAX), self.ignore_get(props, "H", INT16_MAX))
         self.ignore_pop(props, "X")
         self.ignore_pop(props, "Y")
@@ -370,6 +381,7 @@ class TypeDispatcher(DispatcherBase):
             # 親の範囲に収まるようにclipする
             self.area.clip(parent_area)
 
+
     def get_chunk(self):
         type_chunk = bytearray()
 
@@ -378,6 +390,8 @@ class TypeDispatcher(DispatcherBase):
         data.extend(self.type_id.to_bytes(2, byteorder='little'))
         data.extend(self.subtype_id.to_bytes(2, byteorder='little'))
         data.extend(self.area.get_area_buf())
+        data.extend(self.enable.to_bytes(2, byteorder='little'))
+        data.extend(self.visible.to_bytes(2, byteorder='little'))
 
         # chunkの作成
         type_chunk.extend(self.create_chunk_buf(IFF_TYPE, data))
@@ -447,6 +461,23 @@ class EventsDispatcher(DispatcherBase):
         # chunkを作成して返す
         return self.create_chunk_int16(IFF_EVENTS, event_ids)
 
+class ListenDispatcher(DispatcherBase):
+    def get_dispatch_name(self):
+        return "Listen"
+
+    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+        # Listenのvalue部の取得
+        listens = self.ignore_get(props, self.get_dispatch_name(), [])
+
+        # define_dataからイベントIDを取得する
+        listen_ids = [self.prop_def_get("Event", define_data, listen) for listen in listens]
+        if None in listen_ids:
+            raise ValueError(f"Error: Unknown event found in {list(zip(listens, listen_ids))}.")
+
+        # chunkを作成して返す
+        return self.create_chunk_int16(IFF_LISTEN, listen_ids)
+
+
 class ColorDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Colors"
@@ -457,5 +488,4 @@ class ColorDispatcher(DispatcherBase):
         if not all(isinstance(color, int) for color in colors):
             raise ValueError(f"Error: Color value must be an integer, got {colors}")
         return self.create_chunk_int32(IFF_COLORS, colors)
-
 

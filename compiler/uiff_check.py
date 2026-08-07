@@ -40,7 +40,11 @@ def parse_chunk(data, size, indent=""):
 
             type_ = getUInt16(chunk_data, 0)
             subtype = getUInt16(chunk_data, 2)
-            print(f"{indent}Chunk Type: {type_}:{subtype}")
+
+            enable = "Enable" if getUInt16(chunk_data, 12) else "Disable"
+            visible = "Visible" if getUInt16(chunk_data, 14) else "Hidden"
+
+            print(f"{indent}Chunk Type: {type_}:{subtype} [{enable}, {visible}]")
 
             x = getUInt16(chunk_data, 4)
             w = getUInt16(chunk_data, 8)
@@ -51,7 +55,7 @@ def parse_chunk(data, size, indent=""):
             y = getUInt16(chunk_data, 6)
             if y >= 32768:
                 y -= 65536
-            print(f"{indent}Position: ({x}, {y}), Size: ({w}, {h})")
+            print(f"{indent}Pos: ({x}, {y}), Size: ({w}, {h})")
 
             continue  # 次のchunkに進む
 

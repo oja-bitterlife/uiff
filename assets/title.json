@@ -10,6 +10,8 @@
     "Events": [
       "EVENT_WIN_CLOSE"
     ],
+    "Enable": true,
+    "Visible": true,
     "children": [
       {
         "Type": "TYPE_LAYOUT",

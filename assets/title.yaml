@@ -3,6 +3,8 @@
   H: 20
   Colors: [0xffffff, 0xa0c0ff]
   Events: [EVENT_WIN_CLOSE]
+  Enable: true
+  Visible: true
   children:
   - Type: TYPE_LAYOUT  # タイトルロゴ
     X: -10
@@ -41,3 +43,4 @@
       Y: 2
       SelItems: ["SLOW", "NORMAL", "FAST"]
       Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
+
