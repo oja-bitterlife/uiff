@@ -10,7 +10,7 @@ public struct swiftUILib {
         memAddress: UInt, memSize: Int
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
-        let uiffHeader = UiffFile(address: uiffSrcAddress)
+        let uiffHeader = UiffFileHeader(address: uiffSrcAddress)
         assert(
             uiffHeader.getMagic() == [
                 UInt8(ascii: "U"), UInt8(ascii: "I"), UInt8(ascii: "F"), UInt8(ascii: "F"),

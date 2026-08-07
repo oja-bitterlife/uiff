@@ -9,6 +9,15 @@ public struct WorkMemory {
         self.size = size / 2  // UInt16のサイズで割る
     }
 
+    public func getAddress() -> UInt {
+        return UInt(bitPattern: ptr)
+    }
+
+    public func getSize() -> Int {
+        return size * 2  // バイト単位で返す
+    }
+
+    // インデックスアクセス
     public subscript(index: Int) -> UInt16 {
         get {
             #if !EMBEDDED
