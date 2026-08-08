@@ -1,5 +1,13 @@
 // uiffチャンクの操作
 
+// 定数
+// ****************************************************************************
+// SYSTEM_TYPEの定義
+public let ENTRY_TYPE_LAYOUT: UInt16 = 1
+public let ENTRY_TYPE_WINDOW: UInt16 = 2
+public let ENTRY_TYPE_LABEL: UInt16 = 3
+public let ENTRY_TYPE_SELECT: UInt16 = 4
+
 // ファイルヘッダー用
 // ****************************************************************************
 public struct UiffFileHeader {
@@ -58,9 +66,9 @@ extension UiffChunk {
         }
 
         switch chunkMemory[chunkSize / 2] {  // 次のチャンクのタイプを取得
-        case UInt16(UIFF_ENTRY):
+        case UIFF_ENTRY:
             return UiffEntry(workMemory: chunkMemory, offsetBytes: self.chunkSize)
-        case UInt16(UIFF_CHILD):
+        case UIFF_CHILD:
             return UiffChild(workMemory: chunkMemory, offsetBytes: self.chunkSize)
         default:
             return UiffProp(workMemory: chunkMemory, offsetBytes: self.chunkSize)
@@ -148,7 +156,7 @@ public struct UiffChild: UiffChunk {
         }
 
         switch chunkMemory[2] {  // 子チャンクのタイプを取得
-        case UInt16(UIFF_ENTRY):
+        case UIFF_ENTRY:
             return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)
         default:
             // childの中は必ずEntryのリストのはず

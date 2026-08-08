@@ -33,16 +33,7 @@ struct swiftUI {
         let root = uiff.getRoot()
         uiff.traverse(
             root: root,
-            onEntry: { entry in
-                printEntryHeader(entry: entry)
-            },
-            // onTraverse: { chunk in
-            //     if chunk is UiffChild {
-            //         print("in Child chunk")
-            //     } else if chunk is UiffProp {
-            //         printPropInfo(prop: chunk as! UiffProp)
-            //     }
-            // })
+            onEntry: onEntry
         )
     }
 
@@ -57,4 +48,32 @@ struct swiftUI {
         )
     }
 
+    // bmp画像用バッファ
+    nonisolated(unsafe) static var bmpBuf: [UInt32] = [UInt32](repeating: 0, count: 240 * 160)
+
+    // UIの処理を書いていく
+    static func onEntry(entry: UiffEntry) {
+        printEntryHeader(entry: entry)
+
+        switch entry.typeID {
+        case ENTRY_TYPE_LAYOUT:
+            print("Layout chunk found")
+        case ENTRY_TYPE_WINDOW:
+            windowDraw(window: entry)
+        case ENTRY_TYPE_LABEL:
+            print("Label chunk found")
+        case ENTRY_TYPE_SELECT:
+            print("Select chunk found")
+        default:
+            print("Unknown chunk type: \(entry.typeID)")
+        }
+    }
+
+    static func windowDraw(window: UiffEntry) {
+        // ウィンドウの描画処理
+        if let prop = window.getProp() {
+            printPropInfo(prop: prop)
+            // bmpBufに描画する処理を書く
+        }
+    }
 }
