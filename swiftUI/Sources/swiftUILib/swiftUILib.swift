@@ -6,8 +6,8 @@ public struct swiftUILib {
     // MARK: - 初期化
     public init(
         uiffSrcAddress: UInt,
-        queueAddress: UInt, queueSize: Int,
-        memAddress: UInt, memSize: Int
+        queueAddress: UInt, queueByteSize: Int,
+        workAddress: UInt, workByteSize: Int
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffSrcAddress)
@@ -20,17 +20,17 @@ public struct swiftUILib {
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
-        assert(uiff_size <= memSize, "UIFF size exceeds memory size")
+        assert(uiff_size <= workByteSize, "UIFF size exceeds memory size")
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: memAddress)!
+        let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workAddress)!
         for i in 0..<uiff_size {
             mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
         }
 
         // スタックと作業用メモリのアクセッサを作る
-        self.workMemory = WorkMemory(address: memAddress, byteSize: uiff_size)
-        self.queue = QueueMemory(address: queueAddress, byteSize: queueSize)
+        self.workMemory = WorkMemory(address: workAddress, byteSize: uiff_size)
+        self.queue = QueueMemory(address: queueAddress, byteSize: queueByteSize)
     }
 
     public func getRoot() -> UiffChunk? {

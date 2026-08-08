@@ -14,17 +14,17 @@ struct swiftUI {
 
         // メモリを確保する
         var workMem = [UInt8](repeating: 0, count: 4 * 1024)  // 4KBの作業用メモリ
-        var stackMem = [UInt8](repeating: 0, count: 64)
+        var chileQueueMem = [UInt8](repeating: 0, count: 2 * 32)  // 子を積めるキュー(最大32個の子)
 
         // uiffを解析する
         var uiff = swiftUILib(
             uiffSrcAddress: UInt(bitPattern: data.withUnsafeBytes { $0.baseAddress! }),
             queueAddress: UInt(
-                bitPattern: stackMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
-            queueSize: stackMem.count,
-            memAddress: UInt(
+                bitPattern: chileQueueMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
+            queueByteSize: chileQueueMem.count,
+            workAddress: UInt(
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
-            memSize: workMem.count)
+            workByteSize: workMem.count)
 
         var chunk = uiff.getRoot()
 
