@@ -23,6 +23,17 @@ tasks:
     cmds:
       - python compiler/uiff_check.py {{.bin_file}}
 
+  run:
+    desc: uiffを実行する
+    cmds:
+      - swift run --package-path swiftUI
+
+  clean:
+    desc: clean up generated files
+    cmds:
+      - rm -f {{.title_json}}
+      - rm -f {{.bin_file}}
+
   default:
     cmds:
       - task --list

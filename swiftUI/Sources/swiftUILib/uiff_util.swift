@@ -17,15 +17,23 @@ public struct UiffFileHeader {
     public var size: UInt16 {
         return ptr[2]
     }
+
+    public var data: UnsafeMutablePointer<UInt8> {
+        return UnsafeMutablePointer<UInt8>(bitPattern: UInt(bitPattern: ptr) + 6)!
+    }
 }
 
 // uiffチャンク共通
 // ****************************************************************************
-protocol UiffChunk {
-    var chunkMemory: WorkMemory { get set }
+public protocol UiffChunk {
+    var chunkMemory: WorkMemory { get }
+    var chunkType: UInt16 { get }
+    var payloadSize: Int { get }
+    var payloadPtr: UnsafeMutablePointer<UInt16> { get }
+    var chunkSize: Int { get }
 }
 extension UiffChunk {
-    static func assign(workMemory: WorkMemory, offset: Int) -> WorkMemory {
+    public static func assign(workMemory: WorkMemory, offset: Int) -> WorkMemory {
         return WorkMemory(
             address: workMemory.getAddress() + UInt(offset),
             size: Int(workMemory.getSize()) - offset)
@@ -61,7 +69,7 @@ public struct UiffProp: UiffChunk {
 // ****************************************************************************
 // UiffEnetryHeader
 public struct UiffEntry: UiffChunk {
-    var chunkMemory: WorkMemory
+    public var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offset: Int) {
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offset: offset)
@@ -75,12 +83,22 @@ public struct UiffEntry: UiffChunk {
         return chunkMemory[3]
     }
 
-    public var enable: Bool {
-        return chunkMemory[4] != 0
+    public var isEnabled: Bool {
+        get {
+            return chunkMemory[4] != 0
+        }
+        set {
+            chunkMemory[4] = newValue ? 1 : 0
+        }
     }
 
-    public var visible: Bool {
-        return chunkMemory[5] != 0
+    public var isVisible: Bool {
+        get {
+            return chunkMemory[5] != 0
+        }
+        set {
+            chunkMemory[5] = newValue ? 1 : 0
+        }
     }
 
     public var x: Int16 {
@@ -97,6 +115,10 @@ public struct UiffEntry: UiffChunk {
 
     public var h: UInt16 {
         return chunkMemory[9]
+    }
+
+    public func getProp(offset: Int = 0) -> UiffProp {
+        return UiffProp(workMemory: self.chunkMemory, offset: offset)
     }
 }
 

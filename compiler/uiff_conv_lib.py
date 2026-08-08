@@ -235,7 +235,7 @@ class DispatchTree(DispatcherBase):
                 entry_buf.extend(self.prop_dispatchers[key_upper]().get_chunk(entry_info, self.props, self.define_data))
 
             # チャンクを作成してdataに追加する
-            data.extend(self.create_chunk_buf(IFF_ENTRY, entry_buf))
+            data.extend(self.create_chunk_buf(UIFF_ENTRY, entry_buf))
 
         # 子の処理
         # -----------------------------------------------------------
@@ -246,7 +246,7 @@ class DispatchTree(DispatcherBase):
             # 2byte境界のはず
             if len(children_buf) % 2 != 0:
                 raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
-            data.extend(self.create_chunk_buf(IFF_CHILD, children_buf))  # 子のchunkを追加する
+            data.extend(self.create_chunk_buf(UIFF_CHILD, children_buf))  # 子のchunkを追加する
 
         return data
 
@@ -421,12 +421,12 @@ class SelectDispatcher(DispatcherBase):
         items = self.ignore_get(props, "SelItems", [])
         sel_data_buf.extend(len(items).to_bytes(2, byteorder='little'))  # item_numを追加する
         for item in items:
-            sel_data_buf.extend(self.create_chunk_str(IFF_TEXT, item.encode('ascii', 'replace')))
+            sel_data_buf.extend(self.create_chunk_str(UIFF_TEXT, item.encode('ascii', 'replace')))
         self.ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する
 
         # IFF_SELECT Chunkの作成
         select_buf = bytearray()
-        select_buf.extend(self.create_chunk_buf(IFF_SELECT, sel_data_buf))
+        select_buf.extend(self.create_chunk_buf(UIFF_SELECT, sel_data_buf))
         self.ignore_pop(props, "Select")  # Selectをpropsから削除する
 
         return select_buf
@@ -439,7 +439,7 @@ class TextDispatcher(DispatcherBase):
 
     def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         text = self.ignore_get(props, self.get_dispatch_name(), "")
-        return self.create_chunk_str(IFF_TEXT, text.encode('ascii', 'replace'))
+        return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
 
 class ScriptDispatcher(DispatcherBase):
     def get_dispatch_name(self):
@@ -449,7 +449,7 @@ class ScriptDispatcher(DispatcherBase):
         script = self.ignore_get(props, self.get_dispatch_name(), "")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
-        return self.create_chunk_buf(IFF_SCRIPT, bc.get_bytecode())
+        return self.create_chunk_buf(UIFF_SCRIPT, bc.get_bytecode())
 
 class EventsDispatcher(DispatcherBase):
     def get_dispatch_name(self):
@@ -465,7 +465,7 @@ class EventsDispatcher(DispatcherBase):
             raise ValueError(f"Error: Unknown event found in {list(zip(events, event_ids))}.")
 
         # chunkを作成して返す
-        return self.create_chunk_int16(IFF_EVENTS, event_ids)
+        return self.create_chunk_int16(UIFF_EVENTS, event_ids)
 
 class ListenDispatcher(DispatcherBase):
     def get_dispatch_name(self):
@@ -481,7 +481,7 @@ class ListenDispatcher(DispatcherBase):
             raise ValueError(f"Error: Unknown event found in {list(zip(listens, listen_ids))}.")
 
         # chunkを作成して返す
-        return self.create_chunk_int16(IFF_LISTEN, listen_ids)
+        return self.create_chunk_int16(UIFF_LISTEN, listen_ids)
 
 
 class ColorDispatcher(DispatcherBase):
@@ -493,5 +493,5 @@ class ColorDispatcher(DispatcherBase):
         # colorsの値がintであることを確認する
         if not all(isinstance(color, int) for color in colors):
             raise ValueError(f"Error: Color value must be an integer, got {colors}")
-        return self.create_chunk_int32(IFF_COLORS, colors)
+        return self.create_chunk_int32(UIFF_COLORS, colors)
 

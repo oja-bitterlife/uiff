@@ -35,7 +35,7 @@ def parse_chunk(data, size, indent=""):
         offset += 4 + chunk_size
 
         # Entry
-        if chunk_type == IFF_ENTRY:
+        if chunk_type == UIFF_ENTRY:
             # Entry区切り
             print("")
 
@@ -67,7 +67,7 @@ def parse_chunk(data, size, indent=""):
             continue  # 次のEntryに進む
 
         # Select
-        elif chunk_type == IFF_SELECT:
+        elif chunk_type == UIFF_SELECT:
             sel_rows = getUInt16(chunk_data, 0)
             print(f"{indent}SelRows: {sel_rows}")
 
@@ -79,7 +79,7 @@ def parse_chunk(data, size, indent=""):
             while sel_offset < chunk_size:
                 sel_item_type = getUInt16(chunk_data, sel_offset)
                 sel_item_size = getUInt16(chunk_data, sel_offset+2)
-                if sel_item_type != IFF_TEXT:
+                if sel_item_type != UIFF_TEXT:
                     raise ValueError(f"Expected SEL_ITEM chunk, got {sel_item_type}")
 
                 sel_str_len = getUInt16(chunk_data, sel_offset+4)
@@ -93,7 +93,7 @@ def parse_chunk(data, size, indent=""):
             continue
 
         # Events
-        elif chunk_type == IFF_EVENTS:
+        elif chunk_type == UIFF_EVENTS:
             events = []
             event_count = chunk_size // 2
             for i in range(event_count):
@@ -103,13 +103,13 @@ def parse_chunk(data, size, indent=""):
             continue  # 次のchunkに進む
 
         # Script
-        elif chunk_type == IFF_SCRIPT:
+        elif chunk_type == UIFF_SCRIPT:
             print(f"{indent}Script: {chunk_data.hex()}")
 
             continue  # 次のchunkに進む
 
         # Text
-        elif chunk_type == IFF_TEXT:
+        elif chunk_type == UIFF_TEXT:
             text_len = getUInt16(chunk_data, 0)
             text_data = chunk_data[2:2 + text_len]
             print(f"{indent}Text: {text_data.decode('ascii', 'replace')}")
@@ -117,7 +117,7 @@ def parse_chunk(data, size, indent=""):
             continue  # 次のchunkに進む
 
         # Colors
-        elif chunk_type == IFF_COLORS:
+        elif chunk_type == UIFF_COLORS:
             colors = []
             color_count = chunk_size // 4
             for i in range(color_count):
@@ -129,7 +129,7 @@ def parse_chunk(data, size, indent=""):
         # childrenの処理
         # *********************************************************************
         # child
-        elif chunk_type == IFF_CHILD:
+        elif chunk_type == UIFF_CHILD:
             print(f"{indent}in child chunk:")
             parse_chunk(chunk_data, chunk_size, indent + "  ")  # IFF_CHILDのデータサイズはchunk_sizeバイト
 
