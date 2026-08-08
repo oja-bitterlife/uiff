@@ -129,6 +129,7 @@ public struct UiffEntry: UiffChunk {
         return Int(chunkMemory[9])
     }
 
+    // properties部からプロパティを取得するイテレータを返す
     public func getPropIter() -> UiffPropIter {
         return UiffPropIter(workMemory: self.chunkMemory, offsetBytes: UiffEntry.HEADER_BYTESIZE)
     }
@@ -166,6 +167,7 @@ public struct UiffPropIter {
     private var prop: UiffProp?
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        // バッファが終端に達している場合はnil
         if workMemory.getByteSize() <= offsetBytes {
             prop = nil
         } else {
@@ -174,6 +176,7 @@ public struct UiffPropIter {
     }
 
     public mutating func next() -> UiffProp? {
+        // nilの場合は次のプロパティがない
         guard let returnProp = prop else {
             return nil
         }

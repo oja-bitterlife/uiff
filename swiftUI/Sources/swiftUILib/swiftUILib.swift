@@ -96,12 +96,13 @@ public struct swiftUILib {
                 // printEntryHeader(entry: entry)
                 onEntry(entry)
 
-                // payloadからプロパティを取得する
+                // propertiesからプロパティを取得する
                 var prop_iter = entry.getPropIter()
                 if let prop = prop_iter.next() {
+                    // childの可能性があるのでEntryだけではなくpropも見る
                     next_chunk = prop
                 } else {
-                    // payloadがなければ次のEnetryに進む
+                    // propertiesがなければ次のEntryに進む
                     next_chunk = entry.getNext()
                 }
 
