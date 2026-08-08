@@ -53,6 +53,17 @@ public struct StackMemory {
         self.sp = 0
     }
 
+    public func getAddress() -> UInt {
+        return UInt(bitPattern: ptr)
+    }
+
+    public func getByteSize() -> Int {
+        return size * 2  // バイト単位で返す
+    }
+    public func getIndexSize() -> Int {
+        return size  // インデックス単位で返す
+    }
+
     public mutating func push(value: UInt16) {
         #if !EMBEDDED
             assert(self.sp < self.size, "Stack overflow")
