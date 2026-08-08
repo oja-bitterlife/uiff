@@ -97,7 +97,8 @@ public struct swiftUILib {
                 onEntry(entry)
 
                 // payloadからプロパティを取得する
-                if let prop = entry.getFirstProp() {
+                var prop_iter = entry.getPropIter()
+                if let prop = prop_iter.next() {
                     next_chunk = prop
                 } else {
                     // payloadがなければ次のEnetryに進む

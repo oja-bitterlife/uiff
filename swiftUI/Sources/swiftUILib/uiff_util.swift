@@ -129,13 +129,8 @@ public struct UiffEntry: UiffChunk {
         return Int(chunkMemory[9])
     }
 
-    public func getFirstProp() -> UiffProp? {
-        // Entryのpayloads部分がなければnilを返す
-        if payload.getByteSize() <= UiffEntry.HEADER_BYTESIZE {
-            return nil
-        }
-
-        return UiffProp(workMemory: self.chunkMemory, offsetBytes: UiffEntry.HEADER_BYTESIZE)
+    public func getPropIter() -> UiffPropIter {
+        return UiffPropIter(workMemory: self.chunkMemory, offsetBytes: UiffEntry.HEADER_BYTESIZE)
     }
 }
 
@@ -167,6 +162,31 @@ public struct UiffChild: UiffChunk {
 }
 
 // プロパティ管理用チャンク
+public struct UiffPropIter {
+    private var prop: UiffProp?
+
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        if workMemory.getByteSize() <= offsetBytes {
+            prop = nil
+        } else {
+            prop = UiffProp(workMemory: workMemory, offsetBytes: offsetBytes)
+        }
+    }
+
+    public mutating func next() -> UiffProp? {
+        guard let returnProp = prop else {
+            return nil
+        }
+
+        if let nextProp = returnProp.getNext() {
+            prop = nextProp
+            return returnProp
+        } else {
+            prop = nil
+            return returnProp
+        }
+    }
+}
 public struct UiffProp: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 

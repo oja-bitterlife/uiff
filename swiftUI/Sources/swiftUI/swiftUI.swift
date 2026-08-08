@@ -111,10 +111,10 @@ struct swiftUI {
     }
 
     static func windowDraw(window: UiffEntry) {
-        var prop_next = window.getFirstProp()
+        var prop_iter = window.getPropIter()
         var color: UInt32 = 0xff00_0000
 
-        while let prop = prop_next {
+        while let prop = prop_iter.next() {
             switch prop.chunkType {
             case UIFF_COLORS:
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
@@ -122,7 +122,6 @@ struct swiftUI {
             default:
                 print("Unknown prop type: \(prop.chunkType)")
             }
-            prop_next = prop.getNext()
         }
 
         let x = window.x * 8
