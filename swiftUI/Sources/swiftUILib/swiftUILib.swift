@@ -32,8 +32,8 @@ public struct swiftUILib {
         self.stack = StackMemory(address: stackAddress, size: stackSize)
     }
 
-    public func getChunk(offset: Int) -> UiffType {
-        return UiffType(workMemory: self.workMemory, offset: offset)
+    public func getChunk(offset: Int) -> UiffEntry {
+        return UiffEntry(workMemory: self.workMemory, offset: offset)
     }
 
 }
