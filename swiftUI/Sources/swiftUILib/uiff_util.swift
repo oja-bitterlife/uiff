@@ -75,7 +75,7 @@ public struct UiffEntry: UiffChunk {
     static let HEADER_BYTESIZE = 10 * 2  // ヘッダのサイズ(バイト単位)
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -135,7 +135,7 @@ public struct UiffEntry: UiffChunk {
 public struct UiffChild: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -162,7 +162,7 @@ public struct UiffChild: UiffChunk {
 public struct UiffProp: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 }
@@ -173,7 +173,7 @@ public struct UiffProp: UiffChunk {
 public struct UiffSelect: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffSelect.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -203,7 +203,7 @@ public struct UiffSelect: UiffChunk {
 public struct UiffEvents: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -220,7 +220,7 @@ public struct UiffEvents: UiffChunk {
 public struct UiffScript: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 }
@@ -228,7 +228,7 @@ public struct UiffScript: UiffChunk {
 public struct UiffColors: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -247,7 +247,7 @@ public struct UiffColors: UiffChunk {
 public struct UiffText: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 

@@ -6,15 +6,15 @@ public struct GBAUtil {
     }
 
     // エラー処理
-    let NULL_PTR_ERROR: UInt8 = 0x01
+    let NULL_PTR_ERROR: UInt = 0x01
     let TYPE_ERROR: UInt8 = 0x02
     let VALUE_ERROR: UInt8 = 0x03
 
-    public func fatalError(fatal_code: UInt8) -> Never {
+    public func fatalError(fatal_code: UInt) -> Never {
         // 生のアドレスから直接ポインタを作る（オプショナルにならない）
         let fatal_code_ptr = UnsafeMutablePointer<UInt8>(
             mutating: UnsafePointer<UInt8>(bitPattern: UInt(FatalCodeAddr))!)
-        fatal_code_ptr.pointee = fatal_code
+        fatal_code_ptr.pointee = UInt8(fatal_code)
         #if EMBEDDED
             while true {}
         #else

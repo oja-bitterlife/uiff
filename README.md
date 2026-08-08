@@ -49,7 +49,7 @@ Define JSON
 UIFF_ENTRY = 0x01
   # [type_id(2byte)][subtype_id(2byte)][Enable(2byte)][Visible(2byte)]
   # [X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
-  # [payloads...]
+  # [properties...]
 UIFF_CHILD = 0x02  # [child chunk][child_chunk]...
 
 # 選択系

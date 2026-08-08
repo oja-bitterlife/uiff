@@ -23,9 +23,12 @@ public struct swiftUILib {
         assert(uiff_size <= workByteSize, "UIFF size exceeds memory size")
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workAddress)!
-        for i in 0..<uiff_size {
-            mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
+        if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workAddress) {
+            for i in 0..<uiff_size {
+                mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
+            }
+        } else {
+            assert(false, "Failed to create memory pointer for work memory")
         }
 
         // スタックと作業用メモリのアクセッサを作る
