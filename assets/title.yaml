@@ -1,7 +1,7 @@
 - Type: TYPE_WINDOW
   W: 30
   H: 20
-  Colors: [0xffffff, 0xa0c0ff]
+  Colors: [0xffffff, 0x80c0ff]
   Events: [EVENT_WIN_CLOSE]
   Enable: true
   Visible: true

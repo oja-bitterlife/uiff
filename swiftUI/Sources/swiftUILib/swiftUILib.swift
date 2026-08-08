@@ -50,9 +50,9 @@ public struct swiftUILib {
         }
     }
 
-    public mutating func enqueueChild(chunk: UiffChunk) {
+    public mutating func enqueueChild(entry: UiffEntry) {
         // キューにチャンクのオフセットアドレスをエンキューする
-        let offsetBytes = chunk.chunkMemory.getAddress() - self.workMemory.getAddress()
+        let offsetBytes = entry.chunkMemory.getAddress() - self.workMemory.getAddress()
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         self.queue.enqueue(value: UInt16(offsetBytes))
     }
@@ -97,7 +97,7 @@ public struct swiftUILib {
                 onEntry(entry)
 
                 // payloadからプロパティを取得する
-                if let prop = entry.getProp() {
+                if let prop = entry.getFirstProp() {
                     next_chunk = prop
                 } else {
                     // payloadがなければ次のEnetryに進む
@@ -108,8 +108,8 @@ public struct swiftUILib {
                 let children = UiffChild(workMemory: chunk.chunkMemory)
 
                 // 子をキューに積む
-                if let first_child = children.getFirst() {
-                    enqueueChild(chunk: first_child)
+                if let first_child = children.getFirstEntry() {
+                    enqueueChild(entry: first_child)
                 }
                 next_chunk = children.getNext()  // 次に進める
 
