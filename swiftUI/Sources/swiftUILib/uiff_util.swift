@@ -51,7 +51,12 @@ extension UiffChunk {
             byteSize: Int(chunkMemory[1]))
     }
 
-    public func getNext() -> UiffChunk {
+    public func getNext() -> UiffChunk? {
+        // 最後まで到達
+        if chunkMemory.getByteSize() <= chunkSize {
+            return nil
+        }
+
         switch chunkMemory[chunkSize / 2] {  // 次のチャンクのタイプを取得
         case UInt16(UIFF_ENTRY):
             return UiffEntry(workMemory: chunkMemory, offsetBytes: self.chunkSize)
@@ -72,17 +77,20 @@ public struct UiffChild: UiffChunk {
     }
 
     // 最初の子チャンクを取得する
-    public func getFirst() -> UiffChunk {
+    public func getFirst() -> UiffChunk? {
+        // 最後まで到達
+        if chunkMemory.getByteSize() <= chunkSize {
+            assert(false, "UiffChild has no child chunks")
+            return nil  // 子が存在しない
+        }
+
         switch chunkMemory[2] {  // 子チャンクのタイプを取得
         case UInt16(UIFF_ENTRY):
-            // childの中は必ずEntryのリストのはず
             return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)
-        case UInt16(UIFF_CHILD):
-            assert(false, "Nested UiffChild is not supported")
-            return UiffChild(workMemory: chunkMemory, offsetBytes: 4)
         default:
-            assert(false, "Unknown child chunk type: \(chunkMemory[2])")
-            return UiffProp(workMemory: chunkMemory, offsetBytes: 4)
+            // childの中は必ずEntryのリストのはず
+            assert(false, "UiffChild must contain UiffEntry chunks")
+            return nil
         }
     }
 }
@@ -148,8 +156,8 @@ public struct UiffEntry: UiffChunk {
         return chunkMemory[9]
     }
 
-    public func getProp(offset: Int = 0) -> UiffProp {
-        return UiffProp(workMemory: self.chunkMemory, offsetBytes: offset)
+    public func getProp(offsetBytes: Int = 0) -> UiffProp {
+        return UiffProp(workMemory: self.chunkMemory, offsetBytes: offsetBytes)
     }
 }
 

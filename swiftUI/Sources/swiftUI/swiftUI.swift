@@ -19,18 +19,40 @@ struct swiftUI {
         // uiffを解析する
         let uiff = swiftUILib(
             uiffSrcAddress: UInt(bitPattern: data.withUnsafeBytes { $0.baseAddress! }),
-            stackAddress: UInt(
+            queueAddress: UInt(
                 bitPattern: stackMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
-            stackSize: stackMem.count,
+            queueSize: stackMem.count,
             memAddress: UInt(
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
             memSize: workMem.count)
 
-        let root = uiff.getRoot()
-        print("UIFF ID: \(root.chunkType), size: \(root.chunkSize) bytes")
-        if root is UiffChild {
-            let entry = (root as! UiffChild).getFirst() as! UiffEntry
-            swiftUI.printEntryHeader(entry: entry)
+        var chunk = uiff.getRoot()
+
+        // ルートを基準に潜っていく
+        while chunk != nil {
+            // ルートの情報を表示する
+            switch chunk!.chunkType {
+            case UInt16(UIFF_ENTRY):
+                let entry = chunk as! UiffEntry
+                printEntryHeader(entry: entry)
+                // payloadに進める
+                chunk = entry.getProp()
+            case UInt16(UIFF_CHILD):
+                print("in children")
+                // 子チャンクの最初を取得してスタックに積む
+                let child = (chunk as! UiffChild).getFirst()
+
+                // 次に進める
+                chunk = (chunk as! UiffChild).getNext()
+            default:
+                print("UIFF ID: \(chunk!.chunkType), size: \(chunk!.chunkSize) bytes")
+                // 次に進める
+                chunk = (chunk as! UiffProp).getNext()
+            }
+
+            // この階層が終わったら子を処理する
+            if chunk == nil {
+            }
         }
     }
 
@@ -39,4 +61,5 @@ struct swiftUI {
             "type: \(entry.typeID), subType: \(entry.subTypeID), enable: \(entry.isEnabled), visible: \(entry.isVisible), x: \(entry.x), y: \(entry.y), width: \(entry.w), height: \(entry.h)"
         )
     }
+
 }

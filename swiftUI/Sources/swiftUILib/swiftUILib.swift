@@ -1,12 +1,12 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
-    public var stack: StackMemory
+    public var queue: QueueMemory
     public var workMemory: WorkMemory
 
     // MARK: - 初期化
     public init(
         uiffSrcAddress: UInt,
-        stackAddress: UInt, stackSize: Int,
+        queueAddress: UInt, queueSize: Int,
         memAddress: UInt, memSize: Int
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
@@ -30,10 +30,10 @@ public struct swiftUILib {
 
         // スタックと作業用メモリのアクセッサを作る
         self.workMemory = WorkMemory(address: memAddress, byteSize: uiff_size)
-        self.stack = StackMemory(address: stackAddress, byteSize: stackSize)
+        self.queue = QueueMemory(address: queueAddress, byteSize: queueSize)
     }
 
-    public func getRoot() -> UiffChunk {
+    public func getRoot() -> UiffChunk? {
         let chunkMemory = self.workMemory
         switch chunkMemory[0] {  // チャンクのタイプを取得
         case UInt16(UIFF_ENTRY):
@@ -41,7 +41,16 @@ public struct swiftUILib {
         case UInt16(UIFF_CHILD):
             return UiffChild(workMemory: chunkMemory, offsetBytes: 0)
         default:
-            return UiffProp(workMemory: chunkMemory, offsetBytes: 0)
+            // 最初は必ずEntryかChildのはず
+            assert(false, "UIFF root chunk must be Entry or Child")
+            return nil
         }
+    }
+
+    public mutating func pushChild(chunk: UiffChunk) {
+        // キューにチャンクのオフセットアドレスをエンキューする
+        let offset = chunk.chunkMemory.getAddress()
+        self.queue.enqueue(value: UInt16(offset & 0xffff))
+        self.queue.enqueue(value: UInt16((offset >> 16) & 0xffff))
     }
 }
