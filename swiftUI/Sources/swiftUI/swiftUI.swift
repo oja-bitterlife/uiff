@@ -37,6 +37,10 @@ struct swiftUI {
                 printEntryHeader(entry: entry)
                 // payloadに進める
                 chunk = entry.getProp()
+                if chunk == nil {
+                    // payloadがなければ次のEnetryに進める
+                    chunk = entry.getNext()
+                }
             case UInt16(UIFF_CHILD):
                 print("in children")
                 // 子チャンクの最初を取得してキューに入れる

@@ -68,45 +68,9 @@ extension UiffChunk {
     }
 }
 
-// child管理チャンク
-public struct UiffChild: UiffChunk {
-    public private(set) var chunkMemory: WorkMemory
-
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
-        self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
-    }
-
-    // 最初の子チャンクを取得する
-    public func getFirst() -> UiffChunk? {
-        // 子のチャンクが存在するか確認する
-        assert(0 < chunkSize, "UiffChild has no child chunks")
-        if chunkSize <= 0 {
-            return nil
-        }
-
-        switch chunkMemory[2] {  // 子チャンクのタイプを取得
-        case UInt16(UIFF_ENTRY):
-            return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)
-        default:
-            // childの中は必ずEntryのリストのはず
-            assert(false, "UiffChild must contain UiffEntry chunks")
-            return nil
-        }
-    }
-}
-
-// UiffChunkの実体
-public struct UiffProp: UiffChunk {
-    public private(set) var chunkMemory: WorkMemory
-
-    public init(workMemory: WorkMemory, offsetBytes: Int) {
-        self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
-    }
-}
-
-// 特別なChunk
+// 基本的なデータアクセス
 // ****************************************************************************
-// UiffEnetryHeader
+// Enetry単位アクセス用チャンク
 public struct UiffEntry: UiffChunk {
     static let HEADER_BYTESIZE = 10 * 2  // ヘッダのサイズ(バイト単位)
     public private(set) var chunkMemory: WorkMemory
@@ -167,6 +131,44 @@ public struct UiffEntry: UiffChunk {
     }
 }
 
+// child管理用チャンク
+public struct UiffChild: UiffChunk {
+    public private(set) var chunkMemory: WorkMemory
+
+    public init(workMemory: WorkMemory, offsetBytes: Int) {
+        self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+    }
+
+    // 最初の子チャンクを取得する
+    public func getFirst() -> UiffChunk? {
+        // 子のチャンクが存在するか確認する
+        assert(0 < chunkSize, "UiffChild has no child chunks")
+        if chunkSize <= 0 {
+            return nil
+        }
+
+        switch chunkMemory[2] {  // 子チャンクのタイプを取得
+        case UInt16(UIFF_ENTRY):
+            return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)
+        default:
+            // childの中は必ずEntryのリストのはず
+            assert(false, "UiffChild must contain UiffEntry chunks")
+            return nil
+        }
+    }
+}
+
+// プロパティ管理用チャンク
+public struct UiffProp: UiffChunk {
+    public private(set) var chunkMemory: WorkMemory
+
+    public init(workMemory: WorkMemory, offsetBytes: Int) {
+        self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+    }
+}
+
+// 特別なType
+// ****************************************************************************
 // IFF_SELECTチャンク
 public struct UiffSelect: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
