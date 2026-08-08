@@ -17,7 +17,7 @@ struct swiftUI {
         var stackMem = [UInt8](repeating: 0, count: 64)
 
         // uiffを解析する
-        let uiff = swiftUILib(
+        var uiff = swiftUILib(
             uiffSrcAddress: UInt(bitPattern: data.withUnsafeBytes { $0.baseAddress! }),
             queueAddress: UInt(
                 bitPattern: stackMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
@@ -39,9 +39,9 @@ struct swiftUI {
                 chunk = entry.getProp()
             case UInt16(UIFF_CHILD):
                 print("in children")
-                // 子チャンクの最初を取得してスタックに積む
+                // 子チャンクの最初を取得してキューに入れる
                 let child = (chunk as! UiffChild).getFirst()
-
+                uiff.pushChild(chunk: child!)
                 // 次に進める
                 chunk = (chunk as! UiffChild).getNext()
             default:
@@ -52,6 +52,7 @@ struct swiftUI {
 
             // この階層が終わったら子を処理する
             if chunk == nil {
+                chunk = uiff.popChild()
             }
         }
     }

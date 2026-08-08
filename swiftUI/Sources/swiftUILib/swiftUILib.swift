@@ -1,7 +1,7 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
-    public var queue: QueueMemory
-    public var workMemory: WorkMemory
+    private var queue: QueueMemory
+    private var workMemory: WorkMemory
 
     // MARK: - 初期化
     public init(
@@ -49,8 +49,26 @@ public struct swiftUILib {
 
     public mutating func pushChild(chunk: UiffChunk) {
         // キューにチャンクのオフセットアドレスをエンキューする
-        let offset = chunk.chunkMemory.getAddress()
-        self.queue.enqueue(value: UInt16(offset & 0xffff))
-        self.queue.enqueue(value: UInt16((offset >> 16) & 0xffff))
+        let offsetBytes = chunk.chunkMemory.getAddress() - self.workMemory.getAddress()
+        assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
+        self.queue.enqueue(value: UInt16(offsetBytes))
+    }
+
+    public mutating func popChild() -> UiffChunk? {
+        // キューからチャンクのオフセットアドレスをデキューする
+        if self.queue.getIndexSize() < 2 {
+            return nil  // キューが空の場合はnilを返す
+        }
+
+        let offsetBytes = Int(self.queue.dequeue())
+        let chunk_type = self.workMemory[offsetBytes / 2]
+
+        switch chunk_type {  // チャンクのタイプを取得
+        case UInt16(UIFF_ENTRY):
+            return UiffEntry(workMemory: self.workMemory, offsetBytes: offsetBytes)
+        default:
+            assert(false, "UIFF child chunk must be Entry")
+            return nil
+        }
     }
 }

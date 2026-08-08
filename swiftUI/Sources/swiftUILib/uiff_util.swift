@@ -70,7 +70,7 @@ extension UiffChunk {
 
 // child管理チャンク
 public struct UiffChild: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -78,10 +78,10 @@ public struct UiffChild: UiffChunk {
 
     // 最初の子チャンクを取得する
     public func getFirst() -> UiffChunk? {
-        // 最後まで到達
-        if chunkMemory.getByteSize() <= chunkSize {
-            assert(false, "UiffChild has no child chunks")
-            return nil  // 子が存在しない
+        // 子のチャンクが存在するか確認する
+        assert(0 < chunkSize, "UiffChild has no child chunks")
+        if chunkSize <= 0 {
+            return nil
         }
 
         switch chunkMemory[2] {  // 子チャンクのタイプを取得
@@ -97,7 +97,7 @@ public struct UiffChild: UiffChunk {
 
 // UiffChunkの実体
 public struct UiffProp: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -108,7 +108,7 @@ public struct UiffProp: UiffChunk {
 // ****************************************************************************
 // UiffEnetryHeader
 public struct UiffEntry: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -163,7 +163,7 @@ public struct UiffEntry: UiffChunk {
 
 // IFF_SELECTチャンク
 public struct UiffSelect: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffSelect.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -193,7 +193,7 @@ public struct UiffSelect: UiffChunk {
 // プロパティ各種
 // ****************************************************************************
 public struct UiffEvents: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -210,7 +210,7 @@ public struct UiffEvents: UiffChunk {
 }
 
 public struct UiffScript: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -218,7 +218,7 @@ public struct UiffScript: UiffChunk {
 }
 
 public struct UiffColors: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -237,7 +237,7 @@ public struct UiffColors: UiffChunk {
 }
 
 public struct UiffText: UiffChunk {
-    public var chunkMemory: WorkMemory
+    public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
         self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)
