@@ -1,8 +1,7 @@
-from iff import *
-
-# script用
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
+
+from compiler.uiff_types import *
 from pyvm.compiler.pyvm_bc import BytecodeCompiler
 
 # 定数
@@ -81,7 +80,7 @@ class DispatcherBase():
         raise NotImplementedError("get_dispatch_name must be implemented in subclasses")
 
     # chunkを作成する
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict) -> bytes:
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict) -> bytes:
         raise NotImplementedError("get_chunk must be implemented in subclasses")
 
     # Propの値処理用
@@ -210,34 +209,40 @@ class DispatchTree(DispatcherBase):
     # ノードを再帰的に処理してchunkデータを作成する
     def get_chunk(self, parent_area: Area):
         data = bytearray()
-        node_area = parent_area  # ノードの範囲を初期化する
+        entry_area = parent_area  # Entryの範囲を初期化する
 
         # list定義の場合childrenしかないのでpropsが空になる
+        # つまりpropsがある場合はEntry
         if len(self.props) > 0:
+            entry_buf = bytearray()
+
             # ノードのtype情報を取得して以降の処理内容を決定する
-            type_info = TypeDispatcher(parent_area, self.props, self.define_data)
-            data.extend(type_info.get_chunk())  # type情報もchunkとして出力
-            node_area = type_info.area  # 範囲を更新する
+            entry_info = EntryInfo(parent_area, self.props, self.define_data)
+            entry_buf.extend(entry_info.get_entry_header())  # type情報もchunkとして出力
+            entry_area = entry_info.area  # 範囲を更新する
 
             # Type対象Dispatchersの処理
             # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
-            if type_info.type_str in self.type_dispatchers:
-                user_type = type_info.type_str.upper()
-                data.extend(self.type_dispatchers[user_type]().get_chunk(type_info, self.props, self.define_data))
+            if entry_info.type_str in self.type_dispatchers:
+                user_type = entry_info.type_str.upper()
+                entry_buf.extend(self.type_dispatchers[user_type]().get_chunk(entry_info, self.props, self.define_data))
 
             # 残りのpropsを順番に書き出す
-            for key, value in self.props.items():
+            for key in self.props.keys():
                 key_upper = key.upper()
                 if key_upper not in self.prop_dispatchers:
-                    raise ValueError(f"Unknown property '{key}' found in {type_info.type_str}:{type_info.subtype_str}. Ignoring.")
-                data.extend(self.prop_dispatchers[key_upper]().get_chunk(type_info, self.props, self.define_data))
+                    raise ValueError(f"Unknown property '{key}' found in {entry_info.type_str}:{entry_info.subtype_str}. Ignoring.")
+                entry_buf.extend(self.prop_dispatchers[key_upper]().get_chunk(entry_info, self.props, self.define_data))
+
+            # チャンクを作成してdataに追加する
+            data.extend(self.create_chunk_buf(IFF_ENTRY, entry_buf))
 
         # 子の処理
         # -----------------------------------------------------------
         if len(self.children) > 0:
             children_buf = bytearray()
             for child in self.children:
-                children_buf.extend(child.get_chunk(node_area))  # 再帰的に子を処理する
+                children_buf.extend(child.get_chunk(entry_area))  # 再帰的に子を処理する
             # 2byte境界のはず
             if len(children_buf) % 2 != 0:
                 raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
@@ -298,7 +303,7 @@ class DispatchTree(DispatcherBase):
 # 特別なTypeの処理
 # *****************************************************************************
 # Type用の特別なDispatcher
-class TypeDispatcher(DispatcherBase):
+class EntryInfo(DispatcherBase):
     type_id: int
     subtype_id: int
 
@@ -382,28 +387,28 @@ class TypeDispatcher(DispatcherBase):
             self.area.clip(parent_area)
 
 
+    # こちらは使用禁止。get_entry_headerを使用するよう例外を出す
     def get_chunk(self):
-        type_chunk = bytearray()
+        raise NotImplementedError("get_chunk is not implemented in TypeDispatcher. Use get_entry_header instead.")
 
-        # data部を作成する
+    def get_entry_header(self):
+        # Entry用のヘッダーデータ
         data = bytearray()
+
         data.extend(self.type_id.to_bytes(2, byteorder='little'))
         data.extend(self.subtype_id.to_bytes(2, byteorder='little'))
-        data.extend(self.area.get_area_buf())
         data.extend(self.enable.to_bytes(2, byteorder='little'))
         data.extend(self.visible.to_bytes(2, byteorder='little'))
+        data.extend(self.area.get_area_buf())
 
-        # chunkの作成
-        type_chunk.extend(self.create_chunk_buf(IFF_TYPE, data))
-
-        return type_chunk
+        return data
 
 # TYPE_SELECTの処理
 class SelectDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "TYPE_SELECT"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         # Select用dataの組み立て
         sel_data_buf = bytearray()
 
@@ -432,7 +437,7 @@ class TextDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Text"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         text = self.ignore_get(props, self.get_dispatch_name(), "")
         return self.create_chunk_str(IFF_TEXT, text.encode('ascii', 'replace'))
 
@@ -440,7 +445,7 @@ class ScriptDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Script"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         script = self.ignore_get(props, self.get_dispatch_name(), "")
         # scriptをコンパイルしてbytecodeに変換する
         bc = BytecodeCompiler(script, paths=[os.getcwd()])  # カレントディレクトリをパスに追加
@@ -450,7 +455,7 @@ class EventsDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Events"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         # Eventsのvalue部の取得
         events = self.ignore_get(props, self.get_dispatch_name(), [])
 
@@ -466,7 +471,7 @@ class ListenDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Listen"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         # Listenのvalue部の取得
         listens = self.ignore_get(props, self.get_dispatch_name(), [])
 
@@ -483,7 +488,7 @@ class ColorDispatcher(DispatcherBase):
     def get_dispatch_name(self):
         return "Colors"
 
-    def get_chunk(self, type_info: TypeDispatcher, props: dict, define_data: dict):
+    def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         colors = self.ignore_get(props, self.get_dispatch_name(), [])
         # colorsの値がintであることを確認する
         if not all(isinstance(color, int) for color in colors):

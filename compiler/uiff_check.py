@@ -1,6 +1,9 @@
+import os, sys
+sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
+
 # uiffバイナリファイルを読んで、解析ツリーを表示する
 import argparse
-from iff import *
+from compiler.uiff_types import *
 
 # argparseでファイル名を受け取る
 parser = argparse.ArgumentParser(description='UIFFファイルを解析する')
@@ -24,7 +27,6 @@ print("data-size:", data_size)
 
 def parse_chunk(data, size, indent=""):
     offset = 0
-    type_count = 0  # 表示調整用
 
     while(offset < size):
         chunk_type = getUInt16(data, offset)
@@ -32,32 +34,36 @@ def parse_chunk(data, size, indent=""):
         chunk_data = data[offset + 4:offset + 4 + chunk_size]
         offset += 4 + chunk_size
 
-        # Type
-        if chunk_type == IFF_TYPE:
-            if type_count > 0:
-                print()  # separate
-            type_count += 1
-
+        # Entry
+        if chunk_type == IFF_ENTRY:
+            # EnetryHeader
+            # ---------------------------------------------
             type_ = getUInt16(chunk_data, 0)
             subtype = getUInt16(chunk_data, 2)
 
-            enable = "Enable" if getUInt16(chunk_data, 12) else "Disable"
-            visible = "Visible" if getUInt16(chunk_data, 14) else "Hidden"
+            enable = "Enable" if getUInt16(chunk_data, 4) else "Disable"
+            visible = "Visible" if getUInt16(chunk_data, 6) else "Hidden"
 
             print(f"{indent}Chunk Type: {type_}:{subtype} [{enable}, {visible}]")
 
-            x = getUInt16(chunk_data, 4)
-            w = getUInt16(chunk_data, 8)
-            h = getUInt16(chunk_data, 10)
             # x,yは32768以上の値を負の値として扱う
+            x = getUInt16(chunk_data, 8)
             if x >= 32768:
                 x -= 65536
-            y = getUInt16(chunk_data, 6)
+            y = getUInt16(chunk_data, 10)
             if y >= 32768:
                 y -= 65536
+            w = getUInt16(chunk_data, 12)
+            h = getUInt16(chunk_data, 14)
             print(f"{indent}Pos: ({x}, {y}), Size: ({w}, {h})")
 
-            continue  # 次のchunkに進む
+            # payloadsの解析
+            if chunk_size > 16:
+                parse_chunk(chunk_data[16:], chunk_size - 16, indent)
+
+            print("")  # Entry区切り
+
+            continue  # 次のEntryに進む
 
         # Select
         elif chunk_type == IFF_SELECT:
@@ -123,7 +129,6 @@ def parse_chunk(data, size, indent=""):
         # *********************************************************************
         # child
         elif chunk_type == IFF_CHILD:
-            print()  # separate
             print(f"{indent}in child chunk:")
             parse_chunk(chunk_data, chunk_size, indent + "  ")  # IFF_CHILDのデータサイズはchunk_sizeバイト
 
