@@ -113,20 +113,20 @@ public struct UiffEntry: UiffChunk {
         }
     }
 
-    public var x: Int16 {
-        return Int16(bitPattern: chunkMemory[6])
+    public var x: Int {
+        return Int(chunkMemory[6])
     }
 
-    public var y: Int16 {
-        return Int16(bitPattern: chunkMemory[7])
+    public var y: Int {
+        return Int(chunkMemory[7])
     }
 
-    public var w: UInt16 {
-        return chunkMemory[8]
+    public var w: Int {
+        return Int(chunkMemory[8])
     }
 
-    public var h: UInt16 {
-        return chunkMemory[9]
+    public var h: Int {
+        return Int(chunkMemory[9])
     }
 
     public func getFirstProp() -> UiffProp? {

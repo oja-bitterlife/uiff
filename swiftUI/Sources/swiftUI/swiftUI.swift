@@ -112,18 +112,31 @@ struct swiftUI {
 
     static func windowDraw(window: UiffEntry) {
         var prop_next = window.getFirstProp()
+        var color: UInt32 = 0xff00_0000
+
         while let prop = prop_next {
             switch prop.chunkType {
             case UIFF_COLORS:
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
-                let color = colorProp.getColor(index: 1)
-                for i in 0..<bmpBuf.count {
-                    bmpBuf[i] = color
-                }
+                color = colorProp.getColor(index: 1)
             default:
                 print("Unknown prop type: \(prop.chunkType)")
             }
             prop_next = prop.getNext()
+        }
+
+        let x = window.x * 8
+        let y = window.y * 8
+        let w = window.w * 8
+        let h = window.h * 8
+
+        for j in y..<(y + h) {
+            if j < 0 || j >= 160 { continue }
+            for i in x..<(x + w) {
+                if i < 0 || i >= 240 { continue }
+                let index = j * 240 + i
+                bmpBuf[index] = color
+            }
         }
     }
 }

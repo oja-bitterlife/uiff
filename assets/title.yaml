@@ -6,10 +6,12 @@
   Enable: true
   Visible: true
   children:
-  - Type: TYPE_LAYOUT  # タイトルロゴ
-    X: -10
-    Y: 2
-    Extend: true
+  - Type: TYPE_WINDOW  # タイトルロゴ
+    Y: 4
+    W: 20
+    H: 4
+    Colors: [0xffffff, 0xffffffff]
+    AlignCenterX: true
   - Type: TYPE_LAYOUT  # スタートメニュー
     children:
     - Type: TYPE_SELECT

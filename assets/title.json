@@ -14,10 +14,15 @@
     "Visible": true,
     "children": [
       {
-        "Type": "TYPE_LAYOUT",
-        "X": -10,
-        "Y": 2,
-        "Extend": true
+        "Type": "TYPE_WINDOW",
+        "Y": 4,
+        "W": 20,
+        "H": 4,
+        "Colors": [
+          16777215,
+          4294967295
+        ],
+        "AlignCenterX": true
       },
       {
         "Type": "TYPE_LAYOUT",
