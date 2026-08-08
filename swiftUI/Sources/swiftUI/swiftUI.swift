@@ -26,49 +26,12 @@ struct swiftUI {
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
             workByteSize: workMem.count)
 
-        let resultCode = [0]
-        let gba_util = GBAUtil(
-            FatalCodeAddr: UInt(bitPattern: resultCode.withUnsafeBufferPointer { $0.baseAddress! }))
+        // let resultCode = [0]
+        // let gba_util = GBAUtil(
+        //     FatalCodeAddr: UInt(bitPattern: resultCode.withUnsafeBufferPointer { $0.baseAddress! }))
 
-        var next_chunk = uiff.getRoot()  // nilでないことを保証するchunk
-
-        // ルートを基準に潜っていく
-        while let chunk = next_chunk {
-            // ルートの情報を表示する
-            switch chunk.chunkType {
-            case UInt16(UIFF_ENTRY):
-                let entry = UiffEntry(workMemory: chunk.chunkMemory)
-                printEntryHeader(entry: entry)
-
-                // payloadからプロパティを取得する
-                if let prop = entry.getProp() {
-                    next_chunk = prop
-                } else {
-                    // payloadがなければ次のEnetryに進む
-                    next_chunk = entry.getNext()
-                }
-            case UInt16(UIFF_CHILD):
-                let children = UiffChild(workMemory: chunk.chunkMemory)
-                print("in children")
-
-                // 子をキューに積む
-                uiff.enqueueChild(chunk: gba_util.unwrap(children.getFirst()))
-
-                // 次に進める
-                next_chunk = children.getNext()
-            default:
-                let prop = UiffProp(workMemory: chunk.chunkMemory)
-                printPropInfo(prop: prop)
-
-                // 次に進める
-                next_chunk = prop.getNext()
-            }
-
-            // この階層が終わったら子を処理する
-            if next_chunk == nil {
-                next_chunk = uiff.dequeueChild()
-            }
-        }
+        let root = uiff.getRoot()
+        uiff.traverse(root: root)
     }
 
     static func printEntryHeader(entry: UiffEntry) {

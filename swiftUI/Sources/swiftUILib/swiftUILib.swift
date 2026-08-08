@@ -74,4 +74,50 @@ public struct swiftUILib {
             return nil
         }
     }
+
+    public mutating func traverse(root: UiffChunk?) {
+        var next_chunk = root
+
+        // ルートを基準に潜っていく
+        while let chunk = next_chunk {
+            // ルートの情報を表示する
+            switch chunk.chunkType {
+            case UInt16(UIFF_ENTRY):
+                let entry = UiffEntry(workMemory: chunk.chunkMemory)
+                // printEntryHeader(entry: entry)
+                print("in entry")
+
+                // payloadからプロパティを取得する
+                if let prop = entry.getProp() {
+                    next_chunk = prop
+                } else {
+                    // payloadがなければ次のEnetryに進む
+                    next_chunk = entry.getNext()
+                }
+            case UInt16(UIFF_CHILD):
+                let children = UiffChild(workMemory: chunk.chunkMemory)
+                print("in children")
+
+                // 子をキューに積む
+                if let first_child = children.getFirst() {
+                    enqueueChild(chunk: first_child)
+                }
+
+                // 次に進める
+                next_chunk = children.getNext()
+            default:
+                let prop = UiffProp(workMemory: chunk.chunkMemory)
+                // printPropInfo(prop: prop)
+                print("in prop")
+
+                // 次に進める
+                next_chunk = prop.getNext()
+            }
+
+            // この階層が終わったら子を処理する
+            if next_chunk == nil {
+                next_chunk = dequeueChild()
+            }
+        }
+    }
 }
