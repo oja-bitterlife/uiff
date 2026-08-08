@@ -29,11 +29,19 @@ public struct swiftUILib {
         }
 
         // スタックと作業用メモリのアクセッサを作る
-        self.workMemory = WorkMemory(address: memAddress, size: uiff_size)
-        self.stack = StackMemory(address: stackAddress, size: stackSize)
+        self.workMemory = WorkMemory(address: memAddress, byteSize: uiff_size)
+        self.stack = StackMemory(address: stackAddress, byteSize: stackSize)
     }
 
-    public var root: UiffEntry {
-        return UiffEntry(workMemory: self.workMemory, offset: 0)
+    public func getRoot() -> UiffChunk {
+        let chunkMemory = self.workMemory
+        switch chunkMemory[0] {  // チャンクのタイプを取得
+        case UInt16(UIFF_ENTRY):
+            return UiffEntry(workMemory: chunkMemory, offsetBytes: 0)
+        case UInt16(UIFF_CHILD):
+            return UiffChild(workMemory: chunkMemory, offsetBytes: 0)
+        default:
+            return UiffProp(workMemory: chunkMemory, offsetBytes: 0)
+        }
     }
 }

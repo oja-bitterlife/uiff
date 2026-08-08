@@ -3,18 +3,21 @@ public struct WorkMemory {
     private let ptr: UnsafeMutablePointer<UInt16>
     private let size: Int
 
-    public init(address: UInt, size: Int) {
-        assert(size % 2 == 0, "WorkMemory size must be even")
+    public init(address: UInt, byteSize: Int) {
+        assert(byteSize % 2 == 0, "WorkMemory size must be even")
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
-        self.size = size / 2  // UInt16のサイズで割る
+        self.size = byteSize / 2  // UInt16のサイズで割る
     }
 
     public func getAddress() -> UInt {
         return UInt(bitPattern: ptr)
     }
 
-    public func getSize() -> Int {
+    public func getByteSize() -> Int {
         return size * 2  // バイト単位で返す
+    }
+    public func getIndexSize() -> Int {
+        return size  // インデックス単位で返す
     }
 
     // インデックスアクセス
@@ -43,10 +46,10 @@ public struct StackMemory {
         public var stackMax: Int = 0  // スタックの最大使用量を追跡するためのデバッグ用変数
     #endif
 
-    public init(address: UInt, size: Int) {
-        assert(size % 2 == 0, "StackMemory size must be even")
+    public init(address: UInt, byteSize: Int) {
+        assert(byteSize % 2 == 0, "StackMemory size must be even")
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
-        self.size = size / 2  // UInt16のサイズで割る
+        self.size = byteSize / 2  // UInt16のサイズで割る
         self.sp = 0
     }
 

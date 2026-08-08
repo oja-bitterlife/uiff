@@ -3,6 +3,9 @@
 import Foundation
 import swiftUILib
 
+// 読み込むファイル名
+let uiff_file = "assets/title.uiff"
+
 @main
 struct swiftUI {
     static func main() {
@@ -23,14 +26,12 @@ struct swiftUI {
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
             memSize: workMem.count)
 
-        print("UIFF ID: \(uiff.root.chunkType), size: \(uiff.root.chunkSize) bytes")
-        let root = uiff.root
-        if root.typeID == IFF_CHILD {
-            print("Root is a container")
-        } else {
-            print("Root is not a container")
+        let root = uiff.getRoot()
+        print("UIFF ID: \(root.chunkType), size: \(root.chunkSize) bytes")
+        if root is UiffChild {
+            let entry = (root as! UiffChild).getFirst() as! UiffEntry
+            swiftUI.printEntryHeader(entry: entry)
         }
-        swiftUI.printEntryHeader(entry: root)
     }
 
     static func printEntryHeader(entry: UiffEntry) {
