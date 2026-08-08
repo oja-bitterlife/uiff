@@ -36,13 +36,14 @@ struct swiftUI {
             onEntry: { entry in
                 printEntryHeader(entry: entry)
             },
-            onTraverse: { chunk in
-                if chunk is UiffChild {
-                    print("in Child chunk")
-                } else if chunk is UiffProp {
-                    printPropInfo(prop: chunk as! UiffProp)
-                }
-            })
+            // onTraverse: { chunk in
+            //     if chunk is UiffChild {
+            //         print("in Child chunk")
+            //     } else if chunk is UiffProp {
+            //         printPropInfo(prop: chunk as! UiffProp)
+            //     }
+            // })
+        )
     }
 
     static func printEntryHeader(entry: UiffEntry) {
