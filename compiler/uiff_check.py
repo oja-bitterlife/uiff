@@ -36,6 +36,9 @@ def parse_chunk(data, size, indent=""):
 
         # Entry
         if chunk_type == IFF_ENTRY:
+            # Entry区切り
+            print("")
+
             # EnetryHeader
             # ---------------------------------------------
             type_ = getUInt16(chunk_data, 0)
@@ -60,8 +63,6 @@ def parse_chunk(data, size, indent=""):
             # payloadsの解析
             if chunk_size > 16:
                 parse_chunk(chunk_data[16:], chunk_size - 16, indent)
-
-            print("")  # Entry区切り
 
             continue  # 次のEntryに進む
 
