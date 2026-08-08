@@ -75,17 +75,26 @@ public struct swiftUILib {
         }
     }
 
-    public mutating func traverse(root: UiffChunk?) {
+    public mutating func traverse(
+        root: UiffChunk?,
+        onEntry: (UiffEntry) -> Void,
+        onTraverse: ((UiffChunk) -> Void)? = nil
+    ) {
         var next_chunk = root
 
         // ルートを基準に潜っていく
         while let chunk = next_chunk {
+            // 全てのチャンクに対して処理を行う
+            if let onTraverse = onTraverse {
+                onTraverse(chunk)
+            }
+
             // ルートの情報を表示する
             switch chunk.chunkType {
             case UInt16(UIFF_ENTRY):
                 let entry = UiffEntry(workMemory: chunk.chunkMemory)
                 // printEntryHeader(entry: entry)
-                print("in entry")
+                onEntry(entry)
 
                 // payloadからプロパティを取得する
                 if let prop = entry.getProp() {
@@ -94,24 +103,20 @@ public struct swiftUILib {
                     // payloadがなければ次のEnetryに進む
                     next_chunk = entry.getNext()
                 }
+
             case UInt16(UIFF_CHILD):
                 let children = UiffChild(workMemory: chunk.chunkMemory)
-                print("in children")
 
                 // 子をキューに積む
                 if let first_child = children.getFirst() {
                     enqueueChild(chunk: first_child)
                 }
+                next_chunk = children.getNext()  // 次に進める
 
-                // 次に進める
-                next_chunk = children.getNext()
             default:
+                // プロパティはここでは処理しない
                 let prop = UiffProp(workMemory: chunk.chunkMemory)
-                // printPropInfo(prop: prop)
-                print("in prop")
-
-                // 次に進める
-                next_chunk = prop.getNext()
+                next_chunk = prop.getNext()  // 次に進める
             }
 
             // この階層が終わったら子を処理する

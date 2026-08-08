@@ -31,7 +31,18 @@ struct swiftUI {
         //     FatalCodeAddr: UInt(bitPattern: resultCode.withUnsafeBufferPointer { $0.baseAddress! }))
 
         let root = uiff.getRoot()
-        uiff.traverse(root: root)
+        uiff.traverse(
+            root: root,
+            onEntry: { entry in
+                printEntryHeader(entry: entry)
+            },
+            onTraverse: { chunk in
+                if chunk is UiffChild {
+                    print("in Child chunk")
+                } else if chunk is UiffProp {
+                    printPropInfo(prop: chunk as! UiffProp)
+                }
+            })
     }
 
     static func printEntryHeader(entry: UiffEntry) {
