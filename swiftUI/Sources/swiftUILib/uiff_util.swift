@@ -108,6 +108,7 @@ public struct UiffProp: UiffChunk {
 // ****************************************************************************
 // UiffEnetryHeader
 public struct UiffEntry: UiffChunk {
+    static let HEADER_BYTESIZE = 10 * 2  // ヘッダのサイズ(バイト単位)
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int) {
@@ -156,8 +157,13 @@ public struct UiffEntry: UiffChunk {
         return chunkMemory[9]
     }
 
-    public func getProp(offsetBytes: Int = 0) -> UiffProp {
-        return UiffProp(workMemory: self.chunkMemory, offsetBytes: offsetBytes)
+    public func getProp() -> UiffProp? {
+        // Entryのpayloads部分がなければnilを返す
+        if payload.getByteSize() <= UiffEntry.HEADER_BYTESIZE {
+            return nil
+        }
+
+        return UiffProp(workMemory: self.chunkMemory, offsetBytes: UiffEntry.HEADER_BYTESIZE)
     }
 }
 

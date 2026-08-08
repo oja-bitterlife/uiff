@@ -47,16 +47,16 @@ public struct swiftUILib {
         }
     }
 
-    public mutating func pushChild(chunk: UiffChunk) {
+    public mutating func enqueueChild(chunk: UiffChunk) {
         // キューにチャンクのオフセットアドレスをエンキューする
         let offsetBytes = chunk.chunkMemory.getAddress() - self.workMemory.getAddress()
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         self.queue.enqueue(value: UInt16(offsetBytes))
     }
 
-    public mutating func popChild() -> UiffChunk? {
+    public mutating func dequeueChild() -> UiffChunk? {
         // キューからチャンクのオフセットアドレスをデキューする
-        if self.queue.getIndexSize() < 2 {
+        if self.queue.isEmpty() {
             return nil  // キューが空の場合はnilを返す
         }
 

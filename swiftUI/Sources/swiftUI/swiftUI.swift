@@ -41,18 +41,18 @@ struct swiftUI {
                 print("in children")
                 // 子チャンクの最初を取得してキューに入れる
                 let child = (chunk as! UiffChild).getFirst()
-                uiff.pushChild(chunk: child!)
+                uiff.enqueueChild(chunk: child!)
                 // 次に進める
                 chunk = (chunk as! UiffChild).getNext()
             default:
-                print("UIFF ID: \(chunk!.chunkType), size: \(chunk!.chunkSize) bytes")
+                printPropInfo(prop: chunk as! UiffProp)
                 // 次に進める
                 chunk = (chunk as! UiffProp).getNext()
             }
 
             // この階層が終わったら子を処理する
             if chunk == nil {
-                chunk = uiff.popChild()
+                chunk = uiff.dequeueChild()
             }
         }
     }
@@ -60,6 +60,11 @@ struct swiftUI {
     static func printEntryHeader(entry: UiffEntry) {
         print(
             "type: \(entry.typeID), subType: \(entry.subTypeID), enable: \(entry.isEnabled), visible: \(entry.isVisible), x: \(entry.x), y: \(entry.y), width: \(entry.w), height: \(entry.h)"
+        )
+    }
+    static func printPropInfo(prop: UiffProp) {
+        print(
+            "type: \(prop.chunkType), size: \(prop.chunkSize) bytes"
         )
     }
 

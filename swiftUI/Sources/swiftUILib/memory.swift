@@ -63,6 +63,9 @@ public struct StackMemory {
     public func getIndexSize() -> Int {
         return size  // インデックス単位で返す
     }
+    public func isEmpty() -> Bool {
+        return self.sp == 0
+    }
 
     public mutating func push(value: UInt16) {
         #if !EMBEDDED
@@ -117,6 +120,9 @@ public struct QueueMemory {
     }
     public func getIndexSize() -> Int {
         return size  // インデックス単位で返す
+    }
+    public func isEmpty() -> Bool {
+        return self.qp == 0
     }
 
     public mutating func enqueue(value: UInt16) {
