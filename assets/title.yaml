@@ -8,7 +8,7 @@ children:
   W: 20
   Y: 4
   H: 4
-  Colors: [0xffffff, 0xffc0c0c0]
+  Colors: [0xffffff, 0xffffffff]
   AlignCenterX: true
 - Type: TYPE_LAYOUT  # スタートメニュー
   X: 0
@@ -18,8 +18,8 @@ children:
   children:
   - Type: TYPE_SELECT
     SubType: TITLE_START
-    X: 12
-    W: 8
+    X: 10
+    W: 10
     H: 2
     SelRows: 1  # 縦並び
     SelItems: ["START", "CONTINUE"]
@@ -47,8 +47,10 @@ children:
     H: 1
   - Type: TYPE_SELECT
     SubType: TITLE_SPEED
-    X: 1 
+    AlignCenterX: true
     Y: 2
+    W: 20
+    H: 1
     SelItems: ["SLOW", "NORMAL", "FAST"]
     Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
 
