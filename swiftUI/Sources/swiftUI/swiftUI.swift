@@ -4,8 +4,8 @@ import Foundation
 import swiftUILib
 
 // 読み込むファイル名
-let uiff_file = "assets/title.uiff"
-let bmpFile = "swiftUI/.build/output.bmp"
+let uiff_file = "build/title.uiff"
+let bmpFile = "build/output.bmp"
 
 @main
 struct swiftUI {
