@@ -235,9 +235,6 @@ class DispatchTree(DispatcherBase):
                 raise ValueError(f"Unknown property '{key}' found in {entry_info.type_str}:{entry_info.subtype_str}. Ignoring.")
             entry_buf.extend(self.prop_dispatchers[key_upper]().get_chunk(entry_info, self.props, self.define_data))
 
-        # チャンクを作成してdataに追加する
-        data.extend(self.create_chunk_buf(UIFF_ENTRY, entry_buf))
-
         # 子の処理
         # -----------------------------------------------------------
         if len(self.children) > 0:
@@ -247,7 +244,10 @@ class DispatchTree(DispatcherBase):
             # 2byte境界のはず
             if len(children_buf) % 2 != 0:
                 raise ValueError(f"Children data size is not aligned to 2 bytes: {len(children_buf)}")
-            data.extend(self.create_chunk_buf(UIFF_CHILD, children_buf))  # 子のchunkを追加する
+            entry_buf.extend(self.create_chunk_buf(UIFF_CHILD, children_buf))  # 子のchunkを追加する
+
+        # チャンクを作成してdataに追加する
+        data.extend(self.create_chunk_buf(UIFF_ENTRY, entry_buf))
 
         return data
 

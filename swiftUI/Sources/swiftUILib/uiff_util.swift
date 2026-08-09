@@ -145,9 +145,6 @@ public struct UiffPropIter {
         if chunkMemory.getByteSize() <= offsetBytes {
             return nil
         }
-        print(
-            "chunkMemory: \(chunkMemory.getByteSize()), offset: \(offsetBytes)"
-        )
 
         // プロパティチャンクを返す
         let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)

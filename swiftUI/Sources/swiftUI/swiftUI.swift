@@ -93,57 +93,60 @@ struct swiftUI {
     nonisolated(unsafe) static var bmpBuf: [UInt32] = [UInt32](repeating: 0, count: 240 * 160)
 
     // UIの処理を書いていく
-    static func onEntry(entry: UiffEntry) {
-        printEntryHeader(entry: entry)
-
+    static func onEntry(entry: UiffEntry, propIter: UiffPropIter) {
         switch entry.typeID {
         case ENTRY_TYPE_LAYOUT:
-            print("Layout chunk found")
+            print("Layout Entry found")
+            printEntryHeader(entry: entry)
         case ENTRY_TYPE_WINDOW:
-            windowDraw(window: entry)
+            printEntryHeader(entry: entry)
+            windowDraw(window: entry, propIter: propIter)
         case ENTRY_TYPE_LABEL:
-            print("Label chunk found")
+            print("Label Entry found")
+            printEntryHeader(entry: entry)
         case ENTRY_TYPE_SELECT:
-            print("Select chunk found")
+            print("Select Entry found")
+            printEntryHeader(entry: entry)
         default:
-            print("Unknown chunk type: \(entry.typeID)")
+            print("Unknown Entry type: \(entry.typeID)")
+            printEntryHeader(entry: entry)
         }
     }
 
-    static func windowDraw(window: UiffEntry) {
-        // var prop_iter = window.getPropIter()
-        // var color: UInt32 = 0xff00_0000
+    static func windowDraw(window: UiffEntry, propIter: UiffPropIter) {
+        var color: UInt32 = 0xff00_0000
+        var iter = propIter
 
-        // while let prop = prop_iter.next() {
-        //     print(
-        //         "addr: \(String(format: "%08X", prop.chunkMemory.getAddress())), type: \(prop.chunkType), size: \(prop.chunkSize) bytes"
-        //     )
-        //     switch prop.chunkType {
-        //     case UIFF_COLORS:
-        //         let colorProp = UiffColors(workMemory: prop.chunkMemory)
-        //         color = colorProp.getColor(index: 1)
-        //         print(
-        //             "FG: \(String(format: "%08X", colorProp.getColor(index: 0))), BG: \(String(format: "%08X", colorProp.getColor(index: 1)))"
-        //         )
-        //     case UIFF_EVENTS:
-        //         break
-        //     default:
-        //         print("Unknown prop type: \(prop.chunkType)")
-        //     }
-        // }
+        while let prop = iter.next() {
+            print(
+                "addr: \(String(format: "%08X", prop.chunkMemory.getAddress())), type: \(prop.chunkType), size: \(prop.chunkSize) bytes"
+            )
+            switch prop.chunkType {
+            case UIFF_COLORS:
+                let colorProp = UiffColors(workMemory: prop.chunkMemory)
+                color = colorProp.getColor(index: 1)
+                print(
+                    "FG: \(String(format: "%08X", colorProp.getColor(index: 0))), BG: \(String(format: "%08X", colorProp.getColor(index: 1)))"
+                )
+            case UIFF_EVENTS:
+                break
+            default:
+                print("Unknown prop type: \(prop.chunkType)")
+            }
+        }
 
-        // let x = window.x * 8
-        // let y = window.y * 8
-        // let w = window.w * 8
-        // let h = window.h * 8
+        let x = window.x * 8
+        let y = window.y * 8
+        let w = window.w * 8
+        let h = window.h * 8
 
-        // for j in y..<(y + h) {
-        //     if j < 0 || j >= 160 { continue }
-        //     for i in x..<(x + w) {
-        //         if i < 0 || i >= 240 { continue }
-        //         let index = j * 240 + i
-        //         bmpBuf[index] = color
-        //     }
-        // }
+        for j in y..<(y + h) {
+            if j < 0 || j >= 160 { continue }
+            for i in x..<(x + w) {
+                if i < 0 || i >= 240 { continue }
+                let index = j * 240 + i
+                bmpBuf[index] = color
+            }
+        }
     }
 }

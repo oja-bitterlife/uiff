@@ -77,8 +77,10 @@ public struct swiftUILib {
 
     public mutating func traverse(
         root: UiffChunk?,
-        onEntry: (UiffEntry) -> Void,
+        onEntry: (UiffEntry, UiffPropIter) -> Void,
     ) {
+        // rootの値チェック
+        // ----------------------------------------------------------
         guard let root = root else {
             return  // rootがnilの場合は何もしない
         }
@@ -87,11 +89,13 @@ public struct swiftUILib {
             return
         }
 
+        // エントリーのループ処理
+        // ----------------------------------------------------------
         var next_entry: UiffEntry? = UiffEntry(workMemory: root.chunkMemory)
 
         // エントリー単位で処理する
         while let entry = next_entry {
-            onEntry(entry)
+            onEntry(entry, UiffPropIter(workMemory: entry.payload))
 
             // propertiesからプロパティを取得する
             var prop_iter = UiffPropIter(workMemory: entry.payload)
