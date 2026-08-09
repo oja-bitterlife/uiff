@@ -121,6 +121,7 @@ public struct UiffEntry: UiffChunk {
     }
 }
 
+// Entryのイテレータ
 public struct UiffEntryIter {
     public private(set) var chunkMemory: WorkMemory
     var offsetBytes: Int

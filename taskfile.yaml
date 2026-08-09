@@ -3,6 +3,7 @@ version: 3
 
 vars:
   title_json: assets/title.json
+  title_hex: assets/title.hex
   bin_file: assets/title.uiff
 
 tasks:
@@ -10,7 +11,8 @@ tasks:
     desc: yamlをuiffに変換する
     cmds:
       - yq -o json assets/title.yaml > {{.title_json}}
-      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json | xxd -r -p > {{.bin_file}}
+      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json > {{.title_hex}}
+      - cat {{.title_hex}} | xxd -r -p > {{.bin_file}}
 
   data_hex:
     desc: yamlをuiffの16進数で出力する

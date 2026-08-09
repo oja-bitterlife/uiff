@@ -53,20 +53,20 @@ class Area():
     def align_x(self, parent_area, align="left"):
         # 親の範囲に収まるようにclipする
         if align == "center":
-            self.x = parent_area.x + (parent_area.w - self.w) // 2
+            return parent_area.x + (parent_area.w - self.w) // 2
         elif align == "left":
-            self.x = parent_area.x
+            return parent_area.x
         elif align == "right":
-            self.x = parent_area.x + parent_area.w - self.w
+            return parent_area.x + parent_area.w - self.w
 
     def align_y(self, parent_area, align="top"):
         # 親の範囲に収まるようにclipする
         if align == "center":
-            self.y = parent_area.y + (parent_area.h - self.h) // 2
+            return parent_area.y + (parent_area.h - self.h) // 2
         elif align == "top":
-            self.y = parent_area.y
+            return parent_area.y
         elif align == "bottom":
-            self.y = parent_area.y + parent_area.h - self.h
+            return parent_area.y + parent_area.h - self.h
 
 
 # コンバート
@@ -366,22 +366,23 @@ class EntryInfo(DispatcherBase):
         else:
             # Align系の処理
             if self.ignore_get(props, "AlignCenterX", False):
-                self.area.align_x(parent_area, "center")
+                self.area.x += self.area.align_x(parent_area, "center")
+                self.area.x += parent_area.x  # 親の座標を加算する
                 self.ignore_pop(props, "AlignCenterX")
             if self.ignore_get(props, "AlignLeft", False):
-                self.area.align_x(parent_area, "left")
+                self.area.x += self.area.align_x(parent_area, "left")
                 self.ignore_pop(props, "AlignLeft")
             if self.ignore_get(props, "AlignRight", False):
-                self.area.align_x(parent_area, "right")
+                self.area.x += self.area.align_x(parent_area, "right")
                 self.ignore_pop(props, "AlignRight")
             if self.ignore_get(props, "AlignCenterY", False):
-                self.area.align_y(parent_area, "center")
+                self.area.y += self.area.align_y(parent_area, "center")
                 self.ignore_pop(props, "AlignCenterY")
             if self.ignore_get(props, "AlignTop", False):
-                self.area.align_y(parent_area, "top")
+                self.area.y += self.area.align_y(parent_area, "top")
                 self.ignore_pop(props, "AlignTop")
             if self.ignore_get(props, "AlignBottom", False):
-                self.area.align_y(parent_area, "bottom")
+                self.area.y += self.area.align_y(parent_area, "bottom")
                 self.ignore_pop(props, "AlignBottom")
 
             # 親の範囲に収まるようにclipする

@@ -9,6 +9,9 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 
+assets/title.hex
+assets/title.json
+
 .task/
 .vscode/
 pyvm/
