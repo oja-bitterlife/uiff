@@ -138,7 +138,6 @@ public struct UiffPropIter {
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = workMemory
         self.offsetBytes = offsetBytes
-        print("size: \(chunkMemory.getByteSize()), offset: \(offsetBytes)")
     }
 
     public mutating func next() -> UiffProp? {
@@ -149,9 +148,6 @@ public struct UiffPropIter {
 
         // プロパティチャンクを返す
         let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
-        print(
-            "  prop type: \(prop.chunkType), size: 4+\(prop.chunkSize-4) bytes, next: \(offsetBytes + prop.chunkSize)/\(chunkMemory.getByteSize())"
-        )
         offsetBytes += prop.chunkSize  // 次のプロパティチャンクのオフセットを更新する
         return prop
     }
