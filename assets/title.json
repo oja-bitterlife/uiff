@@ -1,79 +1,75 @@
-[
-  {
-    "Type": "TYPE_WINDOW",
-    "W": 30,
-    "H": 20,
-    "Colors": [
-      16777215,
-      8438015
-    ],
-    "Events": [
-      "EVENT_WIN_CLOSE"
-    ],
-    "Enable": true,
-    "Visible": true,
-    "children": [
-      {
-        "Type": "TYPE_WINDOW",
-        "Y": 4,
-        "W": 20,
-        "H": 4,
-        "Colors": [
-          16777215,
-          4294967295
-        ],
-        "AlignCenterX": true
-      },
-      {
-        "Type": "TYPE_LAYOUT",
-        "children": [
-          {
-            "Type": "TYPE_SELECT",
-            "SubType": "TITLE_START",
-            "SelRows": 1,
-            "SelItems": [
-              "START",
-              "CONTINUE"
-            ],
-            "Events": [
-              "EVENT_KEY_UP",
-              "EVENT_KEY_DOWN",
-              "EVENT_KEY_START"
-            ],
-            "Script": "from assets.vm import *\ndef main():\n  if VM[VM_EVENT] == EVENT_KEY_START:\n    VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n    match VM[VM_SELECT_NO]:\n      case 0:  # START\n        return 1\n      case _:  # CONTINUE\n        return 2"
-          }
-        ]
-      },
-      {
-        "Type": "TYPE_LAYOUT",
-        "Popup": true,
-        "children": [
-          {
-            "Type": "TYPE_LABEL",
-            "AlignCenterX": true,
-            "Text": "-MESSAGE SPEED-",
-            "X": 2,
-            "Y": 1,
-            "W": 15,
-            "H": 1
-          },
-          {
-            "Type": "TYPE_SELECT",
-            "SubType": "TITLE_SPEED",
-            "X": 1,
-            "Y": 2,
-            "SelItems": [
-              "SLOW",
-              "NORMAL",
-              "FAST"
-            ],
-            "Events": [
-              "EVENT_KEY_LEFT",
-              "EVENT_KEY_RIGHT"
-            ]
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "Type": "TYPE_WINDOW",
+  "W": 30,
+  "H": 20,
+  "Colors": [
+    16777215,
+    8438015
+  ],
+  "Events": [
+    "EVENT_WIN_CLOSE"
+  ],
+  "children": [
+    {
+      "Type": "TYPE_WINDOW",
+      "W": 20,
+      "Y": 4,
+      "H": 4,
+      "Colors": [
+        16777215,
+        4294967295
+      ],
+      "AlignCenterX": true
+    },
+    {
+      "Type": "TYPE_LAYOUT",
+      "children": [
+        {
+          "Type": "TYPE_SELECT",
+          "SubType": "TITLE_START",
+          "SelRows": 1,
+          "SelItems": [
+            "START",
+            "CONTINUE"
+          ],
+          "Events": [
+            "EVENT_KEY_UP",
+            "EVENT_KEY_DOWN",
+            "EVENT_KEY_START"
+          ],
+          "Script": "from assets.vm import *\ndef main():\n  if VM[VM_EVENT] == EVENT_KEY_START:\n    VM[VM_NOTIFY] = EVENT_WIN_CLOSE\n    match VM[VM_SELECT_NO]:\n      case 0:  # START\n        return 1\n      case _:  # CONTINUE\n        return 2"
+        }
+      ]
+    },
+    {
+      "Type": "TYPE_LAYOUT",
+      "Popup": true,
+      "children": [
+        {
+          "Type": "TYPE_LABEL",
+          "AlignCenterX": true,
+          "Text": "-MESSAGE SPEED-",
+          "X": 2,
+          "Y": 1,
+          "W": 15,
+          "H": 1
+        },
+        {
+          "Type": "TYPE_SELECT",
+          "SubType": "TITLE_SPEED",
+          "X": 1,
+          "Y": 2,
+          "SelItems": [
+            "SLOW",
+            "NORMAL",
+            "FAST"
+          ],
+          "Events": [
+            "EVENT_KEY_LEFT",
+            "EVENT_KEY_RIGHT"
+          ]
+        }
+      ]
+    }
+  ]
+}
