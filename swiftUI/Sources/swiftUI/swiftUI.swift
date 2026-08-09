@@ -118,15 +118,12 @@ struct swiftUI {
         var iter = propIter
 
         while let prop = iter.next() {
-            print(
-                "addr: \(String(format: "%08X", prop.chunkMemory.getAddress())), type: \(prop.chunkType), size: \(prop.chunkSize) bytes"
-            )
             switch prop.chunkType {
             case UIFF_COLORS:
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
                 color = colorProp.getColor(index: 1)
                 print(
-                    "FG: \(String(format: "%08X", colorProp.getColor(index: 0))), BG: \(String(format: "%08X", colorProp.getColor(index: 1)))"
+                    "    FG: \(String(format: "%08X", colorProp.getColor(index: 0))), BG: \(String(format: "%08X", colorProp.getColor(index: 1)))"
                 )
             case UIFF_EVENTS:
                 break

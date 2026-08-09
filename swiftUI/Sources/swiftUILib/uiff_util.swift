@@ -117,7 +117,7 @@ public struct UiffEntry: UiffChunk {
     public var payload: WorkMemory {
         return WorkMemory(
             address: chunkMemory.getAddress() + UInt(UiffEntry.HEADER_BYTESIZE),
-            byteSize: Int(chunkMemory[1]) - UiffEntry.HEADER_BYTESIZE)
+            byteSize: chunkSize - UiffEntry.HEADER_BYTESIZE)
     }
 
     public func getNextEntry() -> UiffEntry? {
@@ -138,6 +138,7 @@ public struct UiffPropIter {
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = workMemory
         self.offsetBytes = offsetBytes
+        print("size: \(chunkMemory.getByteSize()), offset: \(offsetBytes)")
     }
 
     public mutating func next() -> UiffProp? {
@@ -148,6 +149,9 @@ public struct UiffPropIter {
 
         // プロパティチャンクを返す
         let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
+        print(
+            "  prop type: \(prop.chunkType), size: 4+\(prop.chunkSize-4) bytes, next: \(offsetBytes + prop.chunkSize)/\(chunkMemory.getByteSize())"
+        )
         offsetBytes += prop.chunkSize  // 次のプロパティチャンクのオフセットを更新する
         return prop
     }
