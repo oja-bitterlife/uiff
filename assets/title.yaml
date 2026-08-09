@@ -11,6 +11,10 @@ children:
   Colors: [0xffffff, 0xffc0c0c0]
   AlignCenterX: true
 - Type: TYPE_LAYOUT  # スタートメニュー
+  X: 0
+  Y: 10
+  W: 30
+  Popup: true
   children:
   - Type: TYPE_SELECT
     SubType: TITLE_START

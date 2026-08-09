@@ -1,6 +1,6 @@
 // Error定数
-private let MEM_ERR_BASE = 0x0001_0000
-private let UIFF_ERR_BASE = 0x0002_0000
+private let MEM_ERR_BASE = 0x1000_0000
+private let UIFF_ERR_BASE = 0x2000_0000
 
 // メモリ関連のエラーコード
 public let MEM_ERR_EVEN = MEM_ERR_BASE | 0x1

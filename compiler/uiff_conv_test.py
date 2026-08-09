@@ -3,7 +3,6 @@ import json, argparse, os, sys
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
-
 from compiler.uiff_conv_lib import DispatchTree, DispatcherBase
 
 class MyDispatcher(DispatcherBase):
@@ -15,6 +14,14 @@ class MyDispatcher(DispatcherBase):
 
 # コマンドライン処理
 # *****************************************************************************
+def check_duplicate_keys(pairs):
+    d = {}
+    for key, val in pairs:
+        if key in d:
+            raise ValueError(f"重複したキーが見つかりました: {key}")
+        d[key] = val
+    return d
+
 if __name__ == "__main__":
     # 引数を取得して、JSONファイルを読み込む
     # ---------------------------------------------------------
@@ -25,7 +32,7 @@ if __name__ == "__main__":
 
     # JSONファイルを読み込む
     with open(args.input_file, 'r') as f:
-        ui_data = json.load(f)
+        ui_data = json.load(f, object_pairs_hook=check_duplicate_keys)
 
     # 定義用jsonを-def <filename>で指定されたファイルから読み込む
     # ---------------------------------------------------------
