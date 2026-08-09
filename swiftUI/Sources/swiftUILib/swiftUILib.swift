@@ -7,20 +7,27 @@ public struct swiftUILib {
     public init(
         uiffSrcAddress: UInt,
         queueAddress: UInt, queueByteSize: Int,
-        workAddress: UInt, workByteSize: Int
+        workAddress: UInt, workByteSize: Int,
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffSrcAddress)
-        assert(
-            uiffHeader.magic == UInt(UInt8(ascii: "U"))
+        let magic_ok =
+            uiffHeader.magic
+            == (UInt(UInt8(ascii: "U"))
                 | UInt(UInt8(ascii: "I")) << 8
                 | UInt(UInt8(ascii: "F")) << 16
-                | UInt(UInt8(ascii: "F")) << 24,
-            "Invalid uiff file")
+                | UInt(UInt8(ascii: "F")) << 24)
+        assert(magic_ok, "Invalid uiff file")
+        if !magic_ok {
+            WorkMemory.onFatal(code: UIFF_ERR_FILE_INVALID)
+        }
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
         assert(uiff_size <= workByteSize, "UIFF size exceeds memory size")
+        if uiff_size > workByteSize {
+            WorkMemory.onFatal(code: UIFF_ERR_FILE_TOO_LARGE)
+        }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
         if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workAddress) {
@@ -29,6 +36,7 @@ public struct swiftUILib {
             }
         } else {
             assert(false, "Failed to create memory pointer for work memory")
+            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
         }
 
         // スタックと作業用メモリのアクセッサを作る
@@ -37,23 +45,22 @@ public struct swiftUILib {
     }
 
     public func getRoot() -> UiffChunk? {
-        let chunkMemory = self.workMemory
-        switch chunkMemory[0] {  // チャンクのタイプを取得
-        case UInt16(UIFF_ENTRY):
-            return UiffEntry(workMemory: chunkMemory, offsetBytes: 0)
-        case UInt16(UIFF_CHILD):
-            return UiffChild(workMemory: chunkMemory, offsetBytes: 0)
-        default:
-            // 最初は必ずEntryかChildのはず
-            assert(false, "UIFF root chunk must be Entry or Child")
-            return nil
+        // ルートチャンクがEntryであることを確認する
+        assert(workMemory[0] == UInt16(UIFF_ENTRY), "UIFF root chunk must be Entry")
+        if workMemory[0] != UInt16(UIFF_ENTRY) {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
         }
+
+        return UiffEntry(workMemory: workMemory)
     }
 
     public mutating func enqueueChild(entry: UiffEntry) {
         // キューにチャンクのオフセットアドレスをエンキューする
         let offsetBytes = entry.chunkMemory.getAddress() - self.workMemory.getAddress()
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
+        if offsetBytes > 0xffff {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
+        }
         self.queue.enqueue(value: UInt16(offsetBytes))
     }
 
@@ -66,13 +73,12 @@ public struct swiftUILib {
         let offsetBytes = Int(self.queue.dequeue())
         let chunk_type = self.workMemory[offsetBytes / 2]
 
-        switch chunk_type {  // チャンクのタイプを取得
-        case UInt16(UIFF_ENTRY):
-            return UiffEntry(workMemory: self.workMemory, offsetBytes: offsetBytes)
-        default:
+        if chunk_type != UInt16(UIFF_ENTRY) {
             assert(false, "UIFF child chunk must be Entry")
-            return nil
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクがEntryでない
         }
+
+        return UiffEntry(workMemory: self.workMemory, offsetBytes: offsetBytes)
     }
 
     public mutating func traverse(
@@ -82,11 +88,12 @@ public struct swiftUILib {
         // rootの値チェック
         // ----------------------------------------------------------
         guard let root = root else {
-            return  // rootがnilの場合は何もしない
+            assert(false, "UIFF root chunk is nil")
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがnil
         }
         if root.chunkType != UInt16(UIFF_ENTRY) {
             assert(false, "UIFF root chunk must be Entry")
-            return
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
         }
 
         // エントリーのループ処理

@@ -30,6 +30,11 @@ tasks:
     cmds:
       - swift run --package-path swiftUI
 
+  build:
+    desc: uiffをビルドする
+    cmds:
+      - swift build --package-path swiftUI
+
   clean:
     desc: clean up generated files
     cmds:

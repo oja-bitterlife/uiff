@@ -1,3 +1,7 @@
+#if !EMBEDDED
+    import Foundation
+#endif
+
 // MARK: - ワーク用メモリ（RAM領域）
 public struct WorkMemory {
     private let ptr: UnsafeMutablePointer<UInt16>
@@ -5,6 +9,10 @@ public struct WorkMemory {
 
     public init(address: UInt, byteSize: Int) {
         assert(byteSize % 2 == 0, "WorkMemory size must be even")
+        if byteSize % 2 != 0 {
+            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+        }
+
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
         self.size = byteSize / 2  // UInt16のサイズで割る
     }
@@ -23,17 +31,35 @@ public struct WorkMemory {
     // インデックスアクセス
     public subscript(index: Int) -> UInt16 {
         get {
-            #if !EMBEDDED
-                assert(index >= 0 && index < self.size, "Memory index out of range")
-            #endif
+            assert(index >= 0 && index < self.size, "Memory index out of range")
+            if index < 0 || index >= self.size {
+                WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+            }
             return ptr[index]
         }
         set {
-            #if !EMBEDDED
-                assert(index >= 0 && index < self.size, "Memory index out of range")
-            #endif
+            assert(index >= 0 && index < self.size, "Memory index out of range")
+            if index < 0 || index >= self.size {
+                WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+            }
             ptr[index] = newValue
         }
+    }
+
+    // Fatal時にメモリに書き込んで終了する
+    // --------------------------------------------------------------
+    static private nonisolated(unsafe) var fatalFunc: (Int) -> Never = { code in
+        #if !EMBEDDED
+            let hexCode = String(format: "0x%08X", code)
+            fatalError("Fatal error occurred with code: \(hexCode)")
+        #endif
+        while true {}
+    }
+    static public func setFatalFunc(fatalFunc: @escaping (Int) -> Never) {
+        self.fatalFunc = fatalFunc
+    }
+    static public func onFatal(code: Int) -> Never {
+        fatalFunc(code)
     }
 }
 
@@ -48,7 +74,15 @@ public struct StackMemory {
 
     public init(address: UInt, byteSize: Int) {
         assert(byteSize % 2 == 0, "StackMemory size must be even")
-        self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
+        if byteSize % 2 != 0 {
+            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+        }
+
+        if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
+            self.ptr = ptr
+        } else {
+            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+        }
         self.size = byteSize / 2  // UInt16のサイズで割る
         self.sp = 0
     }
@@ -68,9 +102,11 @@ public struct StackMemory {
     }
 
     public mutating func push(value: UInt16) {
-        #if !EMBEDDED
-            assert(self.sp < self.size, "Stack overflow")
-        #endif
+        assert(self.sp < self.size, "Stack overflow")
+        if self.sp >= self.size {
+            WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
+        }
+
         self.ptr[self.sp] = value
         self.sp += 1
         #if !EMBEDDED
@@ -80,17 +116,20 @@ public struct StackMemory {
         #endif
     }
     public mutating func pop() -> UInt16 {
-        #if !EMBEDDED
-            assert(self.sp > 0, "Stack underflow")
-        #endif
+        assert(self.sp > 0, "Stack underflow")
+        if self.sp <= 0 {
+            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+        }
+
         self.sp -= 1
         return self.ptr[self.sp]
     }
 
     public func peek() -> UInt16 {
-        #if !EMBEDDED
-            assert(self.sp > 0, "Stack is empty")
-        #endif
+        assert(self.sp > 0, "Stack is empty")
+        if self.sp <= 0 {
+            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+        }
         return self.ptr[self.sp - 1]
     }
 }
@@ -106,6 +145,10 @@ public struct QueueMemory {
 
     public init(address: UInt, byteSize: Int) {
         assert(byteSize % 2 == 0, "QueueMemory size must be even")
+        if byteSize % 2 != 0 {
+            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+        }
+
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
         self.size = byteSize / 2  // UInt16のサイズで割る
         self.qp = 0
@@ -126,9 +169,11 @@ public struct QueueMemory {
     }
 
     public mutating func enqueue(value: UInt16) {
-        #if !EMBEDDED
-            assert(self.qp < self.size, "Queue overflow")
-        #endif
+        assert(self.qp < self.size, "Queue overflow")
+        if self.qp >= self.size {
+            WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
+        }
+
         self.ptr[self.qp] = value
         self.qp += 1
         #if !EMBEDDED
@@ -138,9 +183,11 @@ public struct QueueMemory {
         #endif
     }
     public mutating func dequeue() -> UInt16 {
-        #if !EMBEDDED
-            assert(self.qp > 0, "Queue underflow")
-        #endif
+        assert(self.qp > 0, "Queue underflow")
+        if self.qp <= 0 {
+            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+        }
+
         let value = self.ptr[0]
         for i in 1..<self.qp {
             self.ptr[i - 1] = self.ptr[i]
@@ -150,9 +197,11 @@ public struct QueueMemory {
     }
 
     public func peek() -> UInt16 {
-        #if !EMBEDDED
-            assert(self.qp > 0, "Queue is empty")
-        #endif
+        assert(self.qp > 0, "Queue is empty")
+        if self.qp <= 0 {
+            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+        }
+
         return self.ptr[0]
     }
 }
