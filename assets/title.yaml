@@ -8,7 +8,7 @@ children:
   W: 20
   Y: 4
   H: 4
-  Colors: [0xffffff, 0xffffffff]
+  Colors: [0xffffff, 0xffc0c0c0]
   AlignCenterX: true
 - Type: TYPE_LAYOUT  # スタートメニュー
   children:
@@ -28,7 +28,7 @@ children:
             case _:  # CONTINUE
               return 2
 - Type: TYPE_LAYOUT  # メッセージスピード
-  Y: 10
+  Y: 15
   W: 30
   H: 20
   Popup: true
@@ -36,7 +36,6 @@ children:
   - Type: TYPE_LABEL
     AlignCenterX: true
     Text: "-MESSAGE SPEED-"
-    Y: 1
     W: 15
     H: 1
   - Type: TYPE_SELECT

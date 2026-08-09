@@ -367,21 +367,26 @@ class EntryInfo(DispatcherBase):
             # Align系の処理
             if self.ignore_get(props, "AlignCenterX", False):
                 self.area.x += self.area.align_x(parent_area, "center")
-                self.area.x += parent_area.x  # 親の座標を加算する
+                self.area.y += parent_area.y
                 self.ignore_pop(props, "AlignCenterX")
             if self.ignore_get(props, "AlignLeft", False):
                 self.area.x += self.area.align_x(parent_area, "left")
+                self.area.y += parent_area.y
                 self.ignore_pop(props, "AlignLeft")
             if self.ignore_get(props, "AlignRight", False):
                 self.area.x += self.area.align_x(parent_area, "right")
+                self.area.y += parent_area.y
                 self.ignore_pop(props, "AlignRight")
             if self.ignore_get(props, "AlignCenterY", False):
+                self.area.x += parent_area.x
                 self.area.y += self.area.align_y(parent_area, "center")
                 self.ignore_pop(props, "AlignCenterY")
             if self.ignore_get(props, "AlignTop", False):
+                self.area.x += parent_area.x
                 self.area.y += self.area.align_y(parent_area, "top")
                 self.ignore_pop(props, "AlignTop")
             if self.ignore_get(props, "AlignBottom", False):
+                self.area.x += parent_area.x
                 self.area.y += self.area.align_y(parent_area, "bottom")
                 self.ignore_pop(props, "AlignBottom")
 
