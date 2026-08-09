@@ -195,6 +195,8 @@ class DispatchTree(DispatcherBase):
             # listの場合はchilrendにDispatchTreeを突っ込む
             for item in json_data:
                 self.children.append(DispatchTree(item, define_data))
+            # 仮Entryにする
+            self.props["Type"] = "TYPE_LAYOUT"
         else:  # dict
             # 辞書のときはchildren以外をpropsに突っ込む
             for key, value in json_data.items():
@@ -211,31 +213,30 @@ class DispatchTree(DispatcherBase):
         data = bytearray()
         entry_area = parent_area  # Entryの範囲を初期化する
 
-        # list定義の場合childrenしかないのでpropsが空になる
-        # つまりpropsがある場合はEntry
-        if len(self.props) > 0:
-            entry_buf = bytearray()
+        # エントリー部分の処理。エントリーは必ず存在する
+        # -----------------------------------------------------------
+        entry_buf = bytearray()
 
-            # ノードのtype情報を取得して以降の処理内容を決定する
-            entry_info = EntryInfo(parent_area, self.props, self.define_data)
-            entry_buf.extend(entry_info.get_entry_header())  # type情報もchunkとして出力
-            entry_area = entry_info.area  # 範囲を更新する
+        # ノードのtype情報を取得して以降の処理内容を決定する
+        entry_info = EntryInfo(parent_area, self.props, self.define_data)
+        entry_buf.extend(entry_info.get_entry_header())  # type情報もchunkとして出力
+        entry_area = entry_info.area  # 範囲を更新する
 
-            # Type対象Dispatchersの処理
-            # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
-            if entry_info.type_str in self.type_dispatchers:
-                user_type = entry_info.type_str.upper()
-                entry_buf.extend(self.type_dispatchers[user_type]().get_chunk(entry_info, self.props, self.define_data))
+        # Type対象Dispatchersの処理
+        # 特別なTypeでしか使わないpropsを処理する(ユーザー定義Type用)
+        if entry_info.type_str in self.type_dispatchers:
+            user_type = entry_info.type_str.upper()
+            entry_buf.extend(self.type_dispatchers[user_type]().get_chunk(entry_info, self.props, self.define_data))
 
-            # 残りのpropsを順番に書き出す
-            for key in self.props.keys():
-                key_upper = key.upper()
-                if key_upper not in self.prop_dispatchers:
-                    raise ValueError(f"Unknown property '{key}' found in {entry_info.type_str}:{entry_info.subtype_str}. Ignoring.")
-                entry_buf.extend(self.prop_dispatchers[key_upper]().get_chunk(entry_info, self.props, self.define_data))
+        # 残りのpropsを順番に書き出す
+        for key in self.props.keys():
+            key_upper = key.upper()
+            if key_upper not in self.prop_dispatchers:
+                raise ValueError(f"Unknown property '{key}' found in {entry_info.type_str}:{entry_info.subtype_str}. Ignoring.")
+            entry_buf.extend(self.prop_dispatchers[key_upper]().get_chunk(entry_info, self.props, self.define_data))
 
-            # チャンクを作成してdataに追加する
-            data.extend(self.create_chunk_buf(UIFF_ENTRY, entry_buf))
+        # チャンクを作成してdataに追加する
+        data.extend(self.create_chunk_buf(UIFF_ENTRY, entry_buf))
 
         # 子の処理
         # -----------------------------------------------------------

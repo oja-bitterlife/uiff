@@ -34,6 +34,10 @@ def parse_chunk(data, size, indent=""):
         chunk_data = data[offset + 4:offset + 4 + chunk_size]
         offset += 4 + chunk_size
 
+        # チャンクサイズが偶数であることを確認
+        if chunk_size % 2 != 0:
+            raise ValueError(f"Chunk size must be even, got {chunk_size}")
+
         # Entry
         if chunk_type == UIFF_ENTRY:
             # Entry区切り

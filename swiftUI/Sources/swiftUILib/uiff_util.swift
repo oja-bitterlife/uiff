@@ -55,24 +55,8 @@ extension UiffChunk {
 
     public var payload: WorkMemory {
         return WorkMemory(
-            address: chunkMemory.getAddress() + 4,
+            address: chunkMemory.getAddress() + 4,  // ヘッダの4バイトを加える
             byteSize: Int(chunkMemory[1]))
-    }
-
-    public func getNext() -> UiffChunk? {
-        // 最後まで到達
-        if chunkMemory.getByteSize() <= chunkSize {
-            return nil
-        }
-
-        switch chunkMemory[chunkSize / 2] {  // 次のチャンクのタイプを取得
-        case UIFF_ENTRY:
-            return UiffEntry(workMemory: chunkMemory, offsetBytes: self.chunkSize)
-        case UIFF_CHILD:
-            return UiffChild(workMemory: chunkMemory, offsetBytes: self.chunkSize)
-        default:
-            return UiffProp(workMemory: chunkMemory, offsetBytes: self.chunkSize)
-        }
     }
 }
 
@@ -129,80 +113,55 @@ public struct UiffEntry: UiffChunk {
         return Int(chunkMemory[9])
     }
 
-    // properties部からプロパティを取得するイテレータを返す
-    public func getPropIter() -> UiffPropIter {
-        return UiffPropIter(workMemory: self.chunkMemory, offsetBytes: UiffEntry.HEADER_BYTESIZE)
+    // Entryはヘッダの後をpayloadとして扱う
+    public var payload: WorkMemory {
+        return WorkMemory(
+            address: chunkMemory.getAddress() + UInt(UiffEntry.HEADER_BYTESIZE),
+            byteSize: Int(chunkMemory[1]) - UiffEntry.HEADER_BYTESIZE)
+    }
+
+    public func getNextEntry() -> UiffEntry? {
+        if chunkMemory.getByteSize() <= chunkSize {
+            return nil  // 次のチャンクが存在しない場合はnilを返す
+        }
+        return UiffEntry(workMemory: chunkMemory, offsetBytes: chunkSize)
     }
 }
 
-// child管理用チャンク
-public struct UiffChild: UiffChunk {
-    public private(set) var chunkMemory: WorkMemory
-
-    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
-    }
-
-    // 最初の子チャンクを取得する
-    public func getFirstEntry() -> UiffEntry? {
-        // 子のチャンクが存在するか確認する
-        assert(0 < chunkSize, "UiffChild has no child chunks")
-        if chunkSize <= 0 {
-            return nil
-        }
-
-        switch chunkMemory[2] {  // 子チャンクのタイプを取得
-        case UIFF_ENTRY:
-            return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)
-        default:
-            // childの中は必ずEntryのリストのはず
-            assert(false, "UiffChild must contain UiffEntry chunks")
-            return nil
-        }
-    }
-}
-
+// Entryのpropertysを扱う
+// ****************************************************************************
 // プロパティ管理用チャンク
 public struct UiffPropIter {
-    private var prop: UiffProp?
+    public private(set) var chunkMemory: WorkMemory
+    var offsetBytes: Int
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        // バッファが終端に達している場合はnil
-        if workMemory.getByteSize() <= offsetBytes {
-            prop = nil
-        } else {
-            prop = UiffProp(workMemory: workMemory, offsetBytes: offsetBytes)
-        }
+        self.chunkMemory = workMemory
+        self.offsetBytes = offsetBytes
     }
 
     public mutating func next() -> UiffProp? {
-        // nilの場合は次のプロパティがない
-        guard let returnProp = prop else {
+        // 終端に達した
+        if chunkMemory.getByteSize() <= offsetBytes {
             return nil
         }
+        print(
+            "chunkMemory: \(chunkMemory.getByteSize()), offset: \(offsetBytes)"
+        )
 
-        if let nextProp = returnProp.getNext() {
-            prop = nextProp
-            return returnProp
-        } else {
-            prop = nil
-            return returnProp
-        }
+        // プロパティチャンクを返す
+        let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
+        offsetBytes += prop.chunkSize  // 次のプロパティチャンクのオフセットを更新する
+        return prop
     }
 }
+
+// propertys用
 public struct UiffProp: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
-    }
-
-    // 次のプロパティチャンクを取得する
-    public func getNext() -> UiffProp? {
-        if chunkMemory.getByteSize() <= chunkSize {
-            return nil
-        }
-        return UiffProp(workMemory: chunkMemory, offsetBytes: chunkSize)
     }
 }
 
@@ -239,6 +198,32 @@ public struct UiffSelect: UiffChunk {
 
 // プロパティ各種
 // ****************************************************************************
+// child管理プロパティ
+public struct UiffChild: UiffChunk {
+    public private(set) var chunkMemory: WorkMemory
+
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+    }
+
+    // 最初の子チャンクを取得する
+    public func getFirstEntry() -> UiffEntry? {
+        // 子のチャンクが存在するか確認する
+        assert(0 < chunkSize, "UiffChild has no child chunks")
+        if chunkSize <= 0 {
+            return nil
+        }
+
+        // 子チャンクのタイプを確認
+        assert(chunkMemory[2] == UIFF_ENTRY, "UiffChild must contain UiffEntry chunks")
+        if chunkMemory[2] != UIFF_ENTRY {
+            return nil
+        }
+
+        return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)  // childのヘッダ4バイトを飛ばす
+    }
+}
+
 public struct UiffEvents: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 

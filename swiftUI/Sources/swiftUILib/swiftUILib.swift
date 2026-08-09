@@ -57,7 +57,7 @@ public struct swiftUILib {
         self.queue.enqueue(value: UInt16(offsetBytes))
     }
 
-    public mutating func dequeueChild() -> UiffChunk? {
+    public mutating func dequeueChild() -> UiffEntry? {
         // キューからチャンクのオフセットアドレスをデキューする
         if self.queue.isEmpty() {
             return nil  // キューが空の場合はnilを返す
@@ -78,52 +78,38 @@ public struct swiftUILib {
     public mutating func traverse(
         root: UiffChunk?,
         onEntry: (UiffEntry) -> Void,
-        onTraverse: ((UiffChunk) -> Void)? = nil
     ) {
-        var next_chunk = root
+        guard let root = root else {
+            return  // rootがnilの場合は何もしない
+        }
+        if root.chunkType != UInt16(UIFF_ENTRY) {
+            assert(false, "UIFF root chunk must be Entry")
+            return
+        }
 
-        // ルートを基準に潜っていく
-        while let chunk = next_chunk {
-            // 全てのチャンクに対して処理を行う
-            if let onTraverse = onTraverse {
-                onTraverse(chunk)
-            }
+        var next_entry: UiffEntry? = UiffEntry(workMemory: root.chunkMemory)
 
-            // ルートの情報を表示する
-            switch chunk.chunkType {
-            case UInt16(UIFF_ENTRY):
-                let entry = UiffEntry(workMemory: chunk.chunkMemory)
-                // printEntryHeader(entry: entry)
-                onEntry(entry)
+        // エントリー単位で処理する
+        while let entry = next_entry {
+            onEntry(entry)
 
-                // propertiesからプロパティを取得する
-                var prop_iter = entry.getPropIter()
-                if let prop = prop_iter.next() {
-                    // childの可能性があるのでEntryだけではなくpropも見る
-                    next_chunk = prop
-                } else {
-                    // propertiesがなければ次のEntryに進む
-                    next_chunk = entry.getNext()
+            // propertiesからプロパティを取得する
+            var prop_iter = UiffPropIter(workMemory: entry.payload)
+            while let prop = prop_iter.next() {
+                // 子があればキューに積む
+                if prop.chunkType == UInt16(UIFF_CHILD) {
+                    let children = UiffChild(workMemory: prop.chunkMemory)
+                    if let first_child = children.getFirstEntry() {
+                        enqueueChild(entry: first_child)
+                    }
                 }
-
-            case UInt16(UIFF_CHILD):
-                let children = UiffChild(workMemory: chunk.chunkMemory)
-
-                // 子をキューに積む
-                if let first_child = children.getFirstEntry() {
-                    enqueueChild(entry: first_child)
-                }
-                next_chunk = children.getNext()  // 次に進める
-
-            default:
-                // プロパティはここでは処理しない
-                let prop = UiffProp(workMemory: chunk.chunkMemory)
-                next_chunk = prop.getNext()  // 次に進める
             }
 
             // この階層が終わったら子を処理する
-            if next_chunk == nil {
-                next_chunk = dequeueChild()
+            if entry.getNextEntry() == nil {
+                next_entry = dequeueChild()
+            } else {
+                next_entry = entry.getNextEntry()
             }
         }
     }
