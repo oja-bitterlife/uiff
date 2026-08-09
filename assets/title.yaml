@@ -18,6 +18,9 @@ children:
   children:
   - Type: TYPE_SELECT
     SubType: TITLE_START
+    X: 12
+    W: 8
+    H: 2
     SelRows: 1  # 縦並び
     SelItems: ["START", "CONTINUE"]
     Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]

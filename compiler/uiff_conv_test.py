@@ -18,7 +18,7 @@ def check_duplicate_keys(pairs):
     d = {}
     for key, val in pairs:
         if key in d:
-            raise ValueError(f"重複したキーが見つかりました: {key}")
+            raise ValueError(f"Duplicate key found: {key}")
         d[key] = val
     return d
 

@@ -364,33 +364,32 @@ class EntryInfo(DispatcherBase):
             self.area.h = bottom - self.area.y
             self.ignore_pop(props, "Extend")
         else:
+            base_x = parent_area.x
+            base_y = parent_area.y
+
             # Align系の処理
             if self.ignore_get(props, "AlignCenterX", False):
-                self.area.x += self.area.align_x(parent_area, "center")
-                self.area.y += parent_area.y
+                base_x = self.area.align_x(parent_area, "center")
                 self.ignore_pop(props, "AlignCenterX")
             if self.ignore_get(props, "AlignLeft", False):
-                self.area.x += self.area.align_x(parent_area, "left")
-                self.area.y += parent_area.y
+                base_x = self.area.align_x(parent_area, "left")
                 self.ignore_pop(props, "AlignLeft")
             if self.ignore_get(props, "AlignRight", False):
-                self.area.x += self.area.align_x(parent_area, "right")
-                self.area.y += parent_area.y
+                base_x = self.area.align_x(parent_area, "right")
                 self.ignore_pop(props, "AlignRight")
             if self.ignore_get(props, "AlignCenterY", False):
-                self.area.x += parent_area.x
-                self.area.y += self.area.align_y(parent_area, "center")
+                base_y = self.area.align_y(parent_area, "center")
                 self.ignore_pop(props, "AlignCenterY")
             if self.ignore_get(props, "AlignTop", False):
-                self.area.x += parent_area.x
-                self.area.y += self.area.align_y(parent_area, "top")
+                base_y = self.area.align_y(parent_area, "top")
                 self.ignore_pop(props, "AlignTop")
             if self.ignore_get(props, "AlignBottom", False):
-                self.area.x += parent_area.x
-                self.area.y += self.area.align_y(parent_area, "bottom")
+                base_y = self.area.align_y(parent_area, "bottom")
                 self.ignore_pop(props, "AlignBottom")
 
             # 親の範囲に収まるようにclipする
+            self.area.x += base_x
+            self.area.y += base_y
             self.area.clip(parent_area)
 
 

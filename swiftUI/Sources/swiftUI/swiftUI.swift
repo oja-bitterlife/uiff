@@ -102,8 +102,7 @@ struct swiftUI {
         case ENTRY_TYPE_LABEL:
             labelDraw(window: entry, propIter: propIter)
         case ENTRY_TYPE_SELECT:
-            print("Select Entry found")
-            printEntryHeader(entry: entry)
+            selectDraw(window: entry, propIter: propIter)
         default:
             print("Unknown Entry type: \(entry.typeID)")
             printEntryHeader(entry: entry)
@@ -177,5 +176,23 @@ struct swiftUI {
             }
         }
 
+    }
+
+    static func selectDraw(window: UiffEntry, propIter: UiffPropIter) {
+        let color: UInt32 = 0xff80_0000
+
+        let x = window.x * 8
+        let y = window.y * 8
+        let w = window.w * 8
+        let h = window.h * 8
+
+        for j in y..<(y + h) {
+            if j < 0 || j >= 160 { continue }
+            for i in x..<(x + w) {
+                if i < 0 || i >= 240 { continue }
+                let index = j * 240 + i
+                bmpBuf[index] = color
+            }
+        }
     }
 }
