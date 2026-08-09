@@ -91,29 +91,28 @@ public struct swiftUILib {
 
         // エントリーのループ処理
         // ----------------------------------------------------------
-        var next_entry: UiffEntry? = UiffEntry(workMemory: root.chunkMemory)
+        // rootをキューに積む
+        enqueueChild(entry: UiffEntry(workMemory: root.chunkMemory))
 
-        // エントリー単位で処理する
-        while let entry = next_entry {
-            onEntry(entry, UiffPropIter(workMemory: entry.payload))
+        // キューが空になるまでループする
+        while let childEntry = dequeueChild() {
+            var entryIter = UiffEntryIter(workMemory: childEntry.chunkMemory)
 
-            // propertiesからプロパティを取得する
-            var prop_iter = UiffPropIter(workMemory: entry.payload)
-            while let prop = prop_iter.next() {
-                // 子があればキューに積む
-                if prop.chunkType == UInt16(UIFF_CHILD) {
-                    let children = UiffChild(workMemory: prop.chunkMemory)
-                    if let first_child = children.getFirstEntry() {
-                        enqueueChild(entry: first_child)
+            // エントリー単位で処理する
+            while let entry = entryIter.next() {
+                onEntry(entry, UiffPropIter(workMemory: entry.payload))
+
+                // propertiesからプロパティを取得する
+                var prop_iter = UiffPropIter(workMemory: entry.payload)
+                while let prop = prop_iter.next() {
+                    // 子があればキューに積む
+                    if prop.chunkType == UInt16(UIFF_CHILD) {
+                        let children = UiffChild(workMemory: prop.chunkMemory)
+                        if let first_child = children.getFirstEntry() {
+                            enqueueChild(entry: first_child)
+                        }
                     }
                 }
-            }
-
-            // この階層が終わったら子を処理する
-            if entry.getNextEntry() == nil {
-                next_entry = dequeueChild()
-            } else {
-                next_entry = entry.getNextEntry()
             }
         }
     }

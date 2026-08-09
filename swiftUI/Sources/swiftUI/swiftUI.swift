@@ -96,14 +96,11 @@ struct swiftUI {
     static func onEntry(entry: UiffEntry, propIter: UiffPropIter) {
         switch entry.typeID {
         case ENTRY_TYPE_LAYOUT:
-            print("Layout Entry found")
-            printEntryHeader(entry: entry)
+            break
         case ENTRY_TYPE_WINDOW:
-            printEntryHeader(entry: entry)
             windowDraw(window: entry, propIter: propIter)
         case ENTRY_TYPE_LABEL:
-            print("Label Entry found")
-            printEntryHeader(entry: entry)
+            labelDraw(window: entry, propIter: propIter)
         case ENTRY_TYPE_SELECT:
             print("Select Entry found")
             printEntryHeader(entry: entry)
@@ -145,5 +142,40 @@ struct swiftUI {
                 bmpBuf[index] = color
             }
         }
+    }
+
+    static func labelDraw(window: UiffEntry, propIter: UiffPropIter) {
+        let color: UInt32 = 0xffff_ffff
+
+        let x = window.x * 8
+        let y = window.y * 8
+        var w = window.w * 8
+        let h = window.h * 8
+
+        var iter = propIter
+        while let prop = iter.next() {
+            switch prop.chunkType {
+            case UIFF_TEXT:
+                let textProp = UiffText(workMemory: prop.chunkMemory)
+                let textLen = textProp.textLength
+                if textLen * 8 < w {
+                    w = textLen * 8
+                }
+            default:
+                print("Unknown prop type: \(prop.chunkType)")
+            }
+        }
+
+        print("drawing label at (\(x), \(y)) with size (\(w), \(h))")
+
+        for j in y..<(y + h) {
+            if j < 0 || j >= 160 { continue }
+            for i in x..<(x + w) {
+                if i < 0 || i >= 240 { continue }
+                let index = j * 240 + i
+                bmpBuf[index] = color
+            }
+        }
+
     }
 }

@@ -28,12 +28,14 @@ children:
             case _:  # CONTINUE
               return 2
 - Type: TYPE_LAYOUT  # メッセージスピード
+  Y: 10
+  W: 30
+  H: 20
   Popup: true
   children:
   - Type: TYPE_LABEL
     AlignCenterX: true
     Text: "-MESSAGE SPEED-"
-    X: 2
     Y: 1
     W: 15
     H: 1

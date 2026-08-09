@@ -43,6 +43,9 @@
     },
     {
       "Type": "TYPE_LAYOUT",
+      "Y": 10,
+      "W": 30,
+      "H": 20,
       "Popup": true,
       "children": [
         {

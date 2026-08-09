@@ -119,12 +119,27 @@ public struct UiffEntry: UiffChunk {
             address: chunkMemory.getAddress() + UInt(UiffEntry.HEADER_BYTESIZE),
             byteSize: chunkSize - UiffEntry.HEADER_BYTESIZE)
     }
+}
 
-    public func getNextEntry() -> UiffEntry? {
-        if chunkMemory.getByteSize() <= chunkSize {
-            return nil  // 次のチャンクが存在しない場合はnilを返す
+public struct UiffEntryIter {
+    public private(set) var chunkMemory: WorkMemory
+    var offsetBytes: Int
+
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        self.chunkMemory = workMemory
+        self.offsetBytes = offsetBytes
+    }
+
+    public mutating func next() -> UiffEntry? {
+        // 終端に達した
+        if chunkMemory.getByteSize() <= offsetBytes {
+            return nil
         }
-        return UiffEntry(workMemory: chunkMemory, offsetBytes: chunkSize)
+
+        // Entryチャンクを返す
+        let entry = UiffEntry(workMemory: chunkMemory, offsetBytes: offsetBytes)
+        offsetBytes += entry.chunkSize  // 次のEntryチャンクのオフセットを更新する
+        return entry
     }
 }
 
