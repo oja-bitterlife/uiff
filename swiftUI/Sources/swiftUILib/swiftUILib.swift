@@ -1,16 +1,19 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
-    private var queue: RingQueueMemory
     private var workMemory: WorkMemory
+    private var childQueue: RingQueueMemory
+    private var eventQueue: RingQueueMemory
 
     // MARK: - 初期化
     public init(
-        uiffSrcAddress: UInt,
-        queueAddress: UInt, queueByteSize: Int,
-        workAddress: UInt, workByteSize: Int,
+        uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
+        workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス
+        workMemorySize: Int,  // 作業用メモリの総サイズ
+        childWorkSize: Int,  // 作用用メモリ内の子キューのサイズ
+        eventWorkSize: Int,  // 作用用メモリ内のイベントキューのサイズ
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
-        let uiffHeader = UiffFileHeader(address: uiffSrcAddress)
+        let uiffHeader = UiffFileHeader(address: uiffRomAddress)
         let magic_ok =
             uiffHeader.magic
             == (UInt(UInt8(ascii: "U"))
@@ -22,15 +25,19 @@ public struct swiftUILib {
             WorkMemory.onFatal(code: UIFF_ERR_FILE_INVALID)
         }
 
+        // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
+        let queueTotalByteSize = childWorkSize + eventWorkSize
+        let remainingByteSize = workMemorySize - queueTotalByteSize
+
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
-        assert(uiff_size <= workByteSize, "UIFF size exceeds memory size")
-        if uiff_size > workByteSize {
+        assert(uiff_size <= remainingByteSize, "UIFF size exceeds memory size")
+        if uiff_size > remainingByteSize {
             WorkMemory.onFatal(code: UIFF_ERR_FILE_TOO_LARGE)
         }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workAddress) {
+        if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workMemoryAddress) {
             for i in 0..<uiff_size {
                 mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
             }
@@ -39,9 +46,14 @@ public struct swiftUILib {
             WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
         }
 
-        // スタックと作業用メモリのアクセッサを作る
-        self.workMemory = WorkMemory(address: workAddress, byteSize: uiff_size)
-        self.queue = RingQueueMemory(address: queueAddress, byteSize: queueByteSize)
+        // 作業用メモリのアクセッサを作る
+        self.workMemory = WorkMemory(address: workMemoryAddress, byteSize: uiff_size)
+
+        // 各キューのアクセッサを作る
+        var queueOffset = workMemoryAddress + UInt(remainingByteSize)
+        self.childQueue = RingQueueMemory(address: queueOffset, byteSize: childWorkSize)
+        queueOffset += UInt(childWorkSize)
+        self.eventQueue = RingQueueMemory(address: queueOffset, byteSize: eventWorkSize)
     }
 
     public func getRoot() -> UiffChunk? {
@@ -61,16 +73,16 @@ public struct swiftUILib {
         if offsetBytes > 0xffff {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
-        self.queue.enqueue(value: UInt16(offsetBytes))
+        self.childQueue.enqueue(value: UInt16(offsetBytes))
     }
 
     public mutating func dequeueChild() -> UiffEntry? {
         // キューからチャンクのオフセットアドレスをデキューする
-        if self.queue.isEmpty() {
+        if self.childQueue.isEmpty() {
             return nil  // キューが空の場合はnilを返す
         }
 
-        let offsetBytes = Int(self.queue.dequeue())
+        let offsetBytes = Int(self.childQueue.dequeue())
         let chunk_type = self.workMemory[offsetBytes / 2]
 
         if chunk_type != UInt16(UIFF_ENTRY) {
