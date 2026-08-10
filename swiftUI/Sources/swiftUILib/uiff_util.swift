@@ -359,14 +359,9 @@ public struct UiffScript: UiffChunk {
             memAddress: lib.vmWork.getAddress(), memByteSize: lib.vmWork.getByteSize()
         )
 
-        while true {
-            let shouldHalt = vm.step()
-            if shouldHalt {
-                print("return: \(vm.result())")
-                print("Stack max usage: \(vm.stack.stackMax) / \(vm.stack.capacity)")
-                break
-            }
-        }
+        while !vm.step() {}
+        print("return: \(vm.result())")
+        print("Stack max usage: \(vm.stack.stackMax) / \(vm.stack.capacity)")
     }
 }
 
