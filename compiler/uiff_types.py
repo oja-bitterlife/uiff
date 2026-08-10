@@ -12,7 +12,7 @@
 # header
 # UIFF + len(2byte)
 
-# chank typeの定義
+# System定義 chunk type
 # *****************************************************************************
 # 基本系
 UIFF_ENTRY = 0x01
