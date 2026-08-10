@@ -26,7 +26,8 @@ struct swiftUI {
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
             workMemorySize: workMem.count,
             childWorkSize: 2 * 32,
-            eventWorkSize: 2 * 32)
+            eventWorkSize: 2 * 32,
+            vmWorkSize: 2 * 64)
 
         let root = uiff.getRoot()
         uiff.traverse(

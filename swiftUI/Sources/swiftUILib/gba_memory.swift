@@ -2,9 +2,14 @@
     import Foundation
 #endif
 
+// ユーティリティ
+public func ExpandEven(value: Int) -> Int {
+    return (value + 1) & ~1  // 偶数に拡張する
+}
+
 // MARK: - 16bitのメモリ操作の共通プロトコル
 // ****************************************************************************
-protocol MemoryInt16 {
+public protocol MemoryInt16 {
     var ptr: UnsafeMutablePointer<UInt16> { get }
     var capacity: Int { get }
 
@@ -76,7 +81,7 @@ public struct WorkMemory: MemoryInt16 {
 }
 // キュー・スタック
 // ****************************************************************************
-protocol QueueStack16: MemoryInt16 {
+public protocol QueueStack16: MemoryInt16 {
     func isEmpty() -> Bool
     func getLength() -> Int
     func peek(index: Int) -> UInt16

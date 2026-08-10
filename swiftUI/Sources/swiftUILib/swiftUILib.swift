@@ -1,8 +1,9 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
-    private var workMemory: WorkMemory
-    private var childQueue: RingQueueMemory
-    private var eventQueue: RingQueueMemory
+    public var uiffWork: WorkMemory
+    public var childQueue: RingQueueMemory
+    public var eventQueue: RingQueueMemory
+    public var vmMemory: WorkMemory
 
     // MARK: - 初期化
     public init(
@@ -11,6 +12,7 @@ public struct swiftUILib {
         workMemorySize: Int,  // 作業用メモリの総サイズ
         childWorkSize: Int,  // 作用用メモリ内の子キューのサイズ
         eventWorkSize: Int,  // 作用用メモリ内のイベントキューのサイズ
+        vmWorkSize: Int  // VMの作業用メモリのサイズ
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
@@ -26,7 +28,10 @@ public struct swiftUILib {
         }
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
-        let queueTotalByteSize = childWorkSize + eventWorkSize
+        let queueTotalByteSize =
+            ExpandEven(value: childWorkSize)
+            + ExpandEven(value: eventWorkSize)
+            + ExpandEven(value: vmWorkSize)
         let remainingByteSize = workMemorySize - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
@@ -46,29 +51,33 @@ public struct swiftUILib {
             WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
         }
 
-        // 作業用メモリのアクセッサを作る
-        self.workMemory = WorkMemory(address: workMemoryAddress, byteSize: uiff_size)
+        // uiff作業用メモリ
+        self.uiffWork = WorkMemory(address: workMemoryAddress, byteSize: uiff_size)
 
-        // 各キューのアクセッサを作る
+        // 各用途のメモリを固定位置に配置する
         var queueOffset = workMemoryAddress + UInt(remainingByteSize)
-        self.childQueue = RingQueueMemory(address: queueOffset, byteSize: childWorkSize)
-        queueOffset += UInt(childWorkSize)
-        self.eventQueue = RingQueueMemory(address: queueOffset, byteSize: eventWorkSize)
+        self.childQueue = RingQueueMemory(
+            address: queueOffset, byteSize: ExpandEven(value: childWorkSize))
+        queueOffset += UInt(self.childQueue.getByteSize())
+        self.eventQueue = RingQueueMemory(
+            address: queueOffset, byteSize: ExpandEven(value: eventWorkSize))
+        queueOffset += UInt(self.eventQueue.getByteSize())
+        self.vmMemory = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
     }
 
     public func getRoot() -> UiffChunk? {
         // ルートチャンクがEntryであることを確認する
-        assert(workMemory[0] == UInt16(UIFF_ENTRY), "UIFF root chunk must be Entry")
-        if workMemory[0] != UInt16(UIFF_ENTRY) {
+        assert(uiffWork[0] == UInt16(UIFF_ENTRY), "UIFF root chunk must be Entry")
+        if uiffWork[0] != UInt16(UIFF_ENTRY) {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
         }
 
-        return UiffEntry(workMemory: workMemory)
+        return UiffEntry(workMemory: uiffWork)
     }
 
     public mutating func enqueueChild(entry: UiffEntry) {
         // キューにチャンクのオフセットアドレスをエンキューする
-        let offsetBytes = entry.chunkMemory.getAddress() - self.workMemory.getAddress()
+        let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         if offsetBytes > 0xffff {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
@@ -83,14 +92,14 @@ public struct swiftUILib {
         }
 
         let offsetBytes = Int(self.childQueue.dequeue())
-        let chunk_type = self.workMemory[offsetBytes / 2]
+        let chunk_type = self.uiffWork[offsetBytes / 2]
 
         if chunk_type != UInt16(UIFF_ENTRY) {
             assert(false, "UIFF child chunk must be Entry")
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクがEntryでない
         }
 
-        return UiffEntry(workMemory: self.workMemory, offsetBytes: offsetBytes)
+        return UiffEntry(workMemory: self.uiffWork, offsetBytes: offsetBytes)
     }
 
     public mutating func traverse(
