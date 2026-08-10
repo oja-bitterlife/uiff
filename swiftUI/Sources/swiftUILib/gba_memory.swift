@@ -121,7 +121,7 @@ public struct StackMemory: QueueStack16 {
     public func getLength() -> Int {
         return self.sp
     }
-    public func peek(index: Int) -> UInt16 {
+    public func peek(index: Int = 0) -> UInt16 {
         assert(index >= 0 && index < self.sp, "Stack index out of range")
         if index < 0 || index >= self.sp {
             WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
@@ -189,7 +189,7 @@ public struct RingQueueMemory: QueueStack16 {
     public func getLength() -> Int {
         return (self.qEnd - self.qBgn + self.capacity) % self.capacity
     }
-    public func peek(index: Int) -> UInt16 {
+    public func peek(index: Int = 0) -> UInt16 {
         assert(self.qBgn != self.qEnd, "Queue is empty")
         if self.qBgn == self.qEnd {
             WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)

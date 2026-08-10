@@ -87,7 +87,10 @@ public struct swiftUILib {
     }
 
     // MARK: - UIFFの逐次処理
-    public mutating func run(firstEntry: UiffEntry, onEntry: (UiffEntry, UiffPropIter) -> Void) {
+    public mutating func run(
+        firstEntry: UiffEntry,
+        onEntry: (swiftUILib, UiffEntry, UiffPropIter) -> Void
+    ) {
         // ルートから子をトラバースして、entryQueueに積み込む
         traverseEntries(firstEntry: firstEntry)
 
@@ -105,17 +108,8 @@ public struct swiftUILib {
             propIter.setBlackList(blackList: [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN])  // 子チャンク、イベントチャンク、リスナーチャンクは無視する
 
             // エントリーの処理を呼び出す
-            onEntry(entry, propIter)
+            onEntry(self, entry, propIter)
         }
-    }
-
-    // MARK: - スクリプトVMの作成
-    public func createVM(byteCodeAddr: UInt, byteCodeSize: Int) -> swiftVMLib {
-        return swiftVMLib(
-            codeAddress: byteCodeAddr,
-            stackAddress: self.vmStack.getAddress(), stackSize: self.vmStack.getByteSize(),
-            memAddress: self.vmWork.getAddress(), memSize: self.vmWork.getByteSize()
-        )
     }
 
     // エントリートラバース用

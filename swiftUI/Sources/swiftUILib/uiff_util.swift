@@ -1,4 +1,5 @@
 // uiffチャンクの操作
+import swiftVMLib
 
 // 定数
 // ****************************************************************************
@@ -348,6 +349,24 @@ public struct UiffScript: UiffChunk {
         }
 
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+    }
+
+    public func run(lib: swiftUILib) {
+        // VMの初期化
+        var vm = swiftVMLib(
+            codeAddress: payload.getAddress(),
+            stackAddress: lib.vmStack.getAddress(), stackSize: lib.vmStack.getByteSize(),
+            memAddress: lib.vmWork.getAddress(), memSize: lib.vmWork.getByteSize()
+        )
+
+        while true {
+            let shouldHalt = vm.step()
+            if shouldHalt {
+                print("return: \(vm.result())")
+                print("Stack max usage: \(vm.stack.stackMax) / \(vm.stack.capacity)")
+                break
+            }
+        }
     }
 }
 

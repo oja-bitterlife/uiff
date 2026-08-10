@@ -57,23 +57,23 @@ struct swiftUI {
     }
 
     // UIの処理を書いていく
-    static func onEntry(entry: UiffEntry, propIter: UiffPropIter) {
+    static func onEntry(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         switch entry.typeID {
         case ENTRY_TYPE_LAYOUT:
             break
         case ENTRY_TYPE_WINDOW:
-            windowDraw(window: entry, propIter: propIter)
+            windowDraw(lib: lib, window: entry, propIter: propIter)
         case ENTRY_TYPE_LABEL:
-            labelDraw(window: entry, propIter: propIter)
+            labelDraw(lib: lib, window: entry, propIter: propIter)
         case ENTRY_TYPE_SELECT:
-            selectDraw(window: entry, propIter: propIter)
+            selectDraw(lib: lib, window: entry, propIter: propIter)
         default:
             print("Unknown Entry type: \(entry.typeID)")
             printEntryHeader(entry: entry)
         }
     }
 
-    static func windowDraw(window: UiffEntry, propIter: UiffPropIter) {
+    static func windowDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
         var color: UInt32 = 0xff00_0000
         var iter = propIter
 
@@ -102,7 +102,7 @@ struct swiftUI {
         }
     }
 
-    static func labelDraw(window: UiffEntry, propIter: UiffPropIter) {
+    static func labelDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
         let color: UInt32 = 0xffff_ffff
 
         let x = window.x * 8
@@ -137,8 +137,19 @@ struct swiftUI {
 
     }
 
-    static func selectDraw(window: UiffEntry, propIter: UiffPropIter) {
+    static func selectDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
         let color: UInt32 = 0xff80_0000
+
+        var iter = propIter
+        while let prop = iter.next() {
+            switch prop.chunkType {
+            case UIFF_SCRIPT:
+                let scriptProp = UiffScript(workMemory: prop.chunkMemory)
+                scriptProp.run(lib: lib)
+            default:
+                print("Unknown prop type: \(prop.chunkType)")
+            }
+        }
 
         let x = window.x * 8
         let y = window.y * 8
