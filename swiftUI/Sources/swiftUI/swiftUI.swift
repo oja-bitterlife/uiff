@@ -56,12 +56,6 @@ struct swiftUI {
 
     // UIの処理を書いていく
     static func onEntry(entry: UiffEntry, propIter: UiffPropIter) {
-        if entry.hitEventID != 0 {
-            print(
-                "Entry has event: entry:\(entry.chunkMemory.getAddress()), eventID: \(entry.hitEventID)"
-            )
-        }
-
         switch entry.typeID {
         case ENTRY_TYPE_LAYOUT:
             break
@@ -86,13 +80,8 @@ struct swiftUI {
             case UIFF_COLORS:
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
                 color = colorProp.getColor(index: 1)
-                print(
-                    "    FG: \(String(format: "%08X", colorProp.getColor(index: 0))), BG: \(String(format: "%08X", colorProp.getColor(index: 1)))"
-                )
-            case UIFF_EVENTS:
-                break
             default:
-                print("Unknown prop type: \(prop.chunkType)")
+                break
             }
         }
 
