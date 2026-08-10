@@ -355,8 +355,8 @@ public struct UiffScript: UiffChunk {
         // VMの初期化
         var vm = swiftVMLib(
             codeAddress: payload.getAddress(),
-            stackAddress: lib.vmStack.getAddress(), stackSize: lib.vmStack.getByteSize(),
-            memAddress: lib.vmWork.getAddress(), memSize: lib.vmWork.getByteSize()
+            stackAddress: lib.vmStack.getAddress(), stackByteSize: lib.vmStack.getByteSize(),
+            memAddress: lib.vmWork.getAddress(), memByteSize: lib.vmWork.getByteSize()
         )
 
         while true {
