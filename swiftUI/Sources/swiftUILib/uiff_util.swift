@@ -41,6 +41,11 @@ public protocol UiffChunk {
 }
 extension UiffChunk {
     public static func assign(workMemory: WorkMemory, offsetBytes: Int) -> WorkMemory {
+        assert(offsetBytes % 2 == 0, "offsetBytes must be even")
+        if offsetBytes % 2 != 0 {
+            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 偶数バイト境界でない
+        }
+
         return WorkMemory(
             address: workMemory.getAddress() + UInt(offsetBytes),
             byteSize: workMemory.getByteSize() - offsetBytes)
@@ -68,6 +73,12 @@ public struct UiffEntry: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        // 子チャンクのタイプを確認
+        assert(workMemory[offsetBytes / 2] == UIFF_ENTRY, "UiffEntry must start with UIFF_ENTRY")
+        if workMemory[offsetBytes / 2] != UIFF_ENTRY {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEntry must start with UIFF_ENTRY
+        }
+
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -114,7 +125,7 @@ public struct UiffEntry: UiffChunk {
     }
 
     // Runtime用。ヒットしたイベントID
-    public var eventID: UInt16 {
+    public var hitEventID: UInt16 {
         get {
             return chunkMemory[10]
         }
@@ -195,6 +206,11 @@ public struct UiffSelect: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_SELECT, "UiffSelect must start with UIFF_SELECT")
+        if workMemory[0] != UIFF_SELECT {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffSelect must start with UIFF_SELECT
+        }
+
         self.chunkMemory = UiffSelect.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -226,6 +242,11 @@ public struct UiffChild: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_CHILD, "UiffChild must start with UIFF_CHILD")
+        if workMemory[0] != UIFF_CHILD {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffChild
+        }
+
         self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -237,12 +258,6 @@ public struct UiffChild: UiffChunk {
             return nil
         }
 
-        // 子チャンクのタイプを確認
-        assert(chunkMemory[2] == UIFF_ENTRY, "UiffChild must contain UiffEntry chunks")
-        if chunkMemory[2] != UIFF_ENTRY {
-            return nil
-        }
-
         return UiffEntry(workMemory: chunkMemory, offsetBytes: 4)  // childのヘッダ4バイトを飛ばす
     }
 }
@@ -251,6 +266,11 @@ public struct UiffEvents: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_EVENTS, "UiffEvents must start with UIFF_EVENTS")
+        if workMemory[0] != UIFF_EVENTS {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEvents
+        }
+
         self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -268,6 +288,11 @@ public struct UiffScript: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_SCRIPT, "UiffScript must start with UIFF_SCRIPT")
+        if workMemory[0] != UIFF_SCRIPT {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffScript
+        }
+
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 }
@@ -276,6 +301,11 @@ public struct UiffColors: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_COLORS, "UiffColors must start with UIFF_COLORS")
+        if workMemory[0] != UIFF_COLORS {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffColors
+        }
+
         self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
@@ -295,6 +325,11 @@ public struct UiffText: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_TEXT, "UiffText must start with UIFF_TEXT")
+        if workMemory[0] != UIFF_TEXT {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffText
+        }
+
         self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 

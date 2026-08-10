@@ -68,13 +68,7 @@ public struct swiftUILib {
 
     // MARK: - ルートチャンクの取得。Entryのはず
     public func getRoot() -> UiffEntry {
-        // ルートチャンクがEntryであることを確認する
-        assert(uiffWork[0] == UInt16(UIFF_ENTRY), "UIFF root chunk must be Entry")
-        if uiffWork[0] != UInt16(UIFF_ENTRY) {
-            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
-        }
-
-        return UiffEntry(workMemory: uiffWork)
+        return UiffEntry(workMemory: self.uiffWork)
     }
 
     // MARK: - UIFFの子チャンクのキュー処理
@@ -104,17 +98,6 @@ public struct swiftUILib {
     public mutating func traverseEntries(
         firstEntry: UiffEntry,
     ) {
-        // rootの値チェック
-        // ----------------------------------------------------------
-        // guard let firstEntry = firstEntry else {
-        //     assert(false, "UIFF root chunk is nil")
-        //     WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがnil
-        // }
-        if firstEntry.chunkType != UInt16(UIFF_ENTRY) {
-            assert(false, "UIFF root chunk must be Entry")
-            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
-        }
-
         // rootをキューに積む
         enqueueEntry(entry: UiffEntry(workMemory: firstEntry.chunkMemory))
 
