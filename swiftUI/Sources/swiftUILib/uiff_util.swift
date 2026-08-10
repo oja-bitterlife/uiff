@@ -218,16 +218,16 @@ public struct UiffSelect: UiffChunk {
     }
 
     // 選択肢を横に並べる数
-    public var selRows: UInt16 {
+    public func getSelRows() -> UInt16 {
         return chunkMemory[0]
     }
 
-    public var selItemNum: UInt16 {
+    public func getSelItemNum() -> UInt16 {
         return chunkMemory[1]
     }
 
     public func getSelItem(index: Int) -> UiffProp {
-        let item_num = selItemNum
+        let item_num = getSelItemNum()
         assert(index < item_num, "index out of range")
 
         var sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: 2)  // sel_rowsとsel_item_numを飛ばす
@@ -277,17 +277,17 @@ public struct UiffEvents: UiffChunk {
         self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public var eventNum: Int {
+    public func getEventNum() -> Int {
         return payload.getByteSize() / 2  // 1イベントあたり2バイト
     }
 
     public func getEventID(index: Int) -> UInt16 {
-        assert(index < eventNum, "index out of range")
+        assert(index < getEventNum(), "index out of range")
         return payload[index]
     }
 
-    public func hasEvent(eventID: UInt16) -> Bool {
-        for i in 0..<eventNum {
+    public func hasEventID(eventID: UInt16) -> Bool {
+        for i in 0..<getEventNum() {
             if getEventID(index: i) == eventID {
                 return true
             }
@@ -308,17 +308,17 @@ public struct UiffListen: UiffChunk {
         self.chunkMemory = UiffListen.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public var eventNum: Int {
+    public func getEventNum() -> Int {
         return payload.getByteSize() / 2  // 1イベントあたり2バイト
     }
 
     public func getEventID(index: Int) -> UInt16 {
-        assert(index < eventNum, "index out of range")
+        assert(index < getEventNum(), "index out of range")
         return payload[index]
     }
 
-    public func hasEvent(eventID: UInt16) -> Bool {
-        for i in 0..<eventNum {
+    public func hasEventID(eventID: UInt16) -> Bool {
+        for i in 0..<getEventNum() {
             if getEventID(index: i) == eventID {
                 return true
             }
@@ -367,12 +367,12 @@ public struct UiffColors: UiffChunk {
         self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public var colorNum: Int {
+    public func getColorNum() -> Int {
         return payload.getByteSize() / 4  // 1色あたり4バイト
     }
 
     public func getColor(index: Int) -> UInt32 {
-        assert(index < colorNum, "index out of range")
+        assert(index < getColorNum(), "index out of range")
         let color_low = payload[index * 2]  // 1色あたり4バイト
         let color_high = payload[index * 2 + 1]
         return UInt32(color_high) << 16 | UInt32(color_low)
@@ -391,7 +391,11 @@ public struct UiffText: UiffChunk {
         self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public var textLength: Int {
-        return Int(chunkMemory[0])
+    public func getTextLength() -> Int {
+        return payload.getByteSize() - 2  // textLengthの2バイトを減らす
+    }
+
+    public func getTextAddr() -> UInt {
+        return payload.getAddress() + 2  // textLengthの2バイトを飛ばす
     }
 }

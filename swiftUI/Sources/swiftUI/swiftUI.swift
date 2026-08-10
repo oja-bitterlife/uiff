@@ -128,7 +128,7 @@ struct swiftUI {
             switch prop.chunkType {
             case UIFF_TEXT:
                 let textProp = UiffText(workMemory: prop.chunkMemory)
-                let textLen = textProp.textLength
+                let textLen = textProp.getTextLength()
                 if textLen * 8 < w {
                     w = textLen * 8
                 }

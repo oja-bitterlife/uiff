@@ -194,7 +194,7 @@ public struct swiftUILib {
         for prop in UiffPropIter(workMemory: entry.payload) {
             if prop.chunkType == UIFF_EVENTS {
                 let events = UiffEvents(workMemory: prop.chunkMemory)
-                if events.hasEvent(eventID: eventID) {
+                if events.hasEventID(eventID: eventID) {
                     return true
                 }
             }
@@ -207,7 +207,7 @@ public struct swiftUILib {
         for prop in UiffPropIter(workMemory: entry.payload) {
             if prop.chunkType == UIFF_LISTEN {
                 let listen = UiffListen(workMemory: prop.chunkMemory)
-                if listen.hasEvent(eventID: eventID) {
+                if listen.hasEventID(eventID: eventID) {
                     return true
                 }
             }
