@@ -218,16 +218,16 @@ public struct UiffSelect: UiffChunk {
     }
 
     // 選択肢を横に並べる数
-    public func getSelRows() -> UInt16 {
+    public var selRows: UInt16 {
         return chunkMemory[0]
     }
 
-    public func getSelItemNum() -> UInt16 {
+    public var selItemNum: UInt16 {
         return chunkMemory[1]
     }
 
     public func getSelItem(index: Int) -> UiffProp {
-        let item_num = getSelItemNum()
+        let item_num = selItemNum
         assert(index < item_num, "index out of range")
 
         var sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: 2)  // sel_rowsとsel_item_numを飛ばす
