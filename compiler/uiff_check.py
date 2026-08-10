@@ -61,9 +61,14 @@ def parse_chunk(data, size, indent=""):
             h = getUInt16(chunk_data, 14)
             print(f"{indent}Pos: ({x}, {y}), Size: ({w}, {h})")
 
+            # event_idはRuntime用なので表示しない
+            event_id = getUInt16(chunk_data, 16)
+
+            header_end = 18
+
             # payloadsの解析
-            if chunk_size > 16:
-                parse_chunk(chunk_data[16:], chunk_size - 16, indent)
+            if chunk_size > header_end:
+                parse_chunk(chunk_data[header_end:], chunk_size - header_end, indent)
 
             # Entry区切り
             print("")

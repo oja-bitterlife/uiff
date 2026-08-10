@@ -64,7 +64,7 @@ extension UiffChunk {
 // ****************************************************************************
 // Enetry単位アクセス用チャンク
 public struct UiffEntry: UiffChunk {
-    static let HEADER_BYTESIZE = 10 * 2  // ヘッダのサイズ(バイト単位)
+    static let HEADER_BYTESIZE = 11 * 2  // ヘッダのサイズ(バイト単位)
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
@@ -111,6 +111,16 @@ public struct UiffEntry: UiffChunk {
 
     public var h: Int {
         return Int(chunkMemory[9])
+    }
+
+    // Runtime用。ヒットしたイベントID
+    public var eventID: UInt16 {
+        get {
+            return chunkMemory[10]
+        }
+        set {
+            chunkMemory[10] = newValue
+        }
     }
 
     // Entryはヘッダの後をpayloadとして扱う
