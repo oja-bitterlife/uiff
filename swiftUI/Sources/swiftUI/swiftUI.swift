@@ -50,6 +50,15 @@ struct swiftUI {
         var vm = lib.vmWork
         vm[1] = eventID
     }
+    static func setVMSelectNo(lib: swiftUILib, selectNo: UInt16) {
+        var vm = lib.vmWork
+        vm[2] = selectNo
+    }
+    static func recvVMNotify(lib: swiftUILib) {
+        let vm = lib.vmWork
+        var sendLib = lib
+        sendLib.notify(eventID: vm[3])
+    }
 
     static func printEntryHeader(entry: UiffEntry) {
         print(
@@ -146,13 +155,18 @@ struct swiftUI {
     static func selectDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         let color: UInt32 = 0xff80_0000
         setVMEvent(lib: lib, eventID: entry.recvEventID)
+        setVMSelectNo(lib: lib, selectNo: 0)
 
         var iter = propIter
         while let prop = iter.next() {
             switch prop.chunkType {
             case UIFF_SCRIPT:
                 let scriptProp = UiffScript(workMemory: prop.chunkMemory)
-                scriptProp.run(lib: lib)
+                let result = scriptProp.run(lib: lib)
+                print("VM Result: \(result)")
+                print("VM Notify: \(lib.vmWork[3])")
+                recvVMNotify(lib: lib)
+
             default:
                 print("Unknown prop type: \(prop.chunkType)")
             }

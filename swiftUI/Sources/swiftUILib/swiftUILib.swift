@@ -83,7 +83,10 @@ public struct swiftUILib {
 
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
-        self.eventQueue.enqueue(value: eventID)
+        // イベントIDが0より大きい場合のみ登録する
+        if eventID > 0 {
+            self.eventQueue.enqueue(value: eventID)
+        }
     }
 
     // MARK: - UIFFの逐次処理

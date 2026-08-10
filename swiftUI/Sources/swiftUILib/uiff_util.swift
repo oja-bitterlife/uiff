@@ -351,7 +351,7 @@ public struct UiffScript: UiffChunk {
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public func run(lib: swiftUILib) {
+    public func run(lib: swiftUILib) -> Int {
         // VMの初期化
         var vm = swiftVMLib(
             codeAddress: payload.getAddress(),
@@ -359,9 +359,11 @@ public struct UiffScript: UiffChunk {
             memAddress: lib.vmWork.getAddress(), memByteSize: lib.vmWork.getByteSize()
         )
 
-        while !vm.step() {}
-        print("return: \(vm.result())")
-        print("Stack max usage: \(vm.stack.stackMax) / \(vm.stack.capacity)")
+        // VMの実行
+        while vm.step() {}
+
+        // VMの結果を返す
+        return vm.result()
     }
 }
 
