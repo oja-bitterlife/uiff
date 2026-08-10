@@ -83,7 +83,7 @@ struct swiftUI {
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
                 color = colorProp.getColor(index: 1)
             default:
-                break
+                print("Unknown prop type: \(prop.chunkType)")
             }
         }
 
