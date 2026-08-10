@@ -144,7 +144,7 @@ public struct UiffEntry: UiffChunk {
 }
 
 // Entryのイテレータ
-public struct UiffEntryIter {
+public struct UiffEntryIter: IteratorProtocol, Sequence {
     public private(set) var chunkMemory: WorkMemory
     var offsetBytes: Int
 
@@ -154,15 +154,12 @@ public struct UiffEntryIter {
     }
 
     public mutating func next() -> UiffEntry? {
-        // 終端に達した
-        if chunkMemory.getByteSize() <= offsetBytes {
-            return nil
+        while chunkMemory.getByteSize() > offsetBytes {
+            let entry = UiffEntry(workMemory: chunkMemory, offsetBytes: offsetBytes)
+            offsetBytes += entry.chunkSize
+            return entry
         }
-
-        // Entryチャンクを返す
-        let entry = UiffEntry(workMemory: chunkMemory, offsetBytes: offsetBytes)
-        offsetBytes += entry.chunkSize  // 次のEntryチャンクのオフセットを更新する
-        return entry
+        return nil
     }
 }
 
@@ -174,10 +171,7 @@ public struct UiffPropIter: IteratorProtocol, Sequence {
     var offsetBytes: Int
     var blackList: [UInt16] = []
 
-    public init(
-        workMemory: WorkMemory, offsetBytes: Int = 0,
-        blackList: [UInt16] = [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN]
-    ) {
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = workMemory
         self.offsetBytes = offsetBytes
     }

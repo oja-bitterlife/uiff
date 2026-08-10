@@ -83,10 +83,12 @@ public struct swiftUILib {
 
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
-        // イベントIDが0より大きい場合のみ登録する
-        if eventID > 0 {
-            self.eventQueue.enqueue(value: eventID)
+        assert(eventID != 0, "Invalid eventID: 0")
+        if eventID == 0 {
+            WorkMemory.onFatal(code: UIFF_ERR_EVENT_INVALID)  // 無効なイベントID
         }
+
+        self.eventQueue.enqueue(value: eventID)
     }
 
     // MARK: - UIFFの逐次処理
@@ -134,15 +136,13 @@ public struct swiftUILib {
     private mutating func traverseEntries(firstEntry: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
-        var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
-        while let entry = entryIter.next() {
+        for entry in UiffEntryIter(workMemory: firstEntry.chunkMemory) {
             appendEntry(entry: entry)
         }
 
         // 子Entryを処理する
         // ----------------------------------------------------------
-        entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
-        while let entry = entryIter.next() {
+        for entry in UiffEntryIter(workMemory: firstEntry.chunkMemory) {
             // propertiesからプロパティを取得する
             for prop in UiffPropIter(workMemory: entry.payload) {
                 // 子があれば再帰
@@ -169,6 +169,7 @@ public struct swiftUILib {
         // イベントをEntryに配っていく
         while !self.eventQueue.isEmpty() {
             let eventID = self.eventQueue.dequeue()
+            if eventID == 0 { continue }  // 無効なイベントは無視する
 
             // 後ろから前へ、つまり子を優先する。子で消費したら親へは届かない
             for i in stride(from: self.entryList.getLength() - 1, through: 0, by: -1) {
