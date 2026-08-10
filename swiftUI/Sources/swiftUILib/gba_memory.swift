@@ -85,6 +85,7 @@ public protocol QueueStack16: MemoryInt16 {
     func isEmpty() -> Bool
     func getLength() -> Int
     func peek(index: Int) -> UInt16
+    mutating func clear()  // キュー・スタックをクリアする
 }
 
 // MARK: - スタック操作
@@ -113,12 +114,25 @@ public struct StackMemory: QueueStack16 {
         self.sp = 0
     }
 
+    // IFの実装
     public func isEmpty() -> Bool {
         return self.sp == 0
     }
     public func getLength() -> Int {
         return self.sp
     }
+    public func peek(index: Int) -> UInt16 {
+        assert(index >= 0 && index < self.sp, "Stack index out of range")
+        if index < 0 || index >= self.sp {
+            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+        }
+        return self.ptr[self.sp - 1 - index]
+    }
+    public mutating func clear() {
+        self.sp = 0
+    }
+
+    // スタック操作
     public mutating func push(value: UInt16) {
         assert(self.sp < self.capacity, "Stack overflow")
         if self.sp >= self.capacity {
@@ -141,14 +155,6 @@ public struct StackMemory: QueueStack16 {
 
         self.sp -= 1
         return self.ptr[self.sp]
-    }
-
-    public func peek(index: Int) -> UInt16 {
-        assert(index >= 0 && index < self.sp, "Stack index out of range")
-        if index < 0 || index >= self.sp {
-            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
-        }
-        return self.ptr[self.sp - 1 - index]
     }
 }
 
@@ -176,6 +182,7 @@ public struct RingQueueMemory: QueueStack16 {
         self.qEnd = 0
     }
 
+    // IFの実装
     public func isEmpty() -> Bool {
         return self.qBgn == self.qEnd
     }
@@ -190,7 +197,12 @@ public struct RingQueueMemory: QueueStack16 {
 
         return self.ptr[(self.qBgn + index) % self.capacity]
     }
+    public mutating func clear() {
+        self.qBgn = 0
+        self.qEnd = 0
+    }
 
+    // キュー操作
     public mutating func enqueue(value: UInt16) {
         assert((self.qEnd + 1) % self.capacity != self.qBgn, "Queue overflow")
         if (self.qEnd + 1) % self.capacity == self.qBgn {
