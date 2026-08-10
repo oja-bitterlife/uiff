@@ -96,10 +96,15 @@ public struct swiftUILib {
 
         // entryQueueの処理
         while !self.entryList.isEmpty() {  // entryQueueが空になるまで処理される
-            // entryQueueからエントリを取り出して処理
+            // entryQueueからエントリを取り出す
             let offsetBytes = self.entryList.dequeue()
             let entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
-            let propIter = UiffPropIter(workMemory: entry.payload)
+
+            // propIterを用意する。使う時に便利用
+            var propIter = UiffPropIter(workMemory: entry.payload)
+            propIter.setBlackList(blackList: [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN])  // 子チャンク、イベントチャンク、リスナーチャンクは無視する
+
+            // エントリーの処理を呼び出す
             onEntry(entry, propIter)
         }
     }

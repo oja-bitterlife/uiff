@@ -171,10 +171,18 @@ public struct UiffEntryIter {
 public struct UiffPropIter {
     public private(set) var chunkMemory: WorkMemory
     var offsetBytes: Int
+    var blackList: [UInt16] = []
 
-    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+    public init(
+        workMemory: WorkMemory, offsetBytes: Int = 0,
+        blackList: [UInt16] = [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN]
+    ) {
         self.chunkMemory = workMemory
         self.offsetBytes = offsetBytes
+    }
+
+    public mutating func setBlackList(blackList: [UInt16]) {
+        self.blackList = blackList
     }
 
     public mutating func next() -> UiffProp? {
@@ -186,6 +194,12 @@ public struct UiffPropIter {
         // プロパティチャンクを返す
         let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
         offsetBytes += prop.chunkSize  // 次のプロパティチャンクのオフセットを更新する
+
+        // ブラックリストに含まれるプロパティはスキップする
+        if blackList.contains(prop.chunkType) {
+            return next()
+        }
+
         return prop
     }
 }
