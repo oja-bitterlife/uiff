@@ -1,9 +1,12 @@
+import swiftVMLib
+
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
     public var uiffWork: WorkMemory
-    public var entryQueue: RingQueueMemory
+    public var entryList: RingQueueMemory
     public var eventQueue: RingQueueMemory
-    public var vmMemory: WorkMemory
+    public var vmWork: WorkMemory
+    public var vmStack: WorkMemory
 
     // MARK: - 初期化
     // ************************************************************************
@@ -11,9 +14,10 @@ public struct swiftUILib {
         uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
         workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス
         workMemorySize: Int,  // 作業用メモリの総サイズ
-        entryWorkSize: Int,  // 作用用メモリ内の子キューのサイズ
-        eventWorkSize: Int,  // 作用用メモリ内のイベントキューのサイズ
-        vmWorkSize: Int  // VMの作業用メモリのサイズ
+        entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
+        eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
+        vmWorkSize: Int,  // VMメモリのサイズ
+        vmStackSize: Int,  // VMのスタックサイズ
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
@@ -30,9 +34,10 @@ public struct swiftUILib {
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
         let queueTotalByteSize =
-            ExpandEven(value: entryWorkSize)
-            + ExpandEven(value: eventWorkSize)
+            ExpandEven(value: entryListSize)
+            + ExpandEven(value: eventQueueSize)
             + ExpandEven(value: vmWorkSize)
+            + ExpandEven(value: vmStackSize)
         let remainingByteSize = workMemorySize - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
@@ -57,13 +62,16 @@ public struct swiftUILib {
 
         // 各用途のメモリを固定位置に配置する
         var queueOffset = workMemoryAddress + UInt(remainingByteSize)
-        self.entryQueue = RingQueueMemory(
-            address: queueOffset, byteSize: ExpandEven(value: entryWorkSize))
-        queueOffset += UInt(self.entryQueue.getByteSize())
+        self.entryList = RingQueueMemory(
+            address: queueOffset, byteSize: ExpandEven(value: entryListSize))
+        queueOffset += UInt(self.entryList.getByteSize())
         self.eventQueue = RingQueueMemory(
-            address: queueOffset, byteSize: ExpandEven(value: eventWorkSize))
+            address: queueOffset, byteSize: ExpandEven(value: eventQueueSize))
         queueOffset += UInt(self.eventQueue.getByteSize())
-        self.vmMemory = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
+        self.vmWork = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
+        queueOffset += UInt(self.vmWork.getByteSize())
+        self.vmStack = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmStackSize))
+        queueOffset += UInt(self.vmStack.getByteSize())
     }
 
     // ユーザー向け関数
@@ -87,18 +95,29 @@ public struct swiftUILib {
         processEvents()  // eventキューが空になるまで処理される
 
         // entryQueueの処理
-        while !self.entryQueue.isEmpty() {  // entryQueueが空になるまで処理される
+        while !self.entryList.isEmpty() {  // entryQueueが空になるまで処理される
             // entryQueueからエントリを取り出して処理
-            let offsetBytes = self.entryQueue.dequeue()
+            let offsetBytes = self.entryList.dequeue()
             let entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
             let propIter = UiffPropIter(workMemory: entry.payload)
             onEntry(entry, propIter)
         }
     }
 
-    // MARK: - UIFFの子チャンクのキュー処理
-    private mutating func enqueueEntry(entry: UiffEntry) {
-        // キューにチャンクのオフセットアドレスをエンキューする
+    // MARK: - スクリプトVMの作成
+    public func createVM(byteCodeAddr: UInt, byteCodeSize: Int) -> swiftVMLib {
+        return swiftVMLib(
+            codeAddress: byteCodeAddr,
+            stackAddress: self.vmStack.getAddress(), stackSize: self.vmStack.getByteSize(),
+            memAddress: self.vmWork.getAddress(), memSize: self.vmWork.getByteSize()
+        )
+    }
+
+    // エントリートラバース用
+    // ************************************************************************
+    // MARK: - エントリーをentryListに積み込む
+    private mutating func appendEntry(entry: UiffEntry) {
+        // Entryのオフセットアドレスを記録する
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
 
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
@@ -106,18 +125,16 @@ public struct swiftUILib {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
 
-        self.entryQueue.enqueue(value: UInt16(offsetBytes))
+        self.entryList.enqueue(value: UInt16(offsetBytes))
     }
 
     // entryQueueに積み込むだけ
-    private mutating func traverseEntries(
-        firstEntry: UiffEntry,
-    ) {
+    private mutating func traverseEntries(firstEntry: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
         var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
         while let entry = entryIter.next() {
-            enqueueEntry(entry: entry)
+            appendEntry(entry: entry)
         }
 
         // 子Entryを処理する
@@ -142,8 +159,8 @@ public struct swiftUILib {
     // ************************************************************************
     private mutating func processEvents() {
         // 現在のイベントのクリア
-        for i in 0..<self.entryQueue.getLength() {
-            let offsetBytes = self.entryQueue.peek(index: i)
+        for i in 0..<self.entryList.getLength() {
+            let offsetBytes = self.entryList.peek(index: i)
             var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
             entry.recvEventID = 0
         }
@@ -153,8 +170,8 @@ public struct swiftUILib {
             let eventID = self.eventQueue.dequeue()
 
             // 後ろから前へ、つまり子を優先する。子で消費したら親へは届かない
-            for i in stride(from: self.entryQueue.getLength() - 1, through: 0, by: -1) {
-                let offsetBytes = self.entryQueue.peek(index: i)
+            for i in stride(from: self.entryList.getLength() - 1, through: 0, by: -1) {
+                let offsetBytes = self.entryList.peek(index: i)
                 var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
 
                 // Listenerがあれば処理する

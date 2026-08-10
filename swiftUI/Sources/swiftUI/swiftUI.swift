@@ -25,9 +25,11 @@ struct swiftUI {
             workMemoryAddress: UInt(
                 bitPattern: workMem.withUnsafeMutableBufferPointer { $0.baseAddress! }),
             workMemorySize: workMem.count,
-            entryWorkSize: 2 * 64,
-            eventWorkSize: 2 * 32,
-            vmWorkSize: 2 * 64)
+            entryListSize: 2 * 64,
+            eventQueueSize: 2 * 32,
+            vmWorkSize: 2 * 64,
+            vmStackSize: 2 * 64
+        )
 
         // お試し実行
         // --------------------------------------------------------------------
