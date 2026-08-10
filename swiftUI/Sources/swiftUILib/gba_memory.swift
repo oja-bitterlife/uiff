@@ -2,10 +2,33 @@
     import Foundation
 #endif
 
+// MARK: - 16bitのメモリ操作の共通プロトコル
+// ****************************************************************************
+protocol MemoryInt16 {
+    var ptr: UnsafeMutablePointer<UInt16> { get }
+    var capacity: Int { get }
+
+    func getAddress() -> UInt
+    func getByteSize() -> Int
+}
+
+extension MemoryInt16 {
+    public func getAddress() -> UInt {
+        return UInt(bitPattern: ptr)
+    }
+    public func getByteSize() -> Int {
+        return capacity * 2  // バイト単位で返す
+    }
+    public func getCapacity() -> Int {
+        return capacity
+    }
+}
+
 // MARK: - ワーク用メモリ（RAM領域）
-public struct WorkMemory {
-    private let ptr: UnsafeMutablePointer<UInt16>
-    private let size: Int
+// ------------------------------------------------------------------
+public struct WorkMemory: MemoryInt16 {
+    public private(set) var ptr: UnsafeMutablePointer<UInt16>
+    public private(set) var capacity: Int
 
     public init(address: UInt, byteSize: Int) {
         assert(byteSize % 2 == 0, "WorkMemory size must be even")
@@ -14,32 +37,21 @@ public struct WorkMemory {
         }
 
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
-        self.size = byteSize / 2  // UInt16のサイズで割る
-    }
-
-    public func getAddress() -> UInt {
-        return UInt(bitPattern: ptr)
-    }
-
-    public func getByteSize() -> Int {
-        return size * 2  // バイト単位で返す
-    }
-    public func getIndexSize() -> Int {
-        return size  // インデックス単位で返す
+        self.capacity = byteSize / 2  // UInt16のサイズで割る
     }
 
     // インデックスアクセス
     public subscript(index: Int) -> UInt16 {
         get {
-            assert(index >= 0 && index < self.size, "Memory index out of range")
-            if index < 0 || index >= self.size {
+            assert(index >= 0 && index < self.capacity, "Memory index out of range")
+            if index < 0 || index >= self.capacity {
                 WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
             return ptr[index]
         }
         set {
-            assert(index >= 0 && index < self.size, "Memory index out of range")
-            if index < 0 || index >= self.size {
+            assert(index >= 0 && index < self.capacity, "Memory index out of range")
+            if index < 0 || index >= self.capacity {
                 WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
             ptr[index] = newValue
@@ -62,11 +74,20 @@ public struct WorkMemory {
         fatalFunc(code)
     }
 }
+// キュー・スタック
+// ****************************************************************************
+protocol QueueStack16: MemoryInt16 {
+    func isEmpty() -> Bool
+    func getLength() -> Int
+    func peek(index: Int) -> UInt16
+}
 
 // MARK: - スタック操作
-public struct StackMemory {
-    private let ptr: UnsafeMutablePointer<UInt16>
-    private let size: Int
+// ------------------------------------------------------------------
+public struct StackMemory: QueueStack16 {
+    public private(set) var ptr: UnsafeMutablePointer<UInt16>
+    public private(set) var capacity: Int
+
     private var sp: Int
     #if !EMBEDDED
         public var stackMax: Int = 0  // スタックの最大使用量を追跡するためのデバッグ用変数
@@ -83,27 +104,19 @@ public struct StackMemory {
         } else {
             WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
         }
-        self.size = byteSize / 2  // UInt16のサイズで割る
+        self.capacity = byteSize / 2  // UInt16のサイズで割る
         self.sp = 0
     }
 
-    public func getAddress() -> UInt {
-        return UInt(bitPattern: ptr)
-    }
-
-    public func getByteSize() -> Int {
-        return size * 2  // バイト単位で返す
-    }
-    public func getIndexSize() -> Int {
-        return size  // インデックス単位で返す
-    }
     public func isEmpty() -> Bool {
         return self.sp == 0
     }
-
+    public func getLength() -> Int {
+        return self.sp
+    }
     public mutating func push(value: UInt16) {
-        assert(self.sp < self.size, "Stack overflow")
-        if self.sp >= self.size {
+        assert(self.sp < self.capacity, "Stack overflow")
+        if self.sp >= self.capacity {
             WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
         }
 
@@ -125,22 +138,25 @@ public struct StackMemory {
         return self.ptr[self.sp]
     }
 
-    public func peek() -> UInt16 {
-        assert(self.sp > 0, "Stack is empty")
-        if self.sp <= 0 {
-            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+    public func peek(index: Int) -> UInt16 {
+        assert(index >= 0 && index < self.sp, "Stack index out of range")
+        if index < 0 || index >= self.sp {
+            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
         }
-        return self.ptr[self.sp - 1]
+        return self.ptr[self.sp - 1 - index]
     }
 }
 
-// MARK: - キュー操作
-public struct QueueMemory {
-    private let ptr: UnsafeMutablePointer<UInt16>
-    private let size: Int
-    private var qp: Int
+// MARK: - キュー操作(Ringバッファ)
+// ------------------------------------------------------------------
+public struct RingQueueMemory: QueueStack16 {
+    public private(set) var ptr: UnsafeMutablePointer<UInt16>
+    public private(set) var capacity: Int
+
+    private var qBgn: Int
+    private var qEnd: Int
     #if !EMBEDDED
-        public var queueMax: Int = 0  // スタックの最大使用量を追跡するためのデバッグ用変数
+        public var queueMax: Int = 0  // キューの最大使用量を追跡するためのデバッグ用変数
     #endif
 
     public init(address: UInt, byteSize: Int) {
@@ -150,58 +166,49 @@ public struct QueueMemory {
         }
 
         self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
-        self.size = byteSize / 2  // UInt16のサイズで割る
-        self.qp = 0
+        self.capacity = byteSize / 2  // UInt16のサイズで割る
+        self.qBgn = 0
+        self.qEnd = 0
     }
 
-    public func getAddress() -> UInt {
-        return UInt(bitPattern: ptr)
-    }
-
-    public func getByteSize() -> Int {
-        return size * 2  // バイト単位で返す
-    }
-    public func getIndexSize() -> Int {
-        return size  // インデックス単位で返す
-    }
     public func isEmpty() -> Bool {
-        return self.qp == 0
+        return self.qBgn == self.qEnd
+    }
+    public func getLength() -> Int {
+        return (self.qEnd - self.qBgn + self.capacity) % self.capacity
+    }
+    public func peek(index: Int) -> UInt16 {
+        assert(self.qBgn != self.qEnd, "Queue is empty")
+        if self.qBgn == self.qEnd {
+            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+        }
+
+        return self.ptr[(self.qBgn + index) % self.capacity]
     }
 
     public mutating func enqueue(value: UInt16) {
-        assert(self.qp < self.size, "Queue overflow")
-        if self.qp >= self.size {
+        assert((self.qEnd + 1) % self.capacity != self.qBgn, "Queue overflow")
+        if (self.qEnd + 1) % self.capacity == self.qBgn {
             WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
         }
 
-        self.ptr[self.qp] = value
-        self.qp += 1
+        self.ptr[self.qEnd] = value
+        self.qEnd = (self.qEnd + 1) % self.capacity
         #if !EMBEDDED
-            if self.qp > self.queueMax {
-                self.queueMax = self.qp
+            let currentSize = (self.qEnd - self.qBgn + self.capacity) % self.capacity
+            if currentSize > self.queueMax {
+                self.queueMax = currentSize
             }
         #endif
     }
     public mutating func dequeue() -> UInt16 {
-        assert(self.qp > 0, "Queue underflow")
-        if self.qp <= 0 {
+        assert(self.qBgn != self.qEnd, "Queue underflow")
+        if self.qBgn == self.qEnd {
             WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
         }
 
-        let value = self.ptr[0]
-        for i in 1..<self.qp {
-            self.ptr[i - 1] = self.ptr[i]
-        }
-        self.qp -= 1
+        let value = self.ptr[self.qBgn]
+        self.qBgn = (self.qBgn + 1) % self.capacity
         return value
-    }
-
-    public func peek() -> UInt16 {
-        assert(self.qp > 0, "Queue is empty")
-        if self.qp <= 0 {
-            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
-        }
-
-        return self.ptr[0]
     }
 }

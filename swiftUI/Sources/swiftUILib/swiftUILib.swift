@@ -1,6 +1,6 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
-    private var queue: QueueMemory
+    private var queue: RingQueueMemory
     private var workMemory: WorkMemory
 
     // MARK: - 初期化
@@ -41,7 +41,7 @@ public struct swiftUILib {
 
         // スタックと作業用メモリのアクセッサを作る
         self.workMemory = WorkMemory(address: workAddress, byteSize: uiff_size)
-        self.queue = QueueMemory(address: queueAddress, byteSize: queueByteSize)
+        self.queue = RingQueueMemory(address: queueAddress, byteSize: queueByteSize)
     }
 
     public func getRoot() -> UiffChunk? {
