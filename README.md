@@ -19,6 +19,7 @@ options:
                         Define JSON files [複数指定可]
 ```
 
+
 Define JSON
 ```json
 {
@@ -49,12 +50,13 @@ Define JSON
 UIFF_ENTRY = 0x01
   # [type_id(2byte)][subtype_id(2byte)][Enable(2byte)][Visible(2byte)]
   # [X(2byte)][Y(2byte)][W(2byte)][H(2byte)]
+  # [recv_event_id(2byte)]  # Runtime用。受信したイベントID
   # [properties...]
 UIFF_CHILD = 0x02  # [child chunk][child_chunk]...
 
 # 選択系
 UIFF_DEF_SELECT = 0x10
-UIFF_SELECT = UIFF_DEF_SELECT + 1  # [SelRows(2byte)][item_num(2byte)][SEL_ITEM][SEL_ITEM]...
+UIFF_SELECT_INFO = UIFF_DEF_SELECT + 1  # [SelRows(2byte)][item_num(2byte)][SEL_ITEM][SEL_ITEM]...
 
 # イベント
 UIFF_DEF_EVENT = 0x20
@@ -163,88 +165,101 @@ root.print_uiff()
 
 YAML. キーは大文字小文字どちらでもOK
 ```yaml
-- Type: TYPE_WINDOW
-  W: 8
-  H: 3
-  Events: [EVENT_WIN_CLOSE]
+Type: TYPE_WINDOW
+W: 30
+H: 20
+Colors: [0xffffff, 0x80c0ff]
+Events: [EVENT_WIN_CLOSE]
+children:
+- Type: TYPE_WINDOW  # タイトルロゴ
+  W: 20
+  Y: 4
+  H: 4
+  Colors: [0xffffff, 0xffffffff]
+  AlignCenterX: true
+- Type: TYPE_LAYOUT  # スタートメニュー
+  X: 0
+  Y: 10
+  W: 30
+  Popup: true
   children:
-  - Type: TYPE_AREA
-    W: 6  # 幅を決めないとAlignが効かない
+  - Type: TYPE_SELECT
+    SubType: TITLE_START
+    X: 10
+    W: 10
+    H: 2
+    SelRows: 1  # 縦並び
+    SelItems: ["START", "CONTINUE"]
+    Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
+    Script: |-
+      from assets.vm import *
+      def main():
+        if VM[VM_EVENT] == EVENT_KEY_START:
+          VM[VM_NOTIFY] = EVENT_WIN_CLOSE
+          match VM[VM_SELECT_NO]:
+            case 0:  # START
+              return 1
+            case _:  # CONTINUE
+              return 2
+- Type: TYPE_LAYOUT  # メッセージスピード
+  Y: 15
+  W: 30
+  H: 20
+  Popup: true
+  children:
+  - Type: TYPE_LABEL
     AlignCenterX: true
-    children:
-    - Type: TYPE_AREA
-    - Type: TYPE_AREA
-      Y: 2
-      W: 2
-      AlignCenterX: true
-      children:
-      - Type: TYPE_SELECT
-        SubType: SEL_START
-        SelRows: 1  # 縦並び
-        SelItems: ["START", "CONTINUE"]
-        Events: [EVENT_KEY_UP, EVENT_KEY_DOWN, EVENT_KEY_START]
-        Script: |-
-          from assets.vm import *
-          def main():
-            if VM[VM_EVENT] == EVENT_KEY_START:
-              VM[VM_NOTIFY] = EVENT_WIN_CLOSE
-              match VM[VM_SELECT_NO]:
-                case 0:  # START
-                  return 1
-                case _:  # CONTINUE
-                  return 2
-    - Type: TYPE_LABEL
-      Text: "-MESSAGE SPEAD-"
-      X: 2
-      Y: 2
-    - Type: TYPE_SELECT
-      SubType: SEL_SPEED
-      X: 1 
-      Y: 2
-      SelItems: ["SLOW", "NORMAL", "FAST"]
-      Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
+    Text: "-MESSAGE SPEED-"
+    W: 15
+    H: 1
+  - Type: TYPE_SELECT
+    SubType: TITLE_SPEED
+    AlignCenterX: true
+    Y: 2
+    W: 20
+    H: 1
+    SelItems: ["SLOW", "NORMAL", "FAST"]
+    Events: [EVENT_KEY_LEFT, EVENT_KEY_RIGHT]
 ```
 
 UIFF Binary
 ```
-55 49 46 46 20 01 02 00 1C 01 01 00 0C 00 01 00 00 00 00 00 00 00 08 00 03 00 21 00 02 00 19 00 02 00 02 01 01 00 0C 00 02 00 00 00 00 00 00 00 06 00 FF FF 02 00 EE 00 01 00 0C 00 02 00 00 00 00 00 00 00 FF FF FF FF 01 00 0C 00 02 00 00 00 00 00 02 00 02 00 FF FF 02 00 66 00 01 00 0C 00 04 00 01 00 00 00 00 00 FF FF FF FF 11 00 1C 00 01 00 12 00 08 00 05 00 53 54 41 52 54 00 12 00 0A 00 08 00 43 4F 4E 54 49 4E 55 45 21 00 06 00 17 00 18 00 11 00 32 00 28 00 02 01 01 02 11 20 00 11 24 00 02 19 02 03 04 02 02 01 05 02 00 20 00 11 20 00 02 01 00 10 23 00 02 02 00 08 02 00 00 00 01 00 0C 00 03 00 00 00 02 00 02 00 FF FF FF FF 31 00 12 00 0F 00 2D 4D 45 53 53 41 47 45 20 53 50 45 41 44 2D 00 01 00 0C 00 04 00 02 00 01 00 02 00 FF FF FF FF 11 00 22 00 FF 7F 12 00 06 00 04 00 53 4C 4F 57 12 00 08 00 06 00 4E 4F 52 4D 41 4C 12 00 06 00 04 00 46 41 53 54 21 00 04 00 15 00 16 00 00 00
+55 49 46 46 62 01 01 00 5E 01 02 00 00 00 01 00 01 00 00 00 00 00 1E 00 14 00 00 00 33 00 08 00 FF FF FF 00 FF C0 80 00 21 00 02 00 19 00 02 00 36 01 01 00 1E 00 02 00 00 00 01 00 01 00 05 00 04 00 14 00 04 00 00 00 33 00 08 00 FF FF FF 00 FF FF FF FF 01 00 84 00 01 00 00 00 01 00 01 00 00 00 0A 00 1E 00 FF 7F 00 00 02 00 6E 00 01 00 6A 00 04 00 01 00 01 00 01 00 0A 00 0A 00 0A 00 02 00 00 00 11 00 1E 00 01 00 02 00 31 00 08 00 05 00 53 54 41 52 54 00 31 00 0A 00 08 00 43 4F 4E 54 49 4E 55 45 21 00 06 00 17 00 18 00 11 00 32 00 28 00 02 01 01 02 11 20 00 11 24 00 02 19 02 03 04 02 02 01 05 02 00 20 00 11 20 00 02 01 00 10 23 00 02 02 00 08 02 00 00 00 01 00 88 00 01 00 00 00 01 00 01 00 00 00 0F 00 1E 00 14 00 00 00 02 00 72 00 01 00 28 00 03 00 00 00 01 00 01 00 07 00 0F 00 0F 00 01 00 00 00 31 00 12 00 0F 00 2D 4D 45 53 53 41 47 45 20 53 50 45 45 44 2D 00 01 00 42 00 04 00 02 00 01 00 01 00 05 00 11 00 14 00 01 00 00 00 11 00 24 00 FF 7F 03 00 31 00 06 00 04 00 53 4C 4F 57 31 00 08 00 06 00 4E 4F 52 4D 41 4C 31 00 06 00 04 00 46 41 53 54 21 00 04 00 15 00 16 00
 ```
 
 逆アセンブルチェック
 ```
-data-size: 288
-
+data-size: 354
+Chunk Type: 2:0 [Enable, Visible]
+Pos: (0, 0), Size: (30, 20)
+Colors: ['0x00ffffff', '0x0080c0ff']
+Events: [25]
 in child chunk:
-  Chunk Type: TYPE_WINDOW:0
-  Position: (0, 0), Size: (8, 3)
-  Event ID: [25]
+  Chunk Type: 2:0 [Enable, Visible]
+  Pos: (5, 4), Size: (20, 4)
+  Colors: ['0x00ffffff', '0xffffffff']
 
+  Chunk Type: 1:0 [Enable, Visible]
+  Pos: (0, 10), Size: (30, 32767)
   in child chunk:
-    Chunk Type: TYPE_AREA:0
-    Position: (0, 0), Size: (6, 65535)
+    Chunk Type: 4:1 [Enable, Visible]
+    Pos: (10, 10), Size: (10, 2)
+    SelRows: 1
+    SelItems: ['START', 'CONTINUE']
+    Events: [23, 24, 17]
+    Script: 02010102112000112400021902030402020105020020001120000201001023000202000802000000
 
-    in child chunk:
-      Chunk Type: TYPE_AREA:0
-      Position: (0, 0), Size: (65535, 65535)
 
-      Chunk Type: TYPE_AREA:0
-      Position: (0, 2), Size: (2, 65535)
+  Chunk Type: 1:0 [Enable, Visible]
+  Pos: (0, 15), Size: (30, 20)
+  in child chunk:
+    Chunk Type: 3:0 [Enable, Visible]
+    Pos: (7, 15), Size: (15, 1)
+    Text: -MESSAGE SPEED-
 
-      in child chunk:
-        Chunk Type: TYPE_SELECT:1
-        Position: (0, 0), Size: (65535, 65535)
-        SelRows: 1
-        SEL_ITEM: ['START', 'CONTINUE']
-        Event ID: [23, 24, 17]
-        Script: 02010102112000112400021902030402020105020020001120000201001023000202000802000000
-
-      Chunk Type: TYPE_LABEL:0
-      Position: (2, 2), Size: (65535, 65535)
-      Text: -MESSAGE SPEAD-
-
-      Chunk Type: TYPE_SELECT:2
-      Position: (1, 2), Size: (65535, 65535)
-      SelRows: 32767
-      SEL_ITEM: ['SLOW', 'NORMAL', 'FAST']
-      Event ID: [21, 22]
+    Chunk Type: 4:2 [Enable, Visible]
+    Pos: (5, 17), Size: (20, 1)
+    SelRows: 32767
+    SelItems: ['SLOW', 'NORMAL', 'FAST']
+    Events: [21, 22]
 ```
