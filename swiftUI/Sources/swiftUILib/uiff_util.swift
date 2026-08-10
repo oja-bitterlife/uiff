@@ -124,8 +124,8 @@ public struct UiffEntry: UiffChunk {
         return Int(chunkMemory[9])
     }
 
-    // Runtime用。ヒットしたイベントID
-    public var hitEventID: UInt16 {
+    // Runtime用。受信したイベントID
+    public var recvEventID: UInt16 {
         get {
             return chunkMemory[10]
         }

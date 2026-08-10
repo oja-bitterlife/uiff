@@ -62,7 +62,7 @@ def parse_chunk(data, size, indent=""):
             print(f"{indent}Pos: ({x}, {y}), Size: ({w}, {h})")
 
             # event_idはRuntime用なので表示しない
-            hit_event_id = getUInt16(chunk_data, 16)
+            recv_event_id = getUInt16(chunk_data, 16)
 
             header_end = 18
 

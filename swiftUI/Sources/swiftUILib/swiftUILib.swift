@@ -145,7 +145,7 @@ public struct swiftUILib {
         for i in 0..<self.entryQueue.getLength() {
             let offsetBytes = self.entryQueue.peek(index: i)
             var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
-            entry.hitEventID = 0
+            entry.recvEventID = 0
         }
 
         // イベントをEntryに配っていく
@@ -159,11 +159,11 @@ public struct swiftUILib {
 
                 // Listenerがあれば処理する
                 if hasListener(entry: entry, eventID: eventID) {
-                    entry.hitEventID = eventID
+                    entry.recvEventID = eventID
                 }
                 // Eventがあれば処理する
                 if hasEvent(entry: entry, eventID: eventID) {
-                    entry.hitEventID = eventID
+                    entry.recvEventID = eventID
                     break  // Eventはブロック
                 }
             }

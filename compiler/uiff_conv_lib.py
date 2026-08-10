@@ -407,7 +407,7 @@ class EntryInfo(DispatcherBase):
         data.extend(self.visible.to_bytes(2, byteorder='little'))
         data.extend(self.area.get_area_buf())
 
-        data.extend((0).to_bytes(2, byteorder='little'))  # hit_event_idはRuntime用なので0で初期化する
+        data.extend((0).to_bytes(2, byteorder='little'))  # recv_event_idはRuntime用なので0で初期化する
 
         return data
 
