@@ -45,6 +45,12 @@ struct swiftUI {
         outputBMP(bmpBuf: bmpBuf, width: 240, height: 160)
     }
 
+    // VMとのやり取り用
+    static func setVMEvent(lib: swiftUILib, eventID: UInt16) {
+        var vm = lib.vmWork
+        vm[1] = eventID
+    }
+
     static func printEntryHeader(entry: UiffEntry) {
         print(
             "type: \(entry.typeID), subType: \(entry.subTypeID), enable: \(entry.isEnabled), visible: \(entry.isVisible), x: \(entry.x), y: \(entry.y), width: \(entry.w), height: \(entry.h)"
@@ -62,18 +68,18 @@ struct swiftUI {
         case ENTRY_TYPE_LAYOUT:
             break
         case ENTRY_TYPE_WINDOW:
-            windowDraw(lib: lib, window: entry, propIter: propIter)
+            windowDraw(lib: lib, entry: entry, propIter: propIter)
         case ENTRY_TYPE_LABEL:
-            labelDraw(lib: lib, window: entry, propIter: propIter)
+            labelDraw(lib: lib, entry: entry, propIter: propIter)
         case ENTRY_TYPE_SELECT:
-            selectDraw(lib: lib, window: entry, propIter: propIter)
+            selectDraw(lib: lib, entry: entry, propIter: propIter)
         default:
             print("Unknown Entry type: \(entry.typeID)")
             printEntryHeader(entry: entry)
         }
     }
 
-    static func windowDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
+    static func windowDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         var color: UInt32 = 0xff00_0000
         var iter = propIter
 
@@ -87,10 +93,10 @@ struct swiftUI {
             }
         }
 
-        let x = window.x * 8
-        let y = window.y * 8
-        let w = window.w * 8
-        let h = window.h * 8
+        let x = entry.x * 8
+        let y = entry.y * 8
+        let w = entry.w * 8
+        let h = entry.h * 8
 
         for j in y..<(y + h) {
             if j < 0 || j >= 160 { continue }
@@ -102,13 +108,13 @@ struct swiftUI {
         }
     }
 
-    static func labelDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
+    static func labelDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         let color: UInt32 = 0xffff_ffff
 
-        let x = window.x * 8
-        let y = window.y * 8
-        var w = window.w * 8
-        let h = window.h * 8
+        let x = entry.x * 8
+        let y = entry.y * 8
+        var w = entry.w * 8
+        let h = entry.h * 8
 
         var iter = propIter
         while let prop = iter.next() {
@@ -137,8 +143,9 @@ struct swiftUI {
 
     }
 
-    static func selectDraw(lib: swiftUILib, window: UiffEntry, propIter: UiffPropIter) {
+    static func selectDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         let color: UInt32 = 0xff80_0000
+        setVMEvent(lib: lib, eventID: entry.recvEventID)
 
         var iter = propIter
         while let prop = iter.next() {
@@ -151,10 +158,10 @@ struct swiftUI {
             }
         }
 
-        let x = window.x * 8
-        let y = window.y * 8
-        let w = window.w * 8
-        let h = window.h * 8
+        let x = entry.x * 8
+        let y = entry.y * 8
+        let w = entry.w * 8
+        let h = entry.h * 8
 
         for j in y..<(y + h) {
             if j < 0 || j >= 160 { continue }
