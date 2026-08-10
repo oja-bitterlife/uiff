@@ -1,16 +1,17 @@
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
     public var uiffWork: WorkMemory
-    public var childQueue: RingQueueMemory
+    public var entryQueue: RingQueueMemory
     public var eventQueue: RingQueueMemory
     public var vmMemory: WorkMemory
 
     // MARK: - 初期化
+    // ************************************************************************
     public init(
         uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
         workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス
         workMemorySize: Int,  // 作業用メモリの総サイズ
-        childWorkSize: Int,  // 作用用メモリ内の子キューのサイズ
+        entryWorkSize: Int,  // 作用用メモリ内の子キューのサイズ
         eventWorkSize: Int,  // 作用用メモリ内のイベントキューのサイズ
         vmWorkSize: Int  // VMの作業用メモリのサイズ
     ) {
@@ -29,7 +30,7 @@ public struct swiftUILib {
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
         let queueTotalByteSize =
-            ExpandEven(value: childWorkSize)
+            ExpandEven(value: entryWorkSize)
             + ExpandEven(value: eventWorkSize)
             + ExpandEven(value: vmWorkSize)
         let remainingByteSize = workMemorySize - queueTotalByteSize
@@ -56,16 +57,17 @@ public struct swiftUILib {
 
         // 各用途のメモリを固定位置に配置する
         var queueOffset = workMemoryAddress + UInt(remainingByteSize)
-        self.childQueue = RingQueueMemory(
-            address: queueOffset, byteSize: ExpandEven(value: childWorkSize))
-        queueOffset += UInt(self.childQueue.getByteSize())
+        self.entryQueue = RingQueueMemory(
+            address: queueOffset, byteSize: ExpandEven(value: entryWorkSize))
+        queueOffset += UInt(self.entryQueue.getByteSize())
         self.eventQueue = RingQueueMemory(
             address: queueOffset, byteSize: ExpandEven(value: eventWorkSize))
         queueOffset += UInt(self.eventQueue.getByteSize())
         self.vmMemory = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
     }
 
-    public func getRoot() -> UiffChunk? {
+    // MARK: - ルートチャンクの取得。Entryのはず
+    public func getRoot() -> UiffEntry {
         // ルートチャンクがEntryであることを確認する
         assert(uiffWork[0] == UInt16(UIFF_ENTRY), "UIFF root chunk must be Entry")
         if uiffWork[0] != UInt16(UIFF_ENTRY) {
@@ -75,70 +77,66 @@ public struct swiftUILib {
         return UiffEntry(workMemory: uiffWork)
     }
 
-    public mutating func enqueueChild(entry: UiffEntry) {
+    // MARK: - UIFFの子チャンクのキュー処理
+    // ************************************************************************
+    private mutating func enqueueEntry(entry: UiffEntry) {
         // キューにチャンクのオフセットアドレスをエンキューする
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         if offsetBytes > 0xffff {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
-        self.childQueue.enqueue(value: UInt16(offsetBytes))
+        self.entryQueue.enqueue(value: UInt16(offsetBytes))
     }
 
-    public mutating func dequeueChild() -> UiffEntry? {
-        // キューからチャンクのオフセットアドレスをデキューする
-        if self.childQueue.isEmpty() {
-            return nil  // キューが空の場合はnilを返す
-        }
-
-        let offsetBytes = Int(self.childQueue.dequeue())
-        let chunk_type = self.uiffWork[offsetBytes / 2]
-
-        if chunk_type != UInt16(UIFF_ENTRY) {
-            assert(false, "UIFF child chunk must be Entry")
-            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクがEntryでない
-        }
-
-        return UiffEntry(workMemory: self.uiffWork, offsetBytes: offsetBytes)
+    // MARK: - UIFFのイベントキュー処理
+    // ************************************************************************
+    public mutating func enqueueEvent(event: UInt16) {
+        self.eventQueue.enqueue(value: event)
+    }
+    public mutating func clearEvent() {
+        self.eventQueue.clear()
     }
 
-    public mutating func traverse(
-        root: UiffChunk?,
-        onEntry: (UiffEntry, UiffPropIter) -> Void,
+    // MARK: - UIFFのトラバース処理
+    // entryQueueに積み込むだけ
+    // ************************************************************************
+    public mutating func traverseEntries(
+        firstEntry: UiffEntry,
     ) {
         // rootの値チェック
         // ----------------------------------------------------------
-        guard let root = root else {
-            assert(false, "UIFF root chunk is nil")
-            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがnil
-        }
-        if root.chunkType != UInt16(UIFF_ENTRY) {
+        // guard let firstEntry = firstEntry else {
+        //     assert(false, "UIFF root chunk is nil")
+        //     WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがnil
+        // }
+        if firstEntry.chunkType != UInt16(UIFF_ENTRY) {
             assert(false, "UIFF root chunk must be Entry")
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFFルートチャンクがEntryでない
         }
 
-        // エントリーのループ処理
-        // ----------------------------------------------------------
         // rootをキューに積む
-        enqueueChild(entry: UiffEntry(workMemory: root.chunkMemory))
+        enqueueEntry(entry: UiffEntry(workMemory: firstEntry.chunkMemory))
 
-        // キューが空になるまでループする
-        while let childEntry = dequeueChild() {
-            var entryIter = UiffEntryIter(workMemory: childEntry.chunkMemory)
+        // 兄弟Entryを先に処理する
+        // ----------------------------------------------------------
+        var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        while let entry = entryIter.next() {
+            enqueueEntry(entry: entry)
+        }
 
-            // エントリー単位で処理する
-            while let entry = entryIter.next() {
-                onEntry(entry, UiffPropIter(workMemory: entry.payload))
-
-                // propertiesからプロパティを取得する
-                var prop_iter = UiffPropIter(workMemory: entry.payload)
-                while let prop = prop_iter.next() {
-                    // 子があればキューに積む
-                    if prop.chunkType == UInt16(UIFF_CHILD) {
-                        let children = UiffChild(workMemory: prop.chunkMemory)
-                        if let first_child = children.getFirstEntry() {
-                            enqueueChild(entry: first_child)
-                        }
+        // 子Entryを処理する
+        // ----------------------------------------------------------
+        entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        while let entry = entryIter.next() {
+            // propertiesからプロパティを取得する
+            var prop_iter = UiffPropIter(workMemory: entry.payload)
+            while let prop = prop_iter.next() {
+                // 子があれば再帰
+                if prop.chunkType == UInt16(UIFF_CHILD) {
+                    let children = UiffChild(workMemory: prop.chunkMemory)
+                    if let first_child = children.getFirstEntry() {
+                        traverseEntries(firstEntry: first_child)  // 再帰呼び出し
                     }
                 }
             }
