@@ -29,12 +29,17 @@ struct swiftUI {
             eventWorkSize: 2 * 32,
             vmWorkSize: 2 * 64)
 
-        uiff.traverseEntries(
+        // お試し実行
+        // --------------------------------------------------------------------
+        uiff.notify(eventID: 17)
+        uiff.notify(eventID: 25)
+        uiff.run(
             firstEntry: uiff.getRoot(),
+            onEntry: swiftUI.onEntry
         )
-        print("entryQueue length: \(uiff.entryQueue.getLength())")
 
         // bmpの書き出し
+        // --------------------------------------------------------------------
         outputBMP(bmpBuf: bmpBuf, width: 240, height: 160)
     }
 
@@ -51,6 +56,12 @@ struct swiftUI {
 
     // UIの処理を書いていく
     static func onEntry(entry: UiffEntry, propIter: UiffPropIter) {
+        if entry.hitEventID != 0 {
+            print(
+                "Entry has event: entry:\(entry.chunkMemory.getAddress()), eventID: \(entry.hitEventID)"
+            )
+        }
+
         switch entry.typeID {
         case ENTRY_TYPE_LAYOUT:
             break

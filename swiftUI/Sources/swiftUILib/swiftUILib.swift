@@ -66,36 +66,51 @@ public struct swiftUILib {
         self.vmMemory = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
     }
 
+    // ユーザー向け関数
+    // ************************************************************************
     // MARK: - ルートチャンクの取得。Entryのはず
     public func getRoot() -> UiffEntry {
         return UiffEntry(workMemory: self.uiffWork)
     }
 
+    // MARK: - 発生したUIイベントの登録
+    public mutating func notify(eventID: UInt16) {
+        self.eventQueue.enqueue(value: eventID)
+    }
+
+    // MARK: - UIFFの逐次処理
+    public mutating func run(firstEntry: UiffEntry, onEntry: (UiffEntry, UiffPropIter) -> Void) {
+        // ルートから子をトラバースして、entryQueueに積み込む
+        traverseEntries(firstEntry: firstEntry)
+
+        // イベントの処理
+        processEvents()  // eventキューが空になるまで処理される
+
+        // entryQueueの処理
+        while !self.entryQueue.isEmpty() {  // entryQueueが空になるまで処理される
+            // entryQueueからエントリを取り出して処理
+            let offsetBytes = self.entryQueue.dequeue()
+            let entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+            let propIter = UiffPropIter(workMemory: entry.payload)
+            onEntry(entry, propIter)
+        }
+    }
+
     // MARK: - UIFFの子チャンクのキュー処理
-    // ************************************************************************
     private mutating func enqueueEntry(entry: UiffEntry) {
         // キューにチャンクのオフセットアドレスをエンキューする
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
+
         assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         if offsetBytes > 0xffff {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
+
         self.entryQueue.enqueue(value: UInt16(offsetBytes))
     }
 
-    // MARK: - UIFFのイベントキュー処理
-    // ************************************************************************
-    public mutating func enqueueEvent(event: UInt16) {
-        self.eventQueue.enqueue(value: event)
-    }
-    public mutating func clearEvent() {
-        self.eventQueue.clear()
-    }
-
-    // MARK: - UIFFのトラバース処理
     // entryQueueに積み込むだけ
-    // ************************************************************************
-    public mutating func traverseEntries(
+    private mutating func traverseEntries(
         firstEntry: UiffEntry,
     ) {
         // rootをキューに積む
@@ -125,4 +140,65 @@ public struct swiftUILib {
             }
         }
     }
+
+    // イベントの処理
+    // ************************************************************************
+    private mutating func processEvents() {
+        // 現在のイベントのクリア
+        for i in 0..<self.entryQueue.getLength() {
+            let offsetBytes = self.entryQueue.peek(index: i)
+            var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+            entry.hitEventID = 0
+        }
+
+        // イベントをEntryに配っていく
+        while !self.eventQueue.isEmpty() {
+            let eventID = self.eventQueue.dequeue()
+
+            // 後ろから前へ、つまり子を優先する。子で消費したら親へは届かない
+            for i in stride(from: self.entryQueue.getLength() - 1, through: 0, by: -1) {
+                let offsetBytes = self.entryQueue.peek(index: i)
+                var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+
+                // Listenerがあれば処理する
+                if hasListener(entry: entry, eventID: eventID) {
+                    entry.hitEventID = eventID
+                }
+                // Eventがあれば処理する
+                if hasEvent(entry: entry, eventID: eventID) {
+                    entry.hitEventID = eventID
+                    break  // Eventはブロック
+                }
+            }
+        }
+    }
+
+    // MARK: - UIFFのイベントブロッカー有無チェック
+    public func hasEvent(entry: UiffEntry, eventID: UInt16) -> Bool {
+        var propIter = UiffPropIter(workMemory: entry.payload)
+        while let prop = propIter.next() {
+            if prop.chunkType == UIFF_EVENTS {
+                let events = UiffEvents(workMemory: prop.chunkMemory)
+                if events.hasEvent(eventID: eventID) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    // MARK: - UIFFのイベントリスナーの有無チェック
+    public func hasListener(entry: UiffEntry, eventID: UInt16) -> Bool {
+        var propIter = UiffPropIter(workMemory: entry.payload)
+        while let prop = propIter.next() {
+            if prop.chunkType == UIFF_LISTEN {
+                let listen = UiffListen(workMemory: prop.chunkMemory)
+                if listen.hasEvent(eventID: eventID) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
 }

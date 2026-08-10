@@ -282,6 +282,46 @@ public struct UiffEvents: UiffChunk {
         assert(index < eventNum, "index out of range")
         return payload[index]
     }
+
+    public func hasEvent(eventID: UInt16) -> Bool {
+        for i in 0..<eventNum {
+            if getEventID(index: i) == eventID {
+                return true
+            }
+        }
+        return false
+    }
+}
+
+public struct UiffListen: UiffChunk {
+    public private(set) var chunkMemory: WorkMemory
+
+    public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
+        assert(workMemory[0] == UIFF_LISTEN, "UiffListen must start with UIFF_LISTEN")
+        if workMemory[0] != UIFF_LISTEN {
+            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffListen
+        }
+
+        self.chunkMemory = UiffListen.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+    }
+
+    public var eventNum: Int {
+        return payload.getByteSize() / 2  // 1イベントあたり2バイト
+    }
+
+    public func getEventID(index: Int) -> UInt16 {
+        assert(index < eventNum, "index out of range")
+        return payload[index]
+    }
+
+    public func hasEvent(eventID: UInt16) -> Bool {
+        for i in 0..<eventNum {
+            if getEventID(index: i) == eventID {
+                return true
+            }
+        }
+        return false
+    }
 }
 
 public struct UiffScript: UiffChunk {
