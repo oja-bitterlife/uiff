@@ -113,9 +113,6 @@ public struct swiftUILib {
     private mutating func traverseEntries(
         firstEntry: UiffEntry,
     ) {
-        // rootをキューに積む
-        enqueueEntry(entry: UiffEntry(workMemory: firstEntry.chunkMemory))
-
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
         var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
