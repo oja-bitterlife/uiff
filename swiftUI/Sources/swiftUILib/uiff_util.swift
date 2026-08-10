@@ -209,8 +209,8 @@ public struct UiffSelect: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_SELECT, "UiffSelect must start with UIFF_SELECT")
-        if workMemory[0] != UIFF_SELECT {
+        assert(workMemory[0] == UIFF_SELECT_INFO, "UiffSelect must start with UIFF_SELECT")
+        if workMemory[0] != UIFF_SELECT_INFO {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffSelect must start with UIFF_SELECT
         }
 

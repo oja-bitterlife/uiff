@@ -434,7 +434,7 @@ class SelectDispatcher(DispatcherBase):
 
         # IFF_SELECT Chunkの作成
         select_buf = bytearray()
-        select_buf.extend(self.create_chunk_buf(UIFF_SELECT, sel_data_buf))
+        select_buf.extend(self.create_chunk_buf(UIFF_SELECT_INFO, sel_data_buf))
         self.ignore_pop(props, "Select")  # Selectをpropsから削除する
 
         return select_buf

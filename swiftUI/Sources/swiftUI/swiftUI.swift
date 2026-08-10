@@ -157,6 +157,8 @@ struct swiftUI {
 
         for prop in propIter {
             switch prop.chunkType {
+            case UIFF_SELECT_INFO:
+                break
             case UIFF_SCRIPT:
                 let scriptProp = UiffScript(workMemory: prop.chunkMemory)
                 let result = scriptProp.run(lib: lib)

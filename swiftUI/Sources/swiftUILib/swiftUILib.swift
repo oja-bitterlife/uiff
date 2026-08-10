@@ -110,7 +110,8 @@ public struct swiftUILib {
 
             // propIterを用意する。使う時に便利用
             var propIter = UiffPropIter(workMemory: entry.payload)
-            propIter.setBlackList(blackList: [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN])  // 子チャンク、イベントチャンク、リスナーチャンクは無視する
+            // システムで処理するプロパティは無視する
+            propIter.setBlackList(blackList: [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN])
 
             // エントリーの処理を呼び出す
             onEntry(self, entry, propIter)

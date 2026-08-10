@@ -76,7 +76,7 @@ def parse_chunk(data, size, indent=""):
             continue  # 次のEntryに進む
 
         # Select
-        elif chunk_type == UIFF_SELECT:
+        elif chunk_type == UIFF_SELECT_INFO:
             sel_rows = getUInt16(chunk_data, 0)
             print(f"{indent}SelRows: {sel_rows}")
 
