@@ -48,14 +48,18 @@ public struct WorkMemory: MemoryInt16 {
     // インデックスアクセス
     public subscript(index: Int) -> UInt16 {
         get {
-            assert(index >= 0 && index < self.capacity, "Memory index out of range")
+            assert(
+                index >= 0 && index < self.capacity,
+                "Memory index out of range: \(index)/\(self.capacity)")
             if index < 0 || index >= self.capacity {
                 WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
             return ptr[index]
         }
         set {
-            assert(index >= 0 && index < self.capacity, "Memory index out of range")
+            assert(
+                index >= 0 && index < self.capacity,
+                "Memory index out of range: \(index)/\(self.capacity)")
             if index < 0 || index >= self.capacity {
                 WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
