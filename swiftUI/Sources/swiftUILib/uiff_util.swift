@@ -169,7 +169,7 @@ public struct UiffEntryIter {
 // Entryのpropertysを扱う
 // ****************************************************************************
 // プロパティ管理用チャンク
-public struct UiffPropIter {
+public struct UiffPropIter: IteratorProtocol, Sequence {
     public private(set) var chunkMemory: WorkMemory
     var offsetBytes: Int
     var blackList: [UInt16] = []
@@ -187,21 +187,15 @@ public struct UiffPropIter {
     }
 
     public mutating func next() -> UiffProp? {
-        // 終端に達した
-        if chunkMemory.getByteSize() <= offsetBytes {
-            return nil
+        while chunkMemory.getByteSize() > offsetBytes {
+            let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
+            offsetBytes += prop.chunkSize
+
+            if !blackList.contains(prop.chunkType) {
+                return prop
+            }
         }
-
-        // プロパティチャンクを返す
-        let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
-        offsetBytes += prop.chunkSize  // 次のプロパティチャンクのオフセットを更新する
-
-        // ブラックリストに含まれるプロパティはスキップする
-        if blackList.contains(prop.chunkType) {
-            return next()
-        }
-
-        return prop
+        return nil
     }
 }
 

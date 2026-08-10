@@ -90,9 +90,8 @@ struct swiftUI {
 
     static func windowDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
         var color: UInt32 = 0xff00_0000
-        var iter = propIter
 
-        while let prop = iter.next() {
+        for prop in propIter {
             switch prop.chunkType {
             case UIFF_COLORS:
                 let colorProp = UiffColors(workMemory: prop.chunkMemory)
@@ -125,8 +124,7 @@ struct swiftUI {
         var w = entry.w * 8
         let h = entry.h * 8
 
-        var iter = propIter
-        while let prop = iter.next() {
+        for prop in propIter {
             switch prop.chunkType {
             case UIFF_TEXT:
                 let textProp = UiffText(workMemory: prop.chunkMemory)
@@ -157,8 +155,7 @@ struct swiftUI {
         setVMEvent(lib: lib, eventID: entry.recvEventID)
         setVMSelectNo(lib: lib, selectNo: 0)
 
-        var iter = propIter
-        while let prop = iter.next() {
+        for prop in propIter {
             switch prop.chunkType {
             case UIFF_SCRIPT:
                 let scriptProp = UiffScript(workMemory: prop.chunkMemory)

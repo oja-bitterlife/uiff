@@ -144,8 +144,7 @@ public struct swiftUILib {
         entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
         while let entry = entryIter.next() {
             // propertiesからプロパティを取得する
-            var prop_iter = UiffPropIter(workMemory: entry.payload)
-            while let prop = prop_iter.next() {
+            for prop in UiffPropIter(workMemory: entry.payload) {
                 // 子があれば再帰
                 if prop.chunkType == UInt16(UIFF_CHILD) {
                     let children = UiffChild(workMemory: prop.chunkMemory)
@@ -191,8 +190,7 @@ public struct swiftUILib {
 
     // MARK: - UIFFのイベントブロッカー有無チェック
     public func hasEvent(entry: UiffEntry, eventID: UInt16) -> Bool {
-        var propIter = UiffPropIter(workMemory: entry.payload)
-        while let prop = propIter.next() {
+        for prop in UiffPropIter(workMemory: entry.payload) {
             if prop.chunkType == UIFF_EVENTS {
                 let events = UiffEvents(workMemory: prop.chunkMemory)
                 if events.hasEvent(eventID: eventID) {
@@ -205,8 +203,7 @@ public struct swiftUILib {
 
     // MARK: - UIFFのイベントリスナーの有無チェック
     public func hasListener(entry: UiffEntry, eventID: UInt16) -> Bool {
-        var propIter = UiffPropIter(workMemory: entry.payload)
-        while let prop = propIter.next() {
+        for prop in UiffPropIter(workMemory: entry.payload) {
             if prop.chunkType == UIFF_LISTEN {
                 let listen = UiffListen(workMemory: prop.chunkMemory)
                 if listen.hasEvent(eventID: eventID) {
