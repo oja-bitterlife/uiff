@@ -28,7 +28,6 @@ public struct swiftUILib {
                 | UInt(UInt8(ascii: "I")) << 8
                 | UInt(UInt8(ascii: "F")) << 16
                 | UInt(UInt8(ascii: "F")) << 24)
-        assert(magic_ok, "Invalid uiff file")
         if !magic_ok {
             WorkMemory.onFatal(code: UIFF_ERR_FILE_INVALID)
         }
@@ -43,7 +42,6 @@ public struct swiftUILib {
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
-        assert(uiff_size <= remainingByteSize, "UIFF size exceeds memory size")
         if uiff_size > remainingByteSize {
             WorkMemory.onFatal(code: UIFF_ERR_FILE_TOO_LARGE)
         }
@@ -54,7 +52,6 @@ public struct swiftUILib {
                 mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
             }
         } else {
-            assert(false, "Failed to create memory pointer for work memory")
             WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
         }
 
@@ -84,7 +81,6 @@ public struct swiftUILib {
 
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
-        assert(eventID != 0, "Invalid eventID: 0")
         if eventID == 0 {
             WorkMemory.onFatal(code: UIFF_ERR_EVENT_INVALID)  // 無効なイベントID
         }
@@ -111,8 +107,11 @@ public struct swiftUILib {
 
             // propIterを用意する。使う時に便利用
             var propIter = UiffPropIter(workMemory: entry.payload)
+
             // システムで処理するプロパティは無視する
-            propIter.setBlackList(blackList: [UIFF_CHILD, UIFF_EVENTS, UIFF_LISTEN])
+            propIter.addBlackList(eventID: UInt16(UIFF_CHILD))
+            propIter.addBlackList(eventID: UInt16(UIFF_EVENTS))
+            propIter.addBlackList(eventID: UInt16(UIFF_LISTEN))
 
             // エントリーの処理を呼び出す
             onEntry(self, entry, propIter)
@@ -126,7 +125,6 @@ public struct swiftUILib {
         // Entryのオフセットアドレスを記録する
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
 
-        assert(offsetBytes <= 0xffff, "UIFF child chunk offset exceeds UInt16 max")
         if offsetBytes > 0xffff {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
@@ -138,15 +136,18 @@ public struct swiftUILib {
     private mutating func traverseEntries(firstEntry: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
-        for entry in UiffEntryIter(workMemory: firstEntry.chunkMemory) {
+        var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        while let entry = entryIter.next() {
             appendEntry(entry: entry)
         }
 
         // 子Entryを処理する
         // ----------------------------------------------------------
-        for entry in UiffEntryIter(workMemory: firstEntry.chunkMemory) {
+        entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        while let entry = entryIter.next() {
             // propertiesからプロパティを取得する
-            for prop in UiffPropIter(workMemory: entry.payload) {
+            var propIter = UiffPropIter(workMemory: entry.payload)
+            while let prop = propIter.next() {
                 // 子があれば再帰
                 if prop.chunkType == UInt16(UIFF_CHILD) {
                     let children = UiffChild(workMemory: prop.chunkMemory)
@@ -193,7 +194,8 @@ public struct swiftUILib {
 
     // MARK: - UIFFのイベントブロッカー有無チェック
     public func hasEvent(entry: UiffEntry, eventID: UInt16) -> Bool {
-        for prop in UiffPropIter(workMemory: entry.payload) {
+        var propIter = UiffPropIter(workMemory: entry.payload)
+        while let prop = propIter.next() {
             if prop.chunkType == UIFF_EVENTS {
                 let events = UiffEvents(workMemory: prop.chunkMemory)
                 if events.hasEventID(eventID: eventID) {
@@ -206,7 +208,8 @@ public struct swiftUILib {
 
     // MARK: - UIFFのイベントリスナーの有無チェック
     public func hasListener(entry: UiffEntry, eventID: UInt16) -> Bool {
-        for prop in UiffPropIter(workMemory: entry.payload) {
+        var propIter = UiffPropIter(workMemory: entry.payload)
+        while let prop = propIter.next() {
             if prop.chunkType == UIFF_LISTEN {
                 let listen = UiffListen(workMemory: prop.chunkMemory)
                 if listen.hasEventID(eventID: eventID) {

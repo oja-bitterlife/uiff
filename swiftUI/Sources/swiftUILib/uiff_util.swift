@@ -43,7 +43,6 @@ public protocol UiffChunk {
 }
 extension UiffChunk {
     public static func assign(workMemory: WorkMemory, offsetBytes: Int) -> WorkMemory {
-        assert(offsetBytes % 2 == 0, "offsetBytes must be even")
         if offsetBytes % 2 != 0 {
             WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 偶数バイト境界でない
         }
@@ -76,7 +75,6 @@ public struct UiffEntry: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         // 子チャンクのタイプを確認
-        assert(workMemory[offsetBytes / 2] == UIFF_ENTRY, "UiffEntry must start with UIFF_ENTRY")
         if workMemory[offsetBytes / 2] != UIFF_ENTRY {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEntry must start with UIFF_ENTRY
         }
@@ -145,9 +143,9 @@ public struct UiffEntry: UiffChunk {
 }
 
 // Entryのイテレータ
-public struct UiffEntryIter: IteratorProtocol, Sequence {
+public struct UiffEntryIter {
     public private(set) var chunkMemory: WorkMemory
-    var offsetBytes: Int
+    private var offsetBytes: Int
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = workMemory
@@ -167,18 +165,34 @@ public struct UiffEntryIter: IteratorProtocol, Sequence {
 // Entryのpropertysを扱う
 // ****************************************************************************
 // プロパティ管理用チャンク
-public struct UiffPropIter: IteratorProtocol, Sequence {
+public struct UiffPropIter {
     public private(set) var chunkMemory: WorkMemory
-    var offsetBytes: Int
-    var blackList: [UInt16] = []
+    private var offsetBytes: Int
+
+    // ブラックリスト。ここに含まれるchunkTypeは無視する
+    private var blackListBuf:
+        (
+            UInt16, UInt16, UInt16, UInt16,
+            UInt16, UInt16, UInt16, UInt16,
+        ) = (0, 0, 0, 0, 0, 0, 0, 0)
+    private var blackList: RingQueueMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         self.chunkMemory = workMemory
         self.offsetBytes = offsetBytes
+
+        // 8個のUInt16を格納するリングバッファ
+        let blackListPtr = withUnsafeMutablePointer(to: &self.blackListBuf) { ptr in
+            UnsafeMutableRawPointer(ptr).assumingMemoryBound(to: UInt8.self)
+        }
+        self.blackList = RingQueueMemory(address: UInt(bitPattern: blackListPtr), byteSize: 8 * 2)
     }
 
-    public mutating func setBlackList(blackList: [UInt16]) {
-        self.blackList = blackList
+    public mutating func addBlackList(eventID: UInt16) {
+        blackList.enqueue(value: eventID)
+    }
+    public mutating func clearBlackList() {
+        blackList.clear()
     }
 
     public mutating func next() -> UiffProp? {
@@ -186,7 +200,7 @@ public struct UiffPropIter: IteratorProtocol, Sequence {
             let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
             offsetBytes += prop.chunkSize
 
-            if !blackList.contains(prop.chunkType) {
+            if !blackList.contains(value: prop.chunkType) {
                 return prop
             }
         }
@@ -210,7 +224,6 @@ public struct UiffSelect: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_SELECT_INFO, "UiffSelect must start with UIFF_SELECT")
         if workMemory[0] != UIFF_SELECT_INFO {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffSelect must start with UIFF_SELECT
         }
@@ -228,9 +241,6 @@ public struct UiffSelect: UiffChunk {
     }
 
     public func getSelItem(index: Int) -> UiffProp {
-        let item_num = selItemNum
-        assert(index < item_num, "index out of range")
-
         var sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: 2)  // sel_rowsとsel_item_numを飛ばす
         for _ in 0..<index {
             sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: sel_item.chunkSize)
@@ -246,7 +256,6 @@ public struct UiffChild: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_CHILD, "UiffChild must start with UIFF_CHILD")
         if workMemory[0] != UIFF_CHILD {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffChild
         }
@@ -257,7 +266,6 @@ public struct UiffChild: UiffChunk {
     // 最初の子チャンクを取得する
     public func getFirstEntry() -> UiffEntry? {
         // 子のチャンクが存在するか確認する
-        assert(0 < chunkSize, "UiffChild has no child chunks")
         if chunkSize <= 0 {
             return nil
         }
@@ -270,7 +278,6 @@ public struct UiffEvents: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_EVENTS, "UiffEvents must start with UIFF_EVENTS")
         if workMemory[0] != UIFF_EVENTS {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEvents
         }
@@ -283,7 +290,6 @@ public struct UiffEvents: UiffChunk {
     }
 
     public func getEventID(index: Int) -> UInt16 {
-        assert(index < getEventNum(), "index out of range")
         return payload[index]
     }
 
@@ -301,7 +307,6 @@ public struct UiffListen: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_LISTEN, "UiffListen must start with UIFF_LISTEN")
         if workMemory[0] != UIFF_LISTEN {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffListen
         }
@@ -314,7 +319,6 @@ public struct UiffListen: UiffChunk {
     }
 
     public func getEventID(index: Int) -> UInt16 {
-        assert(index < getEventNum(), "index out of range")
         return payload[index]
     }
 
@@ -332,7 +336,6 @@ public struct UiffScript: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_SCRIPT, "UiffScript must start with UIFF_SCRIPT")
         if workMemory[0] != UIFF_SCRIPT {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffScript
         }
@@ -360,7 +363,6 @@ public struct UiffColors: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_COLORS, "UiffColors must start with UIFF_COLORS")
         if workMemory[0] != UIFF_COLORS {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffColors
         }
@@ -373,7 +375,6 @@ public struct UiffColors: UiffChunk {
     }
 
     public func getColor(index: Int) -> UInt32 {
-        assert(index < getColorNum(), "index out of range")
         let color_low = payload[index * 2]  // 1色あたり4バイト
         let color_high = payload[index * 2 + 1]
         return UInt32(color_high) << 16 | UInt32(color_low)
@@ -384,7 +385,6 @@ public struct UiffText: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        assert(workMemory[0] == UIFF_TEXT, "UiffText must start with UIFF_TEXT")
         if workMemory[0] != UIFF_TEXT {
             WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffText
         }
