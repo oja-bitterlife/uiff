@@ -16,4 +16,7 @@ output.bmp
 
 .task/
 .vscode/
+<<<<<<< HEAD
 pyvm/
+=======
+>>>>>>> b816a59 (merge)
