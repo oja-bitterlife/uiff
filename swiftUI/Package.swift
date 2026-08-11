@@ -18,19 +18,21 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../pyvm/swiftVM"),
+        .package(path: "../pyvm/swiftVM")
     ],
     targets: [
         // VMのコアロジック（no-allocateを意識した固定配列ベースの処理など）
         .target(
             name: "swiftUILib",
+            dependencies: [
+                .product(name: "swiftVMLib", package: "swiftVM")
+            ]
         ),
         // 仮実行用バイナリ（GbaVmCoreをインポートしてテスト実行する）
         .executableTarget(
             name: "swiftUI",
             dependencies: [
-                "swiftUILib",
-                .product(name: "swiftVMLib", package: "swiftVM"),
+                "swiftUILib"
             ]
         ),
     ],

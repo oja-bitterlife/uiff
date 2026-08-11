@@ -16,5 +16,4 @@ output.bmp
 
 .task/
 .vscode/
-gba_util/
 pyvm/
