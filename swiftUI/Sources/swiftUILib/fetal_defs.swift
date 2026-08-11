@@ -1,15 +1,6 @@
 // Error定数
-private let MEM_ERR_BASE = 0x1000_0000
 private let UIFF_ERR_BASE = 0x2000_0000
-private let UIFF_ERR_EVENT = 0x3000_0000
-
-// メモリ関連のエラーコード
-public let MEM_ERR_EVEN = MEM_ERR_BASE | 0x1
-public let MEM_ERR_OVERFLOW = MEM_ERR_BASE | 0x2
-public let MEM_ERR_UNDERFLOW = MEM_ERR_BASE | 0x3
-public let MEM_ERR_OUTOFBOUNDS = MEM_ERR_BASE | 0x4
-public let MEM_ERR_INVALID_ADDRESS = MEM_ERR_BASE | 0x5
-public let MEM_ERR_INVALID_SIZE = MEM_ERR_BASE | 0x6
+private let UIFF_ERR_EVENT_BASE = UIFF_ERR_BASE | 0x0100_0000
 
 // UIFFファイル関連のエラーコード
 public let UIFF_ERR_FILE_INVALID = UIFF_ERR_BASE | 0x1
@@ -17,4 +8,4 @@ public let UIFF_ERR_FILE_TOO_LARGE = UIFF_ERR_BASE | 0x2
 public let UIFF_ERR_CHUNK_INVALID = UIFF_ERR_BASE | 0x3
 
 // Event関連のエラーコード
-public let UIFF_ERR_EVENT_INVALID = UIFF_ERR_EVENT | 0x1
+public let UIFF_ERR_EVENT_INVALID = UIFF_ERR_EVENT_BASE | 0x1

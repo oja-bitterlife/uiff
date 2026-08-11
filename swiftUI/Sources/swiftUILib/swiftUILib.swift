@@ -1,3 +1,4 @@
+import gba_util
 import swiftVMLib
 
 public struct swiftUILib {

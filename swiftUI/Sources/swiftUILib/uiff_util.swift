@@ -1,4 +1,5 @@
 // uiffチャンクの操作
+import gba_util
 import swiftVMLib
 
 // 定数
