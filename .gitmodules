@@ -1,0 +1,3 @@
+[submodule "pyvm"]
+	path = pyvm
+	url = https://github.com/oja-bitterlife/pyvm.git
