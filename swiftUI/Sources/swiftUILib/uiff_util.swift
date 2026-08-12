@@ -15,7 +15,11 @@ public struct UiffFileHeader {
     private let ptr: UnsafeMutablePointer<UInt16>
 
     public init(address: UInt) {
-        self.ptr = UnsafeMutablePointer<UInt16>(bitPattern: address)!
+        if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
+            self.ptr = ptr
+        } else {
+            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+        }
     }
 
     public var magic: UInt32 {
@@ -28,7 +32,14 @@ public struct UiffFileHeader {
     }
 
     public var data: UnsafeMutablePointer<UInt8> {
-        return UnsafeMutablePointer<UInt8>(bitPattern: UInt(bitPattern: ptr) + 6)!
+        let data_offset: UInt = 4 + 2  // magic + size
+        if let ptr = UnsafeMutablePointer<UInt8>(
+            bitPattern: UInt(bitPattern: self.ptr) + data_offset)
+        {
+            return ptr
+        } else {
+            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+        }
     }
 }
 
@@ -168,7 +179,7 @@ public struct UiffPropIter {
     public private(set) var chunkMemory: WorkMemory
     private var offsetBytes: Int
 
-    // ブラックリスト。ここに含まれるchunkTypeは無視する
+    /// ブラックリスト。ここに含まれるchunkTypeは無視する。最大8個まで
     private var blackListBuf:
         (
             UInt16, UInt16, UInt16, UInt16,
