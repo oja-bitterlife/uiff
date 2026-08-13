@@ -430,7 +430,7 @@ class SelectDispatcher(DispatcherBase):
         sel_data_buf.extend(len(items).to_bytes(2, byteorder='little'))  # item_numを追加する
         for item in items:
             text_code = TextDispatcher().list_to_bytes(item)
-            sel_data_buf.extend(self.create_chunk_buf(UIFF_TEXT, text_code))  # itemを追加する
+            sel_data_buf.extend(self.create_chunk_str(UIFF_TEXT, text_code))  # itemを追加する
         self.ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する
 
         # IFF_SELECT Chunkの作成
@@ -451,7 +451,7 @@ class TextDispatcher(DispatcherBase):
         if isinstance(text, str):
             return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
         elif isinstance(text, list):
-            return self.create_chunk_buf(UIFF_TEXT, self.list_to_bytes(text))
+            return self.create_chunk_str(UIFF_TEXT, self.list_to_bytes(text))
 
     def list_to_bytes(self, text_list):
         # listの中身をbytesに変換する

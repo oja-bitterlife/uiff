@@ -1,8 +1,9 @@
+import argparse
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
 # uiffバイナリファイルを読んで、解析ツリーを表示する
-import argparse
+sys.path.append(os.getcwd() + "/uiff")  # カレントディレクトリをパスに追加
 from compiler.uiff_types import *
 
 # argparseでファイル名を受け取る
@@ -93,7 +94,7 @@ def parse_chunk(data, size, indent=""):
 
                 sel_str_len = getUInt16(chunk_data, sel_offset+4)
                 sel_str_data = chunk_data[sel_offset + 6:sel_offset + 6 + sel_str_len]
-                sel_items.append(sel_str_data.decode('ascii', 'replace'))
+                sel_items.append(sel_str_data)
                 sel_offset += 4 + sel_item_size
             if len(sel_items) != item_num:
                 raise ValueError(f"Expected {item_num} SEL_ITEMs, got {len(sel_items)}")
@@ -121,7 +122,7 @@ def parse_chunk(data, size, indent=""):
         elif chunk_type == UIFF_TEXT:
             text_len = getUInt16(chunk_data, 0)
             text_data = chunk_data[2:2 + text_len]
-            print(f"{indent}Text: {text_data.decode('ascii', 'replace')}")
+            print(f"{indent}Text:", text_data.hex(" "))
 
             continue  # 次のchunkに進む
 
