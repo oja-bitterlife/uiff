@@ -43,7 +43,6 @@ if args.with_ascii:
 
 # グレースケール
 canvas = Image.new("L", (canvas_width, canvas_height), color=0)
-print(f"Canvas size: {canvas_width}x{canvas_height}")
 
 count = 0
 # ASCIIコードを書き出す
@@ -67,5 +66,6 @@ for char in kanji_list:
 
 # 画像で書き出す
 # *****************************************************************************
-canvas.save(args.output)
+palette_img = canvas.quantize(colors=16)
+palette_img.save(args.output)
 
