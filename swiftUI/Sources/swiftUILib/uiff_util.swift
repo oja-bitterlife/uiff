@@ -22,9 +22,9 @@ public struct UiffFileHeader {
         }
     }
 
-    public var magic: UInt32 {
-        return UInt32(ptr[0] & 0xff) | (UInt32(ptr[0] >> 8) << 8) | (UInt32(ptr[1] & 0xff) << 16)
-            | (UInt32(ptr[1] >> 8) << 24)
+    public var magic: UInt {
+        return UInt(ptr[0] & 0xff) | (UInt(ptr[0] >> 8) << 8) | (UInt(ptr[1] & 0xff) << 16)
+            | (UInt(ptr[1] >> 8) << 24)
     }
 
     public var size: UInt16 {
@@ -242,12 +242,12 @@ public struct UiffSelect: UiffChunk {
     }
 
     // 選択肢を横に並べる数
-    public var selRows: UInt16 {
-        return chunkMemory[0]
+    public var selRows: Int {
+        return Int(chunkMemory[0])
     }
 
-    public var selItemNum: UInt16 {
-        return chunkMemory[1]
+    public var selItemNum: Int {
+        return Int(chunkMemory[1])
     }
 
     public func getSelItem(index: Int) -> UiffProp {
@@ -384,10 +384,10 @@ public struct UiffColors: UiffChunk {
         return payload.getByteSize() / 4  // 1色あたり4バイト
     }
 
-    public func getColor(index: Int) -> UInt32 {
+    public func getColor(index: Int) -> UInt {
         let color_low = payload[index * 2]  // 1色あたり4バイト
         let color_high = payload[index * 2 + 1]
-        return UInt32(color_high) << 16 | UInt32(color_low)
+        return UInt(color_high) << 16 | UInt(color_low)
     }
 }
 
