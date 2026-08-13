@@ -57,6 +57,7 @@ if args.with_ascii:
         y = count // 16
         # 文字を描画
         draw = ImageDraw.Draw(canvas)
+        draw.fontmode = "1"
         draw.text((x * 16, y * 16), chr(char), font=font, fill=255)
         count += 1
 
@@ -69,11 +70,13 @@ for char in kanji_list:
     y = count // 16
     # 文字を描画
     draw = ImageDraw.Draw(canvas)
+    draw.fontmode = "1"
     draw.text((x * 16, y * 16), char, font=font, fill=255)
     count += 1
 
 # 画像で書き出す
 # *****************************************************************************
-palette_img = canvas.quantize(colors=16)  # 16色に減色
+pal_img = Image.new('P', (1, 1))
+pal_img.putpalette([0, 0, 0, 255, 255, 255])  # 黒が前になるように
+palette_img = canvas.quantize(colors=2, palette=pal_img)
 palette_img.save(args.output)
-
