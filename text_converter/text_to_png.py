@@ -3,6 +3,8 @@
 import argparse
 from PIL import Image, ImageDraw, ImageFont
 
+ASCII_CHAR_NUM = 96  # ASCIIコードの数（0x20〜0x7F）
+
 # argparseの設定
 # *****************************************************************************
 parser = argparse.ArgumentParser(description='Convert extracted Kanji characters from a text file into a PNG image.')
@@ -39,12 +41,15 @@ with open(args.input, 'r', encoding='utf-8') as f:
 canvas_width = 256
 canvas_height = ((len(kanji_list)+15) // 16) * 16
 if args.with_ascii:
-    canvas_height += 96  # ASCII行のために追加
+    canvas_height += ASCII_CHAR_NUM  # ASCII行のために追加
 
 # グレースケール
 canvas = Image.new("L", (canvas_width, canvas_height), color=0)
 
+# テキストの描画
+# ---------------------------------------------------------------------
 count = 0
+
 # ASCIIコードを書き出す
 if args.with_ascii:
     for char in range(0x20, 0x7F):
@@ -54,6 +59,9 @@ if args.with_ascii:
         draw = ImageDraw.Draw(canvas)
         draw.text((x * 16, y * 16), chr(char), font=font, fill=255)
         count += 1
+
+    # 漢字の開始位置を調整
+    count = ASCII_CHAR_NUM
 
 # 続きで漢字を書き出す
 for char in kanji_list:
@@ -66,6 +74,6 @@ for char in kanji_list:
 
 # 画像で書き出す
 # *****************************************************************************
-palette_img = canvas.quantize(colors=16)
+palette_img = canvas.quantize(colors=16)  # 16色に減色
 palette_img.save(args.output)
 
