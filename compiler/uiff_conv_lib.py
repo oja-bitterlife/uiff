@@ -429,7 +429,8 @@ class SelectDispatcher(DispatcherBase):
         items = self.ignore_get(props, "SelItems", [])
         sel_data_buf.extend(len(items).to_bytes(2, byteorder='little'))  # item_numを追加する
         for item in items:
-            sel_data_buf.extend(self.create_chunk_str(UIFF_TEXT, item.encode('ascii', 'replace')))
+            text_code = TextDispatcher().list_to_bytes(item)
+            sel_data_buf.extend(self.create_chunk_buf(UIFF_TEXT, text_code))  # itemを追加する
         self.ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する
 
         # IFF_SELECT Chunkの作成
@@ -447,7 +448,23 @@ class TextDispatcher(DispatcherBase):
 
     def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         text = self.ignore_get(props, self.get_dispatch_name(), "")
-        return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
+        if isinstance(text, str):
+            return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
+        elif isinstance(text, list):
+            return self.create_chunk_buf(UIFF_TEXT, self.list_to_bytes(text))
+
+    def list_to_bytes(self, text_list):
+        # listの中身をbytesに変換する
+        buf = bytearray()
+        for item in text_list:
+            if isinstance(item, str):
+                buf.extend(item.encode('ascii', 'replace'))
+            elif isinstance(item, int) and 0 <= item <= 0xFF:
+                buf.extend(item.to_bytes(1, byteorder='little'))
+            else:
+                raise ValueError(f"Error: Unknown item type in text list: {item}")
+        return buf
+
 
 class ScriptDispatcher(DispatcherBase):
     def get_dispatch_name(self):
