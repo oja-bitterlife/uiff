@@ -32,6 +32,7 @@ if __name__ == "__main__":
     # 漢字を抜き出す
     pickup = pickup_text_ja(text)
 
-    # JSON形式で出力
-    print(json.dumps(pickup, ensure_ascii=False))
-
+    # 16文字で折り返して表示
+    wrap_width = 16
+    for i in range(0, len(pickup), wrap_width):
+        print("".join(pickup[i:i+wrap_width]))

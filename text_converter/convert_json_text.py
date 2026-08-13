@@ -62,14 +62,9 @@ def _rec_replace_text(json_dict, kanji_list):
 
 
 # 再帰でキーを置き換える
-def convert_json_text(json_dict):
+def convert_json_text(json_dict, kanji_list):
     # 処理対象文字列を抜き出す
     pickup_text = _rec_pickup_texts(json_dict)
-
-    # 漢字を抜き出してリストを作成する
-    kanji_list = pickup_text_ja.pickup_text_ja(pickup_text)
-    if len(kanji_list) > 127:
-        raise ValueError("The number of unique Kanji characters exceeds 127.")
 
     # TextプロパティをTEXTのインデックスリストに変換する
     _rec_replace_text(json_dict, kanji_list)
@@ -80,7 +75,7 @@ def convert_json_text(json_dict):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert JSON TEXT property to TEXT index list.')
     parser.add_argument('input_json', type=str, help='Path to the input JSON file')
-
+    parser.add_argument('-k', '--kanji_list', required=True, type=str, help='Path to the Kanji list file (required)')
     args = parser.parse_args()
 
     # 入力JSONファイルを読み込む
@@ -88,7 +83,11 @@ if __name__ == "__main__":
         json_data = json.load(infile)
 
     # TEXTプロパティをTEXTのインデックスリストに変換
-    converted_json = convert_json_text(json_data)
+    
+    with open(args.kanji_list, 'r', encoding='utf-8') as kfile:
+        kanji_list = [char for char in "".join(kfile).strip()]
+
+    converted_json = convert_json_text(json_data, kanji_list)
 
     # 変換後のJSONを出力
     print(json.dumps(converted_json, ensure_ascii=False, indent=4))
