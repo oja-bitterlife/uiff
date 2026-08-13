@@ -58,17 +58,21 @@ public struct swiftUILib {
         self.uiffWork = WorkMemory(address: workMemoryAddress, byteSize: uiff_size)
 
         // 各用途のメモリを固定位置に配置する
-        var queueOffset = workMemoryAddress + UInt(remainingByteSize)
+        var addr = workMemoryAddress + UInt(remainingByteSize)
         self.entryList = RingQueueMemory(
-            address: queueOffset, byteSize: ExpandEven(value: entryListSize))
-        queueOffset += UInt(self.entryList.getByteSize())
+            address: addr, byteSize: ExpandEven(value: entryListSize))
+
+        addr += UInt(self.entryList.getByteSize())
         self.eventQueue = RingQueueMemory(
-            address: queueOffset, byteSize: ExpandEven(value: eventQueueSize))
-        queueOffset += UInt(self.eventQueue.getByteSize())
-        self.vmWork = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmWorkSize))
-        queueOffset += UInt(self.vmWork.getByteSize())
-        self.vmStack = WorkMemory(address: queueOffset, byteSize: ExpandEven(value: vmStackSize))
-        queueOffset += UInt(self.vmStack.getByteSize())
+            address: addr, byteSize: ExpandEven(value: eventQueueSize))
+
+        addr += UInt(self.eventQueue.getByteSize())
+        self.vmWork = WorkMemory(
+            address: addr, byteSize: ExpandEven(value: vmWorkSize))
+
+        addr += UInt(self.vmWork.getByteSize())
+        self.vmStack = WorkMemory(
+            address: addr, byteSize: ExpandEven(value: vmStackSize))
     }
 
     // ユーザー向け関数
@@ -108,9 +112,9 @@ public struct swiftUILib {
             var propIter = UiffPropIter(workMemory: entry.payload)
 
             // システムで処理するプロパティは無視する
-            propIter.addBlackList(eventID: UInt16(UIFF_CHILD))
-            propIter.addBlackList(eventID: UInt16(UIFF_EVENTS))
-            propIter.addBlackList(eventID: UInt16(UIFF_LISTEN))
+            propIter.addBlackList(eventID: UIFF_CHILD)
+            propIter.addBlackList(eventID: UIFF_EVENTS)
+            propIter.addBlackList(eventID: UIFF_LISTEN)
 
             // エントリーの処理を呼び出す
             onEntry(self, entry, propIter)
