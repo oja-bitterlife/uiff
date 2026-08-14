@@ -12,7 +12,8 @@ parser.add_argument('input', help='Input UTF-8 text file containing Kanji charac
 parser.add_argument('-o', '--output', required=True, type=str, help='Output PNG file path')
 parser.add_argument('-f', '--font', required=True, type=str, help='Path to the TTF font file to be used for rendering Kanji characters')
 parser.add_argument('-s', '--size', required=True, type=int, help='Font size for rendering Kanji characters (default: 48)')
-parser.add_argument('-a', '--with_ascii', action='store_true', help='Include ASCII characters in the output image (default: False)')
+parser.add_argument('-a', '--with_half_ascii', action='store_true', help='Include Half ASCII characters in the output image (default: False)')
+parser.add_argument('-A', '--with_double_ascii', action='store_true', help='Include Double Size ASCII characters in the output image (default: False)')
 args = parser.parse_args()
 
 # fontの設定
@@ -21,6 +22,7 @@ font_path = args.font
 font_size = args.size
 if font_size > 16:
     raise ValueError("Font size must be 16 or less for proper rendering on GBA.")
+stride = 16 if font_size > 8 else 8  # フォントサイズが8x8以下の場合は8x8で描画する
 
 font = ImageFont.truetype(font_path, font_size)
 
@@ -40,8 +42,9 @@ with open(args.input, 'r', encoding='utf-8') as f:
 # *****************************************************************************
 canvas_width = 256
 canvas_height = ((len(kanji_list)+15) // 16) * 16
-if args.with_ascii:
+if args.with_half_ascii or args.with_double_ascii:
     canvas_height += ASCII_CHAR_NUM  # ASCII行のために追加
+canvas_height = max(1, canvas_height // (canvas_width // stride) * stride)
 
 # グレースケール
 canvas = Image.new("L", (canvas_width, canvas_height), color=0)
@@ -51,14 +54,16 @@ canvas = Image.new("L", (canvas_width, canvas_height), color=0)
 count = 0
 
 # ASCIIコードを書き出す
-if args.with_ascii:
+if args.with_half_ascii or args.with_double_ascii:
     for char in range(0x20, 0x7F):
-        x = count % 16
-        y = count // 16
+        if args.with_double_ascii:
+            char += 0xFEE0  # 全角に変換
+        x = count % (canvas_width // stride)
+        y = count // (canvas_width // stride)
         # 文字を描画
         draw = ImageDraw.Draw(canvas)
         draw.fontmode = "1"
-        draw.text((x * 16, y * 16), chr(char), font=font, fill=255)
+        draw.text((x * stride, y * stride), chr(char), font=font, fill=255)
         count += 1
 
     # 漢字の開始位置を調整
@@ -66,12 +71,12 @@ if args.with_ascii:
 
 # 続きで漢字を書き出す
 for char in kanji_list:
-    x = count % 16
-    y = count // 16
+    x = count % (canvas_width // stride)
+    y = count // (canvas_width // stride)
     # 文字を描画
     draw = ImageDraw.Draw(canvas)
     draw.fontmode = "1"
-    draw.text((x * 16, y * 16), char, font=font, fill=255)
+    draw.text((x * stride, y * stride), char, font=font, fill=255)
     count += 1
 
 # 画像で書き出す
