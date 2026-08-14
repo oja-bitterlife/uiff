@@ -35,10 +35,7 @@ struct swiftUI {
         // --------------------------------------------------------------------
         uiff.notify(eventID: 17)
         uiff.notify(eventID: 25)
-        uiff.run(
-            firstEntry: uiff.getRoot(),
-            onEntry: swiftUI.onEntry
-        )
+        uiff.run(onEntry: swiftUI.onEntry)
 
         // bmpの書き出し
         // --------------------------------------------------------------------

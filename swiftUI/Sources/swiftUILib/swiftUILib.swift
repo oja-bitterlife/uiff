@@ -77,11 +77,6 @@ public struct swiftUILib {
 
     // ユーザー向け関数
     // ************************************************************************
-    // MARK: - ルートチャンクの取得。Entryのはず
-    public func getRoot() -> UiffEntry {
-        return UiffEntry(workMemory: self.uiffWork)
-    }
-
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
         if eventID == 0 {
@@ -92,12 +87,9 @@ public struct swiftUILib {
     }
 
     // MARK: - UIFFの逐次処理
-    public mutating func run(
-        firstEntry: UiffEntry,
-        onEntry: (swiftUILib, UiffEntry, UiffPropIter) -> Void
-    ) {
+    public mutating func run(onEntry: (swiftUILib, UiffEntry, UiffPropIter) -> Void) {
         // ルートから子をトラバースして、entryQueueに積み込む
-        traverseEntries(firstEntry: firstEntry)
+        traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffWork))
 
         // イベントの処理
         processEvents()  // eventキューが空になるまで処理される
