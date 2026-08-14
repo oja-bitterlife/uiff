@@ -41,10 +41,10 @@ with open(args.input, 'r', encoding='utf-8') as f:
 # キャンバス作成
 # *****************************************************************************
 canvas_width = 256
-canvas_height = ((len(kanji_list)+15) // 16) * 16
+line_char_count = canvas_width // stride
+canvas_height = ((len(kanji_list)+line_char_count-1) // line_char_count) * stride
 if args.with_half_ascii or args.with_double_ascii:
-    canvas_height += ASCII_CHAR_NUM  # ASCII行のために追加
-canvas_height = max(1, canvas_height // (canvas_width // stride) * stride)
+    canvas_height += ASCII_CHAR_NUM // line_char_count * stride  # ASCII行のために追加
 
 # グレースケール
 canvas = Image.new("L", (canvas_width, canvas_height), color=0)
