@@ -79,7 +79,7 @@ struct swiftUI {
     }
 
     static func windowDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
-        var color: UInt32 = 0xff00_0000
+        var color: UInt = 0xff00_0000
 
         var propIter = propIter
         while let prop = propIter.next() {
