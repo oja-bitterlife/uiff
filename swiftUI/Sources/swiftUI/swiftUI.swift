@@ -10,7 +10,7 @@ let bmpFile = "build/output.bmp"
 @main
 struct swiftUI {
     // bmp画像用バッファ
-    nonisolated(unsafe) static var bmpBuf: [UInt32] = [UInt32](repeating: 0, count: 240 * 160)
+    nonisolated(unsafe) static var bmpBuf: [UInt] = [UInt](repeating: 0, count: 240 * 160)
 
     static func main() {
         // uiffファイルを読み込む
@@ -108,7 +108,7 @@ struct swiftUI {
     }
 
     static func labelDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
-        let color: UInt32 = 0xffff_ffff
+        let color: UInt = 0xffff_ffff
 
         let x = entry.x * 8
         let y = entry.y * 8
@@ -143,7 +143,7 @@ struct swiftUI {
     }
 
     static func selectDraw(lib: swiftUILib, entry: UiffEntry, propIter: UiffPropIter) {
-        let color: UInt32 = 0xff80_0000
+        let color: UInt = 0xff80_0000
         setVMEvent(lib: lib, eventID: entry.recvEventID)
         setVMSelectNo(lib: lib, selectNo: 0)
 

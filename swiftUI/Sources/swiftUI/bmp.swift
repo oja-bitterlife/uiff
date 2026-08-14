@@ -1,6 +1,6 @@
 import Foundation
 
-func outputBMP(bmpBuf: [UInt32], width: Int, height: Int) {
+func outputBMP(bmpBuf: [UInt], width: Int, height: Int) {
     let bmpHeaderSize = 54
     let bmpWidth = 240
     let bmpHeight = 160
