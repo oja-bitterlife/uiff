@@ -4,7 +4,7 @@ sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
 # uiffバイナリファイルを読んで、解析ツリーを表示する
 sys.path.append(os.getcwd() + "/uiff")  # カレントディレクトリをパスに追加
-from compiler.uiff_types import *
+from _COMPILER.uiff_types import *
 
 # argparseでファイル名を受け取る
 parser = argparse.ArgumentParser(description='UIFFファイルを解析する')

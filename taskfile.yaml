@@ -2,28 +2,29 @@
 version: 3
 
 vars:
-  title_json: build/title.json
-  title_hex: build/title.hex
-  bin_file: build/title.uiff
+  COMPILER_DIR: _COMPILER
+  TITLE_JSON: build/title.json
+  TITLE_BIN: build/title.uiff
+  TEST_SCRIPT: "{{.COMPILER_DIR}}/uiff_conv_sample.py"
 
 tasks:
   data_mk:
     desc: yamlをuiffに変換する
     cmds:
       - mkdir -p build
-      - yq -o json assets/title.yaml > {{.title_json}}
-      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json -o {{.title_hex}}
+      - yq -o json assets/title.yaml > {{.TITLE_JSON}}
+      - python {{.TEST_SCRIPT}} {{.TITLE_JSON}} -def assets/defines.json -o {{.TITLE_BIN}}
 
   data_hex:
     desc: yamlをuiffの16進数で出力する
     cmds:
-      - yq -o json assets/title.yaml > {{.title_json}}
-      - python compiler/uiff_conv_test.py {{.title_json}} -def assets/defines.json
+      - yq -o json assets/title.yaml > {{.TITLE_JSON}}
+      - python {{.TEST_SCRIPT}} {{.TITLE_JSON}} -def assets/defines.json
 
   data_ck:
     desc: uiffを確認する
     cmds:
-      - python compiler/uiff_check.py {{.bin_file}}
+      - python {{.COMPILER_DIR}}/uiff_check.py {{.TITLE_BIN}}
 
   run:
     desc: uiffを実行する
@@ -38,7 +39,7 @@ tasks:
   clean:
     desc: clean up generated files
     cmds:
-      - rm -f {{.title_json}} {{.bin_file}} {{.title_hex}}
+      - rm -f {{.TITLE_JSON}} {{.TITLE_BIN}}
 
   default:
     cmds:

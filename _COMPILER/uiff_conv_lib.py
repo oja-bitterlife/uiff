@@ -1,8 +1,8 @@
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
-from compiler.uiff_types import *
-from pyvm.compiler.pyvm_bc import BytecodeCompiler
+from _COMPILER.uiff_types import *
+from pyvm._COMPILER.pyvm_bc import BytecodeCompiler
 
 # 定数
 # *****************************************************************************

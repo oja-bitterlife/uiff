@@ -3,7 +3,7 @@ import json, argparse, os, sys
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
-from compiler.uiff_conv_lib import DispatchTree, DispatcherBase
+from _COMPILER.uiff_conv_lib import DispatchTree, DispatcherBase
 
 class MyDispatcher(DispatcherBase):
     kanji_list = []
