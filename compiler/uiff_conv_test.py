@@ -6,6 +6,8 @@ sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 from compiler.uiff_conv_lib import DispatchTree, DispatcherBase
 
 class MyDispatcher(DispatcherBase):
+    kanji_list = []
+
     def get_dispatch_name(self):
         return "MyProp"
     def get_chunk(self, type_info, props, define_data):
@@ -27,6 +29,7 @@ if __name__ == "__main__":
     # ---------------------------------------------------------
     parser = argparse.ArgumentParser(description='Convert UIFF to JSON')
     parser.add_argument('input_file', type=str, help='Input UIFF file')
+    parser.add_argument('-o', '--output_file', type=str, help='Output Binary file')
     parser.add_argument('-def', '--define', type=str, action='append', help='Define JSON files [複数指定可]')
     args = parser.parse_args()
 
@@ -48,4 +51,8 @@ if __name__ == "__main__":
     # 結果出力
     root = DispatchTree(ui_data, define_dict)
     root.add_prop_dispatcher(MyDispatcher)
-    root.print_uiff()
+    if args.output_file:
+        with open(args.output_file, 'wb') as f:
+            f.write(root.get_uiff())
+    else:
+        root.print_uiff()

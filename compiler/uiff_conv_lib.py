@@ -165,15 +165,22 @@ class DispatchTree(DispatcherBase):
     type_dispatchers = {}
     prop_dispatchers = {}
 
+    # ユーザー定義を優先するため、登録済みであれば上書きしない
     def set_default_dispatchers(self):
         # type_dispatchersの登録
-        self.add_type_dispatcher(SelectDispatcher)  # TYPE_SELECT用のディスパッチャを登録する
+        if SelectDispatcher().get_dispatch_name().upper() not in self.type_dispatchers:
+            self.add_type_dispatcher(SelectDispatcher)  # TYPE_SELECT用のディスパッチャを登録する
 
         # prop_dispatchersの登録
-        self.add_prop_dispatcher(TextDispatcher)  # Text用のディスパッチャを登録する
-        self.add_prop_dispatcher(ScriptDispatcher)  # Script用のディスパッチャを登録する
-        self.add_prop_dispatcher(EventsDispatcher)  # Events用のディスパッチャを登録する
-        self.add_prop_dispatcher(ColorDispatcher)  # Color用のディスパッチャを登録する
+        prop_dispatchers = {
+            TextDispatcher().get_dispatch_name(): TextDispatcher,  # Text用のディスパッチャを登録する
+            ScriptDispatcher().get_dispatch_name(): ScriptDispatcher,  # Script用のディスパッチャを登録する
+            EventsDispatcher().get_dispatch_name(): EventsDispatcher,  # Events用のディスパッチャを登録する
+            ColorDispatcher().get_dispatch_name(): ColorDispatcher  # Color用のディスパッチャを登録する
+        }
+        for prop_name, dispatcher in prop_dispatchers.items():
+            if prop_name.upper() not in self.prop_dispatchers:
+                self.add_prop_dispatcher(dispatcher)
 
     def add_type_dispatcher(self, dispatcher_class:DispatcherBase):
         DispatchTree.type_dispatchers[dispatcher_class().get_dispatch_name().upper()] = dispatcher_class
@@ -181,12 +188,10 @@ class DispatchTree(DispatcherBase):
     def add_prop_dispatcher(self, dispatcher_class:DispatcherBase):
         DispatchTree.prop_dispatchers[dispatcher_class().get_dispatch_name().upper()] = dispatcher_class
 
-
     # コンバーター本体
     # ---------------------------------------------------------------
     def __init__(self, json_data: dict|list, define_data: dict):
         self.define_data = define_data
-
         self.props = {}
         self.children = []
 
@@ -429,8 +434,9 @@ class SelectDispatcher(DispatcherBase):
         items = self.ignore_get(props, "SelItems", [])
         sel_data_buf.extend(len(items).to_bytes(2, byteorder='little'))  # item_numを追加する
         for item in items:
-            text_code = TextDispatcher().list_to_bytes(item)
-            sel_data_buf.extend(self.create_chunk_str(UIFF_TEXT, text_code))  # itemを追加する
+            # itemの処理はTextのDispatcherに任せる
+            dispatcher = DispatchTree.prop_dispatchers["Text".upper()]
+            sel_data_buf.extend(dispatcher().get_chunk(entry_info, {"Text": item}, define_data))
         self.ignore_pop(props, "SelItems")  # SelItemsをpropsから削除する
 
         # IFF_SELECT Chunkの作成
@@ -448,23 +454,7 @@ class TextDispatcher(DispatcherBase):
 
     def get_chunk(self, entry_info: EntryInfo, props: dict, define_data: dict):
         text = self.ignore_get(props, self.get_dispatch_name(), "")
-        if isinstance(text, str):
-            return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
-        elif isinstance(text, list):
-            return self.create_chunk_str(UIFF_TEXT, self.list_to_bytes(text))
-
-    def list_to_bytes(self, text_list):
-        # listの中身をbytesに変換する
-        buf = bytearray()
-        for item in text_list:
-            if isinstance(item, str):
-                buf.extend(item.encode('ascii', 'replace'))
-            elif isinstance(item, int) and 0 <= item <= 0xFF:
-                buf.extend(item.to_bytes(1, byteorder='little'))
-            else:
-                raise ValueError(f"Error: Unknown item type in text list: {item}")
-        return buf
-
+        return self.create_chunk_str(UIFF_TEXT, text.encode('ascii', 'replace'))
 
 class ScriptDispatcher(DispatcherBase):
     def get_dispatch_name(self):
