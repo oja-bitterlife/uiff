@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import pickup_text_ja
 
 TARGET_PROPS = ['Text', 'SelItems']
 
