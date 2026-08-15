@@ -75,6 +75,7 @@ def convert_json_text(json_dict, kanji_list):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert JSON TEXT property to TEXT index list.')
     parser.add_argument('input_json', type=str, help='Path to the input JSON file')
+    parser.add_argument('-o', '--output_json', type=str, help='Path to the output JSON file (optional)')
     parser.add_argument('-k', '--kanji_list', required=True, type=str, help='Path to the Kanji list file (required)')
     args = parser.parse_args()
 
@@ -90,4 +91,8 @@ if __name__ == "__main__":
     converted_json = convert_json_text(json_data, kanji_list)
 
     # 変換後のJSONを出力
-    print(json.dumps(converted_json, ensure_ascii=False, indent=4))
+    if args.output_json:
+        with open(args.output_json, 'w', encoding='utf-8') as outfile:
+            json.dump(converted_json, outfile, ensure_ascii=False, indent=2)
+    else:
+        print(json.dumps(converted_json, ensure_ascii=False, indent=2))
