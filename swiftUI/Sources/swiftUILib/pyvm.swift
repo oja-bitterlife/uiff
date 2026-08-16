@@ -1,7 +1,7 @@
-// swiftVMLib.swift
+// PYVMLib.swift
 
 // MARK: VM本体
-public struct swiftVMLib {
+public struct PYVMLib {
     var pc = 0  // プログラムカウンタ（命令ポインタ）
     #if !EMBEDDED
         public var traceEnabled = false  // デバッグビルド時のみOPコードの実行をトレースするかどうか
