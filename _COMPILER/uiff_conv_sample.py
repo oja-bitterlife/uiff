@@ -5,6 +5,8 @@ sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
 
 from _COMPILER.uiff_conv_lib import DispatchTree, DispatcherBase
 
+# プロパティを変換するDispatcherの例
+# dispatch_nameを既存のProp名と同じにすることで、標準の処理を上書きすることができる
 class MyDispatcher(DispatcherBase):
     kanji_list = []
 
@@ -50,7 +52,10 @@ if __name__ == "__main__":
 
     # 結果出力
     root = DispatchTree(ui_data, define_dict)
+
+    # ここで独自のDispatcherを追加する
     root.add_prop_dispatcher(MyDispatcher)
+
     if args.output_file:
         with open(args.output_file, 'wb') as f:
             f.write(root.get_uiff())
