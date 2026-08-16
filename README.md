@@ -263,3 +263,7 @@ in child chunk:
     SelItems: ['SLOW', 'NORMAL', 'FAST']
     Events: [21, 22]
 ```
+
+## 組み込み向け
+
+`コンパイルオプション`-D EMBEDDED` を付けて組み込んでください
