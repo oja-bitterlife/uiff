@@ -1,5 +1,3 @@
-import swiftVMLib
-
 public struct swiftUILib {
     // MARK: - VM本体のプロパティ
     public var uiffWork: WorkMemory
