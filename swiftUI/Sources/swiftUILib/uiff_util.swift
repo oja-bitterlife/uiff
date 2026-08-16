@@ -352,7 +352,7 @@ public struct UiffScript: UiffChunk {
 
     public func run(lib: swiftUILib) -> Int {
         // VMの初期化
-        var vm = PYVMLib(
+        var vm = PYVM(
             codeAddress: payload.getAddress(),
             stackAddress: lib.vmStack.getAddress(), stackByteSize: lib.vmStack.getByteSize(),
             memAddress: lib.vmWork.getAddress(), memByteSize: lib.vmWork.getByteSize()
