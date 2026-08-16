@@ -10,7 +10,7 @@ public struct swiftUILib {
     // ************************************************************************
     public init(
         uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
-        workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス
+        workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス。UIFFデータのコピーが置かれる
         workMemorySize: Int,  // 作業用メモリの総サイズ
         entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
