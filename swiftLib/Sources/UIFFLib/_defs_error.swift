@@ -29,3 +29,22 @@ public let UIFF_ERR_CHUNK_INVALID = UIFF_ERR_BASE | 0x3
 // UIFFのEvent関連のエラーコード
 private let UIFF_ERR_EVENT_BASE = UIFF_ERR_BASE | 0x0100_0000
 public let UIFF_ERR_EVENT_INVALID = UIFF_ERR_EVENT_BASE | 0x1
+
+// Fatal
+// ****************************************************************************
+nonisolated(unsafe) private var UIFF_FatalFunc: @convention(c) (Int) -> Void = { code in
+    #if !EMBEDDED
+        let hexCode = String(format: "0x%08X", code)
+        fatalError("Fatal error occurred with code: \(hexCode)")
+    #endif
+    while true {}
+}
+
+public func SetFatalFunc(fatalFunc: @convention(c) (Int) -> Void) {
+    UIFF_FatalFunc = fatalFunc
+}
+
+public func OnFatal(code: Int) -> Never {
+    UIFF_FatalFunc(code)
+    while true {}  // 無限ループで停止する
+}

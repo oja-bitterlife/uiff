@@ -11,8 +11,8 @@ public let FATAL_DMA_SIZE = 8
 public let FATAL_UIFF_ENTRY_UNKNOWN = 9
 public let FATAL_BG_INDEX = 10
 
-public func initFatalFunc() {
-    WorkMemory.setFatalFunc(fatalFunc: { code in
+public func InitFatalFunc() {
+    SetFatalFunc(fatalFunc: { code in
         DISPCNT_MEM.writeUInt16(value: 0x0000)  // 画面OFF
 
         // 0x0300_0000は後で上書きするので一旦塗りつぶし色で

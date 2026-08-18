@@ -15,7 +15,7 @@ public struct PYVM {
             if let ptr = UnsafePointer<UInt8>(bitPattern: address) {
                 self.ptr = ptr
             } else {
-                WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+                OnFatal(code: MEM_ERR_INVALID_ADDRESS)
             }
         }
 
@@ -27,7 +27,7 @@ public struct PYVM {
                         "Code index out of range: \(index)/\(ADDR_ERROR)")
                 #endif
                 if index < 0 || index >= ADDR_ERROR {
-                    WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+                    OnFatal(code: MEM_ERR_OUTOFBOUNDS)
                 }
                 return ptr[index]
             }
@@ -71,7 +71,7 @@ public struct PYVM {
             assert(self.pc < ADDR_ERROR, "Program counter out of bounds: \(self.pc)")
         #endif
         if self.pc < 0 || self.pc >= ADDR_ERROR {
-            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+            OnFatal(code: MEM_ERR_OUTOFBOUNDS)
         }
 
         #if !EMBEDDED
@@ -126,7 +126,7 @@ public struct PYVM {
             #if !EMBEDDED
                 assert(false, "Unknown opcode(pc:\(self.pc-1)): \(op)")
             #endif
-            WorkMemory.onFatal(code: VM_ERR_UNKNOWN_OP)  // 不正な命令コードの場合はエラー終了
+            OnFatal(code: VM_ERR_UNKNOWN_OP)  // 不正な命令コードの場合はエラー終了
         }
 
         return true  // 継続
@@ -260,7 +260,7 @@ public struct PYVM {
             #if !EMBEDDED
                 assert(false, "Unknown comparison subcode: \(subcode)")
             #endif
-            WorkMemory.onFatal(code: VM_ERR_UNKNOWN_CMP)  // 不正な比較サブコードの場合はエラー終了
+            OnFatal(code: VM_ERR_UNKNOWN_CMP)  // 不正な比較サブコードの場合はエラー終了
         }
 
         // 比較結果をスタックにプッシュ
@@ -341,7 +341,7 @@ public struct PYVM {
             assert(right != 0, "Division by zero")
         #endif
         if right == 0 {
-            WorkMemory.onFatal(code: VM_ERR_ZERO_DIV)  // ゼロ除算の場合はエラー終了
+            OnFatal(code: VM_ERR_ZERO_DIV)  // ゼロ除算の場合はエラー終了
         }
         let result = left / right
         self.stack.push(value: result)
@@ -357,7 +357,7 @@ public struct PYVM {
             assert(right != 0, "Modulo by zero")
         #endif
         if right == 0 {
-            WorkMemory.onFatal(code: VM_ERR_ZERO_DIV)  // ゼロ除算の場合はエラー終了
+            OnFatal(code: VM_ERR_ZERO_DIV)  // ゼロ除算の場合はエラー終了
         }
         let result = left % right
         self.stack.push(value: result)

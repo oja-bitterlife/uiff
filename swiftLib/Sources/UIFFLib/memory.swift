@@ -32,12 +32,12 @@ extension MemoryInt16 {
     // メモリダイレクトアクセス用
     public func getDirectPtr<T>(as type: T.Type, offset: Int = 0) -> UnsafeMutablePointer<T> {
         if offset >= self.getByteSize() {
-            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+            OnFatal(code: MEM_ERR_OUTOFBOUNDS)
         }
         if let bytePtr = UnsafeMutablePointer<T>(bitPattern: self.getAddress() + UInt(offset)) {
             return bytePtr
         } else {
-            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
         }
     }
 }
@@ -50,14 +50,14 @@ public struct WorkMemory: MemoryInt16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+            OnFatal(code: MEM_ERR_EVEN)
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
             self.capacity = byteSize / 2  // UInt16のサイズで割る
         } else {
-            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
         }
     }
 
@@ -66,13 +66,13 @@ public struct WorkMemory: MemoryInt16 {
     public subscript(index: Int) -> UInt16 {
         get {
             if index < 0 || index >= self.capacity {
-                WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+                OnFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
             return ptr[index]
         }
         set {
             if index < 0 || index >= self.capacity {
-                WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+                OnFatal(code: MEM_ERR_OUTOFBOUNDS)
             }
             ptr[index] = newValue
         }
@@ -113,23 +113,6 @@ public struct WorkMemory: MemoryInt16 {
             }
         }
     }
-
-    // Fatal時にメモリに書き込んで終了する
-    // --------------------------------------------------------------
-    static private nonisolated(unsafe) var fatalFunc: @convention(c) (Int) -> Void = { code in
-        #if !EMBEDDED
-            let hexCode = String(format: "0x%08X", code)
-            fatalError("Fatal error occurred with code: \(hexCode)")
-        #endif
-        while true {}
-    }
-    static public func setFatalFunc(fatalFunc: @convention(c) (Int) -> Void) {
-        self.fatalFunc = fatalFunc
-    }
-    static public func onFatal(code: Int) -> Never {
-        fatalFunc(code)
-        while true {}  // 無限ループで停止する
-    }
 }
 
 // キュー・スタック
@@ -167,13 +150,13 @@ public struct StackMemory: QueueStack16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+            OnFatal(code: MEM_ERR_EVEN)
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
-            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
         }
         self.capacity = byteSize / 2  // UInt16のサイズで割る
         self.sp = 0
@@ -188,7 +171,7 @@ public struct StackMemory: QueueStack16 {
     }
     public func peek(index: Int = 0) -> UInt16 {
         if index < 0 || index >= self.sp {
-            WorkMemory.onFatal(code: MEM_ERR_OUTOFBOUNDS)
+            OnFatal(code: MEM_ERR_OUTOFBOUNDS)
         }
         return self.ptr[self.sp - 1 - index]
     }
@@ -199,7 +182,7 @@ public struct StackMemory: QueueStack16 {
     // スタック操作
     public mutating func push(value: UInt16) {
         if self.sp >= self.capacity {
-            WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
+            OnFatal(code: MEM_ERR_OVERFLOW)
         }
 
         self.ptr[self.sp] = value
@@ -212,7 +195,7 @@ public struct StackMemory: QueueStack16 {
     }
     public mutating func pop() -> UInt16 {
         if self.sp <= 0 {
-            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+            OnFatal(code: MEM_ERR_UNDERFLOW)
         }
 
         self.sp -= 1
@@ -234,13 +217,13 @@ public struct RingQueueMemory: QueueStack16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            WorkMemory.onFatal(code: MEM_ERR_EVEN)
+            OnFatal(code: MEM_ERR_EVEN)
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
-            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)
+            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
         }
         self.capacity = byteSize / 2  // UInt16のサイズで割る
         self.qBgn = 0
@@ -256,7 +239,7 @@ public struct RingQueueMemory: QueueStack16 {
     }
     public func peek(index: Int = 0) -> UInt16 {
         if self.qBgn == self.qEnd {
-            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+            OnFatal(code: MEM_ERR_UNDERFLOW)
         }
 
         return self.ptr[(self.qBgn + index) % self.capacity]
@@ -269,7 +252,7 @@ public struct RingQueueMemory: QueueStack16 {
     // キュー操作
     public mutating func enqueue(value: UInt16) {
         if (self.qEnd + 1) % self.capacity == self.qBgn {
-            WorkMemory.onFatal(code: MEM_ERR_OVERFLOW)
+            OnFatal(code: MEM_ERR_OVERFLOW)
         }
 
         self.ptr[self.qEnd] = value
@@ -283,7 +266,7 @@ public struct RingQueueMemory: QueueStack16 {
     }
     public mutating func dequeue() -> UInt16 {
         if self.qBgn == self.qEnd {
-            WorkMemory.onFatal(code: MEM_ERR_UNDERFLOW)
+            OnFatal(code: MEM_ERR_UNDERFLOW)
         }
 
         let value = self.ptr[self.qBgn]

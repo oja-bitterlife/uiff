@@ -26,7 +26,7 @@ public struct swiftUILib {
                 | UInt(UInt8(ascii: "F")) << 16
                 | UInt(UInt8(ascii: "F")) << 24)
         if !magic_ok {
-            WorkMemory.onFatal(code: UIFF_ERR_FILE_INVALID)
+            OnFatal(code: UIFF_ERR_FILE_INVALID)
         }
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
@@ -40,7 +40,7 @@ public struct swiftUILib {
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
         if uiff_size > remainingByteSize {
-            WorkMemory.onFatal(code: UIFF_ERR_FILE_TOO_LARGE)
+            OnFatal(code: UIFF_ERR_FILE_TOO_LARGE)
         }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
@@ -49,7 +49,7 @@ public struct swiftUILib {
                 mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
             }
         } else {
-            WorkMemory.onFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
+            OnFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
         }
 
         // uiff作業用メモリ
@@ -78,7 +78,7 @@ public struct swiftUILib {
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
         if eventID == 0 {
-            WorkMemory.onFatal(code: UIFF_ERR_EVENT_INVALID)  // 無効なイベントID
+            OnFatal(code: UIFF_ERR_EVENT_INVALID)  // 無効なイベントID
         }
 
         self.eventQueue.enqueue(value: eventID)
@@ -119,7 +119,7 @@ public struct swiftUILib {
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
 
         if offsetBytes > 0xffff {
-            WorkMemory.onFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
+            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
 
         self.entryList.enqueue(value: UInt16(offsetBytes))

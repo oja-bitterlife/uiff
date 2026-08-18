@@ -30,7 +30,7 @@ private struct TileBase {
     static private func checkMagic(romOffset: Int) {
         let magic = ROM.readUInt(offset: romOffset)  // タイルデータの存在確認
         if magic != 0x454c_4954 {  // "ITLE"
-            WorkMemory.onFatal(code: FATAL_TILE_MAGIC)
+            OnFatal(code: FATAL_TILE_MAGIC)
         }
     }
 
@@ -44,7 +44,7 @@ private struct TileBase {
 
         // indexの範囲チェック
         if paletteNum * palBlock >= 256 {
-            WorkMemory.onFatal(code: FATAL_PAL_INDEX)
+            OnFatal(code: FATAL_PAL_INDEX)
         }
 
         // DMAでパレットデータを転送する
@@ -68,7 +68,7 @@ private struct TileBase {
 
         // タイルデータがVRAMの範囲を超えているか
         if tileVramOffset + tileSize > 0x18000 {  // VRAMのサイズは96KBまで
-            WorkMemory.onFatal(code: FATAL_TILE_VRAM_OUTOFBOUNDS)
+            OnFatal(code: FATAL_TILE_VRAM_OUTOFBOUNDS)
         }
 
         // 何も考えずタイルデータを全部転送すればいいはず
