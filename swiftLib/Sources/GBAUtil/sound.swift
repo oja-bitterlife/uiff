@@ -43,7 +43,10 @@ public func mmUnloadEffect(sfxID: UInt16)
 // BGM
 // --------------------------------------------------------
 @_silgen_name("mmStart")
-public func mmStart(modID: UInt16, mode: MM_PLAY_MODE)
+private func _mmStart(modID: UInt16, mode: UInt32)
+public func mmStart(modID: UInt16, mode: MM_PLAY_MODE) {
+    _mmStart(modID: modID, mode: mode.rawValue)
+}
 
 @_silgen_name("mmStop")
 public func mmStop()
