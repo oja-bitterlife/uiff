@@ -10,18 +10,18 @@ public let VRAM_ADDR: UInt = 0x0600_0000
 public let OAM_ADDR: UInt = 0x0700_0000
 
 // concurrency safe global variable
-nonisolated(unsafe) public let IWRAM = WorkMemory(
-    address: UInt(WORK_ADDR), byteSize: 32 * 1024)  // WORK: 32KB
-nonisolated(unsafe) public let VRAM = WorkMemory(
-    address: UInt(VRAM_ADDR), byteSize: 96 * 1024)  // VRAM: 96KB
-nonisolated(unsafe) public let OAM = WorkMemory(
-    address: UInt(OAM_ADDR), byteSize: 1 * 1024)  // OAM: 1KB
-nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
-    address: UInt(PALETTE_ADDR), byteSize: 1 * 1024)  // PALETTE: 1KB
-nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
-    address: UInt(DISPCNT_ADDR), byteSize: 0x10000)  // DISP_CNT: 64KB
 nonisolated(unsafe) public let ROM = WorkMemory(
     address: UInt(ROM_ADDR), byteSize: 8 * 1024 * 1024)  // ROM: 8MB
+nonisolated(unsafe) public let IWRAM = WorkMemory(
+    address: UInt(WORK_ADDR), byteSize: 32 * 1024)  // Internal WORK: 32KB
+nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
+    address: UInt(DISPCNT_ADDR), byteSize: 0x10000)  // DISP_CNT: 64KB
+nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
+    address: UInt(PALETTE_ADDR), byteSize: 1 * 1024)  // PALETTE: 1KB(BG:0x000-0x1ff, OBJ:0x200-0x3ff)
+nonisolated(unsafe) public let VRAM = WorkMemory(
+    address: UInt(VRAM_ADDR), byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
+nonisolated(unsafe) public let OAM = WorkMemory(
+    address: UInt(OAM_ADDR), byteSize: 1 * 1024)  // OAM: 1KB
 
 // DMA
 // ****************************************************************************
