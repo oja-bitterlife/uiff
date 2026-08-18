@@ -28,7 +28,7 @@ public enum COLOR_MODE: Int {
 private struct TileBase {
     // .tileファイルのmagicをチェックする
     static private func checkMagic(romOffset: Int) {
-        let magic = romMemory.readUInt(offset: romOffset)  // タイルデータの存在確認
+        let magic = ROM.readUInt(offset: romOffset)  // タイルデータの存在確認
         if magic != 0x454c_4954 {  // "ITLE"
             WorkMemory.onFatal(code: FATAL_TILE_MAGIC)
         }
@@ -38,8 +38,8 @@ private struct TileBase {
     static public func loadPaletteData(romOffset: Int, palBlock: Int, isObj: Bool) {
         checkMagic(romOffset: romOffset)
 
-        let paletteDataOffset = Int(romMemory.readUInt(offset: romOffset + 12)) + romOffset
-        let tileDataOffset = Int(romMemory.readUInt(offset: romOffset + 16)) + romOffset
+        let paletteDataOffset = Int(ROM.readUInt(offset: romOffset + 12)) + romOffset
+        let tileDataOffset = Int(ROM.readUInt(offset: romOffset + 16)) + romOffset
         let paletteNum = (tileDataOffset - paletteDataOffset) / 2  // パレット数
 
         // indexの範囲チェック
@@ -63,8 +63,8 @@ private struct TileBase {
         let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset  // タイルデータのオフセットは16KB単位で切り替え可能
 
         // タイルデータ設定。デカイのでDMAで転送するのが良いかも
-        let tileDataOffset = Int(romMemory.readUInt(offset: romTileOffset + 16)) + romTileOffset
-        let tileSize = Int(romMemory.readUInt(offset: tileDataOffset))
+        let tileDataOffset = Int(ROM.readUInt(offset: romTileOffset + 16)) + romTileOffset
+        let tileSize = Int(ROM.readUInt(offset: tileDataOffset))
 
         // タイルデータがVRAMの範囲を超えているか
         if tileVramOffset + tileSize > 0x18000 {  // VRAMのサイズは96KBまで
@@ -112,7 +112,7 @@ public struct BGTile {
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
-        let mapPtr = vramMemory.getDirectPtr(as: UInt16.self, offset: mapOffset)
+        let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
@@ -126,7 +126,7 @@ public struct BGTile {
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
-        let mapPtr = vramMemory.getDirectPtr(as: UInt16.self, offset: mapOffset)
+        let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
@@ -164,7 +164,7 @@ public struct BGTile {
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
-        let mapPtr = vramMemory.getDirectPtr(as: UInt16.self, offset: mapOffset)
+        let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
@@ -204,7 +204,7 @@ public struct BGTile {
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
-        let mapPtr = vramMemory.getDirectPtr(as: UInt16.self, offset: mapOffset)
+        let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
@@ -327,9 +327,9 @@ public struct OBJTile {
         let oam2 = OAM2_TN | OAM2_PR | OAM2_PL
         let oam3 = OAM3_RS
 
-        oamMemory.writeUInt16(offset: objNo * 8, value: oam0)
-        oamMemory.writeUInt16(offset: objNo * 8 + 2, value: oam1)
-        oamMemory.writeUInt16(offset: objNo * 8 + 4, value: oam2)
-        oamMemory.writeUInt16(offset: objNo * 8 + 6, value: oam3)
+        OAM.writeUInt16(offset: objNo * 8, value: oam0)
+        OAM.writeUInt16(offset: objNo * 8 + 2, value: oam1)
+        OAM.writeUInt16(offset: objNo * 8 + 4, value: oam2)
+        OAM.writeUInt16(offset: objNo * 8 + 6, value: oam3)
     }
 }

@@ -10,17 +10,17 @@ public let VRAM_ADDR: UInt = 0x0600_0000
 public let OAM_ADDR: UInt = 0x0700_0000
 
 // concurrency safe global variable
-nonisolated(unsafe) public let workMemory = WorkMemory(
+nonisolated(unsafe) public let IWRAM = WorkMemory(
     address: UInt(WORK_ADDR), byteSize: 32 * 1024)  // WORK: 32KB
-nonisolated(unsafe) public let vramMemory = WorkMemory(
+nonisolated(unsafe) public let VRAM = WorkMemory(
     address: UInt(VRAM_ADDR), byteSize: 96 * 1024)  // VRAM: 96KB
-nonisolated(unsafe) public let oamMemory = WorkMemory(
+nonisolated(unsafe) public let OAM = WorkMemory(
     address: UInt(OAM_ADDR), byteSize: 1 * 1024)  // OAM: 1KB
-nonisolated(unsafe) public let paletteMemory = WorkMemory(
+nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
     address: UInt(PALETTE_ADDR), byteSize: 1 * 1024)  // PALETTE: 1KB
-nonisolated(unsafe) public let dispCntMemory = WorkMemory(
+nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
     address: UInt(DISPCNT_ADDR), byteSize: 0x10000)  // DISP_CNT: 64KB
-nonisolated(unsafe) public let romMemory = WorkMemory(
+nonisolated(unsafe) public let ROM = WorkMemory(
     address: UInt(ROM_ADDR), byteSize: 8 * 1024 * 1024)  // ROM: 8MB
 
 // DMA
@@ -48,9 +48,9 @@ public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = 
         return
     }
 
-    dispCntMemory.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
-    dispCntMemory.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
-    dispCntMemory.writeUInt16(offset: 0xdc, value: UInt16(size / 4))  // 転送量(32bit単位)
+    DISPCNT_MEM.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
+    DISPCNT_MEM.writeUInt16(offset: 0xdc, value: UInt16(size / 4))  // 転送量(32bit単位)
 
     // 転送開始
     let DMA_ENABLE: UInt16 = 1 << 15
@@ -58,10 +58,10 @@ public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = 
     let DMA_SRC_CTRL: UInt16 = (fixedSrc ? 2 : 0) << 7
     let DMA_DST_CTRL: UInt16 = 0 << 5
     let dmaFlag = DMA_ENABLE | DMA_SZ | DMA_SRC_CTRL | DMA_DST_CTRL
-    dispCntMemory.writeUInt16(offset: 0xde, value: dmaFlag)
+    DISPCNT_MEM.writeUInt16(offset: 0xde, value: dmaFlag)
 
     // 転送待ち
-    while (dispCntMemory.readUInt16(offset: 0xde) & 0x8000) != 0 {}
+    while (DISPCNT_MEM.readUInt16(offset: 0xde) & 0x8000) != 0 {}
 }
 
 // 16bitDMA
@@ -85,9 +85,9 @@ public func DMA3_UInt16(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool 
         return
     }
 
-    dispCntMemory.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
-    dispCntMemory.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
-    dispCntMemory.writeUInt16(offset: 0xdc, value: UInt16(size / 2))  // 転送量(16bit単位)
+    DISPCNT_MEM.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
+    DISPCNT_MEM.writeUInt16(offset: 0xdc, value: UInt16(size / 2))  // 転送量(16bit単位)
 
     // 転送開始
     let DMA_ENABLE: UInt16 = 1 << 15
@@ -95,8 +95,8 @@ public func DMA3_UInt16(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool 
     let DMA_SRC_CTRL: UInt16 = (fixedSrc ? 2 : 0) << 7
     let DMA_DST_CTRL: UInt16 = 0 << 5
     let dmaFlag = DMA_ENABLE | DMA_SZ | DMA_SRC_CTRL | DMA_DST_CTRL
-    dispCntMemory.writeUInt16(offset: 0xde, value: dmaFlag)
+    DISPCNT_MEM.writeUInt16(offset: 0xde, value: dmaFlag)
 
     // 転送待ち
-    while (dispCntMemory.readUInt16(offset: 0xde) & 0x8000) != 0 {}
+    while (DISPCNT_MEM.readUInt16(offset: 0xde) & 0x8000) != 0 {}
 }

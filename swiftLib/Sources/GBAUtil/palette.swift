@@ -14,13 +14,13 @@ public func makeBGPalette16(palBlock: Int, no: Int, color: UInt16) {
     if no < 0 || no >= 16 {
         WorkMemory.onFatal(code: FATAL_MEM_ALIGN)
     }
-    paletteMemory.writeUInt16(offset: palBlock * 32 + no * 2, value: color)
+    PALETTE_MEM.writeUInt16(offset: palBlock * 32 + no * 2, value: color)
 }
 public func makeBGPalette256(no: Int, color: UInt16) {
     if no < 0 || no >= 256 {
         WorkMemory.onFatal(code: FATAL_MEM_ALIGN)
     }
-    paletteMemory.writeUInt16(offset: no * 2, value: color)
+    PALETTE_MEM.writeUInt16(offset: no * 2, value: color)
 }
 
 public func makeObjPalette16(palBlock: Int, no: Int, color: UInt16) {
@@ -30,12 +30,12 @@ public func makeObjPalette16(palBlock: Int, no: Int, color: UInt16) {
     if no < 0 || no >= 16 {
         WorkMemory.onFatal(code: FATAL_MEM_ALIGN)
     }
-    paletteMemory.writeUInt16(offset: 512 + palBlock * 32 + no * 2, value: color)
+    PALETTE_MEM.writeUInt16(offset: 512 + palBlock * 32 + no * 2, value: color)
 }
 
 public func makeObjPalette256(no: Int, color: UInt16) {
     if no < 0 || no >= 256 {
         WorkMemory.onFatal(code: FATAL_MEM_ALIGN)
     }
-    paletteMemory.writeUInt16(offset: 512 + no * 2, value: color)
+    PALETTE_MEM.writeUInt16(offset: 512 + no * 2, value: color)
 }

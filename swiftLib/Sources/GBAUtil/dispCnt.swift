@@ -2,7 +2,7 @@ import UIFFLib
 
 public struct DISPCNT {
     static public func disableAll() {
-        dispCntMemory.writeUInt16(value: 0)
+        DISPCNT_MEM.writeUInt16(value: 0)
     }
 
     static public func setEnable(
@@ -15,7 +15,7 @@ public struct DISPCNT {
         let BG3E: UInt16 = UInt16(BG3 ? 1 : 0) << 11  // BG3 Enable
         let OBJE: UInt16 = UInt16(OBJ ? 1 : 0) << 12  // OBJ Enable
         let WINE: UInt16 = UInt16(WIN ? 1 : 0) << 15  // WIN Enable
-        dispCntMemory.writeUInt16(value: BG0E | BG1E | BG2E | BG3E | OBJE | WINE)
+        DISPCNT_MEM.writeUInt16(value: BG0E | BG1E | BG2E | BG3E | OBJE | WINE)
     }
 
     static public func setBG(
@@ -32,6 +32,6 @@ public struct DISPCNT {
         let MT = UInt16(0) << 13  // BGエリア外 0:透明
         let SZ = UInt16(11) << 14  // BGサイズ 11: 512x512
 
-        dispCntMemory.writeUInt16(offset: 8 + bgIndex * 2, value: PR | TB | MZ | CM | MB | MT | SZ)
+        DISPCNT_MEM.writeUInt16(offset: 8 + bgIndex * 2, value: PR | TB | MZ | CM | MB | MT | SZ)
     }
 }
