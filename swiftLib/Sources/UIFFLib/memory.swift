@@ -105,6 +105,15 @@ public struct WorkMemory: MemoryInt16 {
         return dwordPtr.pointee
     }
 
+    // 固定文字列を書き込む
+    public func writeStr(text: StaticString, offset: Int = 0) {
+        text.withUTF8Buffer { buffer in
+            for i in 0..<buffer.count {
+                self.writeUInt8(offset: offset + i, value: buffer[i])
+            }
+        }
+    }
+
     // Fatal時にメモリに書き込んで終了する
     // --------------------------------------------------------------
     static private nonisolated(unsafe) var fatalFunc: @convention(c) (Int) -> Void = { code in
