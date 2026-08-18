@@ -4,29 +4,29 @@
 import PackageDescription
 
 let package = Package(
-    name: "swiftUI",
+    name: "swiftLib",
     products: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
-        .executable(
-            name: "swiftUI",
-            targets: ["swiftUI"],
+        .library(
+            name: "UIFFLib",
+            targets: ["UIFFLib"]
         ),
         .library(
-            name: "swiftUILib",
-            targets: ["swiftUILib"]
+            name: "GBAUtil",
+            targets: ["GBAUtil"]
         ),
     ],
     targets: [
         // VMのコアロジック（no-allocateを意識した固定配列ベースの処理など）
         .target(
-            name: "swiftUILib",
+            name: "UIFFLib",
+            dependencies: []
         ),
-        // 仮実行用バイナリ（GbaVmCoreをインポートしてテスト実行する）
-        .executableTarget(
-            name: "swiftUI",
+        .target(
+            name: "GBAUtil",
             dependencies: [
-                "swiftUILib"
+                "UIFFLib"
             ]
         ),
     ],
