@@ -1,4 +1,4 @@
-// Sound関係(libmm)
+// Sound関係(libmm:maxmon)
 // ****************************************************************************
 public enum MM_PLAY_MODE: UInt32 {
     case LOOP = 0

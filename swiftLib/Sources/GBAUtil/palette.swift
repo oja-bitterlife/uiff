@@ -7,35 +7,26 @@ public func RGB555(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> UInt16 {
     return (b << 10) | (g << 5) | r
 }
 
-public func makeBGPalette16(palBlock: Int, no: Int, color: UInt16) {
+public func MakePalette16(palBlock: Int, no: Int, color: UInt16, isObj: Bool = false) {
     if palBlock < 0 || palBlock >= 16 {
         FatalMsg("Palette block index out of bounds")  // FATAL_MEM_ALIGN
     }
     if no < 0 || no >= 16 {
         FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
     }
-    PALETTE_MEM.writeUInt16(offset: palBlock * 32 + no * 2, value: color)
+    if isObj {
+        PALETTE_MEM.writeUInt16(offset: 512 + palBlock * 32 + no * 2, value: color)
+    } else {
+        PALETTE_MEM.writeUInt16(offset: palBlock * 32 + no * 2, value: color)
+    }
 }
-public func makeBGPalette256(no: Int, color: UInt16) {
+public func MakePalette256(no: Int, color: UInt16, isObj: Bool = false) {
     if no < 0 || no >= 256 {
         FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
     }
-    PALETTE_MEM.writeUInt16(offset: no * 2, value: color)
-}
-
-public func makeObjPalette16(palBlock: Int, no: Int, color: UInt16) {
-    if palBlock < 0 || palBlock >= 16 {
-        FatalMsg("Palette block index out of bounds")  // FATAL_MEM_ALIGN
+    if isObj {
+        PALETTE_MEM.writeUInt16(offset: 512 + no * 2, value: color)
+    } else {
+        PALETTE_MEM.writeUInt16(offset: no * 2, value: color)
     }
-    if no < 0 || no >= 16 {
-        FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
-    }
-    PALETTE_MEM.writeUInt16(offset: 512 + palBlock * 32 + no * 2, value: color)
-}
-
-public func makeObjPalette256(no: Int, color: UInt16) {
-    if no < 0 || no >= 256 {
-        FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
-    }
-    PALETTE_MEM.writeUInt16(offset: 512 + no * 2, value: color)
 }
