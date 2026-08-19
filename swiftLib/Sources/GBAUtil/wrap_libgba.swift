@@ -115,7 +115,7 @@ public enum LOG_LEVEL: UInt16 {
 }
 
 // mGBAのログに1メッセージを飛ばす関数（ゼロアロケーション）
-public func LogPrintPtr(level: LOG_LEVEL, ptr: UnsafePointer<CChar>) {
+public func LogPrintPtr(lv: LOG_LEVEL, ptr: UnsafePointer<CChar>) {
     // デバッグ機能が有効か最初に一度フラグを立てておく（0xC0DEを書き込むお作法）
     REG_DEBUG_ENABLE.pointee = 0xC0DE
 
@@ -128,17 +128,21 @@ public func LogPrintPtr(level: LOG_LEVEL, ptr: UnsafePointer<CChar>) {
         if byte == 0 {
             break
         }
+        if idx >= 255 {
+            // 255文字以上は切り捨てる
+            break
+        }
     }
 
     // mGBAに「書き込み完了（ログレベル ＋ フラグ 0x100）」を通知する
     // ※ libgbaの mgba.c の実装仕様に準拠
-    REG_DEBUG_FLAGS.pointee = level.rawValue | 0x100
+    REG_DEBUG_FLAGS.pointee = lv.rawValue | 0x100
 }
 
-public func LogPrint(level: LOG_LEVEL, msg: StaticString) {
+public func LogPrint(lv: LOG_LEVEL, msg: StaticString) {
     msg.withUTF8Buffer { buffer in
         buffer.withMemoryRebound(to: CChar.self) { ptr in
-            LogPrintPtr(level: level, ptr: ptr.baseAddress!)
+            LogPrintPtr(lv: lv, ptr: ptr.baseAddress!)
         }
     }
 }
