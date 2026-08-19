@@ -98,7 +98,7 @@ public func keyUp(key: KEY) -> Bool {
 
 // ロギング
 // ****************************************************************************
-nonisolated(unsafe) private let REG_DEBUG_STRING = UnsafeMutablePointer<CChar>(
+nonisolated(unsafe) private let REG_DEBUG_STRING = UnsafeMutablePointer<UInt8>(
     bitPattern: 0x4FFF600)!
 nonisolated(unsafe) private let REG_DEBUG_FLAGS = UnsafeMutablePointer<UInt16>(
     bitPattern: 0x4FFF700)!
@@ -115,17 +115,18 @@ public enum LOG_LEVEL: UInt16 {
 }
 
 // mGBAのログに1メッセージを飛ばす関数（ゼロアロケーション）
-public func LogPrintPtr(lv: LOG_LEVEL, ptr: UnsafePointer<CChar>) {
+public func LogPrintPtr(lv: LOG_LEVEL, msgAddr: UInt) {
     // デバッグ機能が有効か最初に一度フラグを立てておく（0xC0DEを書き込むお作法）
     REG_DEBUG_ENABLE.pointee = 0xC0DE
+
+    let ptr = UnsafePointer<UInt8>(bitPattern: msgAddr)!
 
     // レジスタのバッファに文字をコピー
     var idx = 0
     while true {
-        let byte = ptr.advanced(by: idx).pointee
-        REG_DEBUG_STRING[idx] = byte
+        REG_DEBUG_STRING[idx] = ptr[idx]
         idx += 1
-        if byte == 0 {
+        if ptr[idx] == 0 {
             break
         }
         if idx >= 255 {
@@ -135,14 +136,13 @@ public func LogPrintPtr(lv: LOG_LEVEL, ptr: UnsafePointer<CChar>) {
     }
 
     // mGBAに「書き込み完了（ログレベル ＋ フラグ 0x100）」を通知する
-    // ※ libgbaの mgba.c の実装仕様に準拠
     REG_DEBUG_FLAGS.pointee = lv.rawValue | 0x100
 }
 
 public func LogPrint(lv: LOG_LEVEL, msg: StaticString) {
     msg.withUTF8Buffer { buffer in
-        buffer.withMemoryRebound(to: CChar.self) { ptr in
-            LogPrintPtr(lv: lv, ptr: ptr.baseAddress!)
+        buffer.withMemoryRebound(to: UInt8.self) { ptr in
+            LogPrintPtr(lv: lv, msgAddr: UInt(bitPattern: ptr.baseAddress!))
         }
     }
 }
