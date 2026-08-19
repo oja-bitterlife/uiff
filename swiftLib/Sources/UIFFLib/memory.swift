@@ -32,12 +32,12 @@ extension MemoryInt16 {
     // メモリダイレクトアクセス用
     public func getDirectPtr<T>(as type: T.Type, offset: Int = 0) -> UnsafeMutablePointer<T> {
         if offset >= self.getByteSize() {
-            OnFatal(code: MEM_ERR_OUTOFBOUNDS)
+            FatalMsg("Invalid memory offset")
         }
         if let bytePtr = UnsafeMutablePointer<T>(bitPattern: self.getAddress() + UInt(offset)) {
             return bytePtr
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
     }
 }
@@ -50,14 +50,14 @@ public struct WorkMemory: MemoryInt16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            OnFatal(code: MEM_ERR_EVEN)
+            FatalMsg("Byte size must be even")
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
             self.capacity = byteSize / 2  // UInt16のサイズで割る
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
     }
 
@@ -66,13 +66,13 @@ public struct WorkMemory: MemoryInt16 {
     public subscript(index: Int) -> UInt16 {
         get {
             if index < 0 || index >= self.capacity {
-                OnFatal(code: MEM_ERR_OUTOFBOUNDS)
+                FatalMsg("Index out of bounds")
             }
             return ptr[index]
         }
         set {
             if index < 0 || index >= self.capacity {
-                OnFatal(code: MEM_ERR_OUTOFBOUNDS)
+                FatalMsg("Index out of bounds")
             }
             ptr[index] = newValue
         }
@@ -150,13 +150,13 @@ public struct StackMemory: QueueStack16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            OnFatal(code: MEM_ERR_EVEN)
+            FatalMsg("Byte size must be even")
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
         self.capacity = byteSize / 2  // UInt16のサイズで割る
         self.sp = 0
@@ -171,7 +171,7 @@ public struct StackMemory: QueueStack16 {
     }
     public func peek(index: Int = 0) -> UInt16 {
         if index < 0 || index >= self.sp {
-            OnFatal(code: MEM_ERR_OUTOFBOUNDS)
+            FatalMsg("Index out of bounds")
         }
         return self.ptr[self.sp - 1 - index]
     }
@@ -182,7 +182,7 @@ public struct StackMemory: QueueStack16 {
     // スタック操作
     public mutating func push(value: UInt16) {
         if self.sp >= self.capacity {
-            OnFatal(code: MEM_ERR_OVERFLOW)
+            FatalMsg("Stack overflow")
         }
 
         self.ptr[self.sp] = value
@@ -195,7 +195,7 @@ public struct StackMemory: QueueStack16 {
     }
     public mutating func pop() -> UInt16 {
         if self.sp <= 0 {
-            OnFatal(code: MEM_ERR_UNDERFLOW)
+            FatalMsg("Stack underflow")
         }
 
         self.sp -= 1
@@ -217,13 +217,13 @@ public struct RingQueueMemory: QueueStack16 {
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
-            OnFatal(code: MEM_ERR_EVEN)
+            FatalMsg("Byte size must be even")
         }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
         self.capacity = byteSize / 2  // UInt16のサイズで割る
         self.qBgn = 0
@@ -239,7 +239,7 @@ public struct RingQueueMemory: QueueStack16 {
     }
     public func peek(index: Int = 0) -> UInt16 {
         if self.qBgn == self.qEnd {
-            OnFatal(code: MEM_ERR_UNDERFLOW)
+            FatalMsg("Queue underflow")
         }
 
         return self.ptr[(self.qBgn + index) % self.capacity]
@@ -252,7 +252,7 @@ public struct RingQueueMemory: QueueStack16 {
     // キュー操作
     public mutating func enqueue(value: UInt16) {
         if (self.qEnd + 1) % self.capacity == self.qBgn {
-            OnFatal(code: MEM_ERR_OVERFLOW)
+            FatalMsg("Queue overflow")
         }
 
         self.ptr[self.qEnd] = value
@@ -266,7 +266,7 @@ public struct RingQueueMemory: QueueStack16 {
     }
     public mutating func dequeue() -> UInt16 {
         if self.qBgn == self.qEnd {
-            OnFatal(code: MEM_ERR_UNDERFLOW)
+            FatalMsg("Queue underflow")
         }
 
         let value = self.ptr[self.qBgn]

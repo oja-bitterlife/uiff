@@ -15,7 +15,7 @@ public struct UiffFileHeader {
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
     }
 
@@ -35,7 +35,7 @@ public struct UiffFileHeader {
         {
             return ptr
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)
+            FatalMsg("Invalid memory address")
         }
     }
 }
@@ -51,7 +51,7 @@ public protocol UiffChunk {
 extension UiffChunk {
     public static func assign(workMemory: WorkMemory, offsetBytes: Int) -> WorkMemory {
         if offsetBytes % 2 != 0 {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)  // 偶数バイト境界でない
+            FatalMsg("Invalid memory address")  // 偶数バイト境界でない
         }
 
         return WorkMemory(
@@ -83,7 +83,7 @@ public struct UiffEntry: UiffChunk {
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         // 子チャンクのタイプを確認
         if workMemory[offsetBytes / 2] != UIFF_ENTRY {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEntry must start with UIFF_ENTRY
+            FatalMsg("UiffEntry must start with UIFF_ENTRY")  // UiffEntry must start with UIFF_ENTRY
         }
 
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -232,7 +232,7 @@ public struct UiffSelect: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_SELECT_INFO {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffSelect must start with UIFF_SELECT
+            FatalMsg("UiffSelect must start with UIFF_SELECT")  // UiffSelect must start with UIFF_SELECT
         }
 
         self.chunkMemory = UiffSelect.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -264,7 +264,7 @@ public struct UiffChild: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_CHILD {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffChild
+            FatalMsg("UiffChild must start with UIFF_CHILD")  // UiffChild
         }
 
         self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -286,7 +286,7 @@ public struct UiffEvents: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_EVENTS {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffEvents
+            FatalMsg("UiffEvents must start with UIFF_EVENTS")  // UiffEvents
         }
 
         self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -315,7 +315,7 @@ public struct UiffListen: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_LISTEN {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffListen
+            FatalMsg("UiffListen must start with UIFF_LISTEN")  // UiffListen
         }
 
         self.chunkMemory = UiffListen.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -344,13 +344,13 @@ public struct UiffScript: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_SCRIPT {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffScript
+            FatalMsg("UiffScript must start with UIFF_SCRIPT")  // UiffScript
         }
 
         self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
     }
 
-    public func run(lib: swiftUILib) -> Int {
+    public func run(lib: UIFFLib) -> Int {
         // VMの初期化
         var vm = PYVM(
             codeAddress: payload.getAddress(),
@@ -371,7 +371,7 @@ public struct UiffColors: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_COLORS {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffColors
+            FatalMsg("UiffColors must start with UIFF_COLORS")  // UiffColors
         }
 
         self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
@@ -393,7 +393,7 @@ public struct UiffText: UiffChunk {
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         if workMemory[0] != UIFF_TEXT {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UiffText
+            FatalMsg("UiffText must start with UIFF_TEXT")  // UiffText
         }
 
         self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)

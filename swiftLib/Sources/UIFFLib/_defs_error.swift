@@ -32,19 +32,33 @@ public let UIFF_ERR_EVENT_INVALID = UIFF_ERR_EVENT_BASE | 0x1
 
 // Fatal
 // ****************************************************************************
-nonisolated(unsafe) private var UIFF_FatalFunc: @convention(c) (Int) -> Void = { code in
-    #if !EMBEDDED
-        let hexCode = String(format: "0x%08X", code)
-        fatalError("Fatal error occurred with code: \(hexCode)")
-    #endif
-    while true {}
-}
+// 1. コールバックの型を 「整数(Int)」 から 「文字列ポインタ(UnsafePointer<CChar>)」 にする
+nonisolated(unsafe) private var UIFF_FatalFunc:
+    @convention(c) (UnsafePointer<CChar>, UnsafePointer<CChar>, Int) -> Void = {
+        msgPtr, filePtr, line in
+        #if !EMBEDDED
+            let message = String(cString: msgPtr)
+            let file = String(cString: filePtr)
+            fatalError("Fatal error occurred: \(message) in file: \(file) at line: \(line)")
+        #endif
+        while true {}
+    }
 
-public func SetFatalFunc(fatalFunc: @convention(c) (Int) -> Void) {
+public func SetFatalFunc(
+    fatalFunc: @convention(c) (UnsafePointer<CChar>, UnsafePointer<CChar>, Int) -> Void
+) {
     UIFF_FatalFunc = fatalFunc
 }
 
-public func OnFatal(code: Int) -> Never {
-    UIFF_FatalFunc(code)
-    while true {}  // 無限ループで停止する
+// 番号管理が面倒になったので、文字列管理に
+public func FatalMsg(_ msg: StaticString, file: StaticString = #file, line: Int = #line) -> Never {
+    let msgPtr = msg.withUTF8Buffer {
+        UnsafeRawPointer($0.baseAddress!).assumingMemoryBound(to: CChar.self)
+    }
+    let filePtr = file.withUTF8Buffer {
+        UnsafeRawPointer($0.baseAddress!).assumingMemoryBound(to: CChar.self)
+    }
+
+    UIFF_FatalFunc(msgPtr, filePtr, line)
+    while true {}
 }

@@ -1,4 +1,4 @@
-public struct swiftUILib {
+public struct UIFFLib {
     // MARK: - VM本体のプロパティ
     public var uiffWork: WorkMemory
     public var entryList: RingQueueMemory
@@ -26,7 +26,7 @@ public struct swiftUILib {
                 | UInt(UInt8(ascii: "F")) << 16
                 | UInt(UInt8(ascii: "F")) << 24)
         if !magic_ok {
-            OnFatal(code: UIFF_ERR_FILE_INVALID)
+            FatalMsg("Invalid UIFF file")  // UIFF_ERR_FILE_INVALID
         }
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
@@ -40,7 +40,7 @@ public struct swiftUILib {
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
         if uiff_size > remainingByteSize {
-            OnFatal(code: UIFF_ERR_FILE_TOO_LARGE)
+            FatalMsg("UIFF file too large")  // UIFF_ERR_FILE_TOO_LARGE
         }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
@@ -49,7 +49,7 @@ public struct swiftUILib {
                 mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
             }
         } else {
-            OnFatal(code: MEM_ERR_INVALID_ADDRESS)  // 作業用メモリのポインタ作成失敗
+            FatalMsg("Invalid memory address")  // 作業用メモリのポインタ作成失敗
         }
 
         // uiff作業用メモリ
@@ -78,14 +78,14 @@ public struct swiftUILib {
     // MARK: - 発生したUIイベントの登録
     public mutating func notify(eventID: UInt16) {
         if eventID == 0 {
-            OnFatal(code: UIFF_ERR_EVENT_INVALID)  // 無効なイベントID
+            FatalMsg("Invalid event ID")  // UIFF_ERR_EVENT_INVALID
         }
 
         self.eventQueue.enqueue(value: eventID)
     }
 
     // MARK: - UIFFの逐次処理
-    public mutating func run(onEntry: (swiftUILib, UiffEntry, UiffPropIter) -> Void) {
+    public mutating func run(onEntry: (UIFFLib, UiffEntry, UiffPropIter) -> Void) {
         // ルートから子をトラバースして、entryQueueに積み込む
         traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffWork))
 
@@ -119,7 +119,7 @@ public struct swiftUILib {
         let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
 
         if offsetBytes > 0xffff {
-            OnFatal(code: UIFF_ERR_CHUNK_INVALID)  // UIFF子チャンクのオフセットがUInt16の最大値を超える
+            FatalMsg("UIFF child chunk offset exceeds UInt16 max value")  // UIFF子チャンクのオフセットがUInt16の最大値を超える
         }
 
         self.entryList.enqueue(value: UInt16(offsetBytes))
