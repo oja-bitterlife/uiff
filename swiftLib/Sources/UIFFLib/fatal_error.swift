@@ -33,7 +33,7 @@ public func FatalMsg(_ msg: StaticString, file: StaticString = #file, line: Int 
 
 // 便利関数
 // ****************************************************************************
-public func FatalStrlen(_ str: UnsafePointer<CChar>, maxLen: Int = 256) -> Int {
+public func strlen(_ str: UnsafePointer<CChar>, maxLen: Int = 256) -> Int {
     var len = 0
     while str.advanced(by: len).pointee != 0 && len < maxLen {
         len += 1

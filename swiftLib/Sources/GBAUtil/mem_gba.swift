@@ -32,10 +32,10 @@ private let DMA_THRESHOLD: UInt16 = 64
 public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = false) {
     // 転送量が4バイト境界に揃っていない場合はエラー
     if (srcAddr | dstAddr | UInt(size)) & 3 != 0 {
-        FatalMsg("Memory alignment error")  // FATAL_MEM_ALIGN
+        LogFatal("Memory alignment error")  // FATAL_MEM_ALIGN
     }
     if size < 0 || size > 0xFFFF * 4 {
-        FatalMsg("DMA size error")  // FATAL_DMA_SIZE
+        LogFatal("DMA size error")  // FATAL_DMA_SIZE
     }
 
     // 転送量が64バイト未満の場合は手動転送
@@ -69,10 +69,10 @@ public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = 
 public func DMA3_UInt16(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = false) {
     // 転送量が2バイト境界に揃っていない場合はエラー
     if (srcAddr | dstAddr | UInt(size)) & 1 != 0 {
-        FatalMsg("Memory alignment error")  // FATAL_MEM_ALIGN
+        LogFatal("Memory alignment error")  // FATAL_MEM_ALIGN
     }
     if size < 0 || size > 0xFFFF * 2 {
-        FatalMsg("DMA size error")  // FATAL_DMA_SIZE
+        LogFatal("DMA size error")  // FATAL_DMA_SIZE
     }
 
     // 転送量が64バイト未満の場合は手動転送
