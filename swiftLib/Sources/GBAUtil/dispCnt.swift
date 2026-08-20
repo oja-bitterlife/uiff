@@ -24,6 +24,13 @@ public struct DISPCNT {
         prio: Int = 0, mosaic: Bool = false,
         colorMode: COLOR_MODE = .COLOR_16
     ) {
+        if tileBlock < 0 || tileBlock > 3 {
+            FatalMsg("tileBlock must be in the range of 0 to 3.")
+        }
+        if mapBlock < 0 || mapBlock > 31 {
+            FatalMsg("mapBlock must be in the range of 0 to 31.")
+        }
+
         let PR = UInt16(prio) << 0
         let TB = UInt16(tileBlock) << 2
         let MZ = UInt16(mosaic ? 1 : 0) << 6
