@@ -84,9 +84,11 @@ private struct TileBase {
 // ********************************************************************
 public struct BGTile {
     let mapBlock: Int
+    let offsetGridY: Int
 
-    public init(mapBlock: Int) {
+    public init(mapBlock: Int, offsetGridY: Int = 0) {
         self.mapBlock = mapBlock
+        self.offsetGridY = offsetGridY
     }
 
     static public func loadPaletteData(romOffset: Int, palBlock: Int) {
@@ -117,6 +119,8 @@ public struct BGTile {
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
         let PB = UInt16(palBlk) << 12  // Palette Bank
+
+        let tileNo = tileNo + offsetGridY * 32  // タイル番号のオフセットを加算
 
         mapPtr[gridY * 32 + gridX] = PB | VR | HR | UInt16(tileNo)
     }
