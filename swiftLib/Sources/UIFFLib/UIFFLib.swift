@@ -1,3 +1,9 @@
+// OnEntryの呼び出しを、UIFFLibIFプロトコルに準拠した型のメソッドとして呼び出すように変更
+public protocol UIFFHandler {
+    mutating func OnEntry(lib: UIFFLib, entry: UiffEntry, propIter: UiffPropIter)
+}
+
+// UI用のUIFFデータを扱う
 public struct UIFFLib {
     // MARK: - VM本体のプロパティ
     public var uiffWork: WorkMemory
@@ -85,7 +91,7 @@ public struct UIFFLib {
     }
 
     // MARK: - UIFFの逐次処理
-    public mutating func run(onEntry: (UIFFLib, UiffEntry, UiffPropIter) -> Void) {
+    public mutating func run<T: UIFFHandler>(handler: T) {
         // ルートから子をトラバースして、entryQueueに積み込む
         traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffWork))
 
@@ -107,7 +113,8 @@ public struct UIFFLib {
             propIter.addBlackList(eventID: UIFF_LISTEN)
 
             // エントリーの処理を呼び出す
-            onEntry(self, entry, propIter)
+            var handler = handler  // mutatingを呼び出すためにvarにする
+            handler.OnEntry(lib: self, entry: entry, propIter: propIter)
         }
     }
 
