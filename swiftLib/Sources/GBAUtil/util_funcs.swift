@@ -53,9 +53,6 @@ public func LogPrint(logLv: LOG_LEVEL, msg: StaticString) {
 
 // ロギングのラッパー。普段使い用
 // ------------------------------------------------------------------
-public func LogFatalPtr(_ msgAddr: UInt) {
-    LogPrintPtr(logLv: .FATAL, msgAddr: msgAddr)
-}
 public func LogErrorPtr(_ msgAddr: UInt) {
     LogPrintPtr(logLv: .ERROR, msgAddr: msgAddr)
 }
@@ -69,9 +66,6 @@ public func LogWarnPtr(_ msgAddr: UInt) {
     LogPrintPtr(logLv: .WARN, msgAddr: msgAddr)
 }
 
-public func LogFatal(_ msg: StaticString) {
-    LogPrint(logLv: .FATAL, msg: msg)
-}
 public func LogError(_ msg: StaticString) {
     LogPrint(logLv: .ERROR, msg: msg)
 }
@@ -96,10 +90,10 @@ public func RGB555(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> UInt16 {
 
 public func MakePalette16(palBlock: Int, no: Int, color: UInt16, isObj: Bool = false) {
     if palBlock < 0 || palBlock >= 16 {
-        LogFatal("Palette block index out of bounds")  // FATAL_MEM_ALIGN
+        FatalMsg("Palette block index out of bounds")  // FATAL_MEM_ALIGN
     }
     if no < 0 || no >= 16 {
-        LogFatal("Palette index out of bounds")  // FATAL_MEM_ALIGN
+        FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
     }
     if isObj {
         PALETTE_MEM.writeUInt16(offset: 512 + palBlock * 32 + no * 2, value: color)
@@ -109,7 +103,7 @@ public func MakePalette16(palBlock: Int, no: Int, color: UInt16, isObj: Bool = f
 }
 public func MakePalette256(no: Int, color: UInt16, isObj: Bool = false) {
     if no < 0 || no >= 256 {
-        LogFatal("Palette index out of bounds")  // FATAL_MEM_ALIGN
+        FatalMsg("Palette index out of bounds")  // FATAL_MEM_ALIGN
     }
     if isObj {
         PALETTE_MEM.writeUInt16(offset: 512 + no * 2, value: color)
