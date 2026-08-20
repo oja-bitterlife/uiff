@@ -1,5 +1,6 @@
 import os, sys
 sys.path.append(os.getcwd())  # カレントディレクトリをパスに追加
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))  # ファイルの相対パスを追加
 
 from _COMPILER.uiff_types import *
 from _COMPILER.pyvm_bc import BytecodeCompiler
