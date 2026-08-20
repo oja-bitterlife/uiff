@@ -82,9 +82,9 @@ public func LogWarn(_ msg: StaticString) {
 // パレット操作
 // ****************************************************************************
 public func RGB555(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> UInt16 {
-    let r = UInt16(red & 0x1F)
-    let g = UInt16(green & 0x1F)
-    let b = UInt16(blue & 0x1F)
+    let r = UInt16(red >> 3)
+    let g = UInt16(green >> 3)
+    let b = UInt16(blue >> 3)
     return (b << 10) | (g << 5) | r
 }
 
