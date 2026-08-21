@@ -116,10 +116,10 @@ public func MakePalette256(no: Int, color: UInt16, isObj: Bool = false) {
 // ****************************************************************************
 public enum FADE_TYPE {
     case NONE
-    case FADE_BLACK_IN
-    case FADE_BLACK_OUT
-    case FADE_WHITE_IN
-    case FADE_WHITE_OUT
+    case BLACK_IN
+    case BLACK_OUT
+    case WHITE_IN
+    case WHITE_OUT
 }
 
 public struct FADE {
@@ -143,22 +143,22 @@ public struct FADE {
     // フェード更新
     public mutating func updateFade() {
         switch fadeType {
-        case .FADE_BLACK_IN, .FADE_WHITE_IN:
+        case .BLACK_IN, .WHITE_IN:
             fadeAlpha = min(fadeAlpha + UInt16(fadeInSpeed), 255)
-        case .FADE_BLACK_OUT, .FADE_WHITE_OUT:
+        case .BLACK_OUT, .WHITE_OUT:
             fadeAlpha = min(fadeAlpha + UInt16(fadeOutSpeed), 255)
         default:
             return
         }
 
         switch fadeType {
-        case .FADE_BLACK_IN:
+        case .BLACK_IN:
             FADE.fadeBlack(alpha: 255 - Int(fadeAlpha))
-        case .FADE_BLACK_OUT:
+        case .BLACK_OUT:
             FADE.fadeBlack(alpha: Int(fadeAlpha))
-        case .FADE_WHITE_IN:
+        case .WHITE_IN:
             FADE.fadeWhite(alpha: 255 - Int(fadeAlpha))
-        case .FADE_WHITE_OUT:
+        case .WHITE_OUT:
             FADE.fadeWhite(alpha: Int(fadeAlpha))
         default:
             break
