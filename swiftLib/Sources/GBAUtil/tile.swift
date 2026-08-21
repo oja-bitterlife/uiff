@@ -104,11 +104,23 @@ public struct BGTile {
         )
     }
 
-    public func getTileNo(tileX: Int, tileY: Int) -> Int {
+    // タイル番号をタイルサイズ単位で取得する
+    // --------------------------------------------------------------
+    public func getTileNo8(_ tileX: Int, _ tileY: Int) -> Int {
         return tileY * 32 + tileX
+    }
+    public func getTileNo16(_ tileX: Int, _ tileY: Int) -> Int {
+        return tileY * 32 * 2 + tileX * 2
+    }
+    public func getTileNo24(_ tileX: Int, _ tileY: Int) -> Int {
+        return tileY * 32 * 3 + tileX * 3
+    }
+    public func getTileNo32(_ tileX: Int, _ tileY: Int) -> Int {
+        return tileY * 32 * 4 + tileX * 4
     }
 
     // マップ描画
+    // --------------------------------------------------------------
     public func drawMap8(
         tileNo: Int, gridX: Int, gridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
