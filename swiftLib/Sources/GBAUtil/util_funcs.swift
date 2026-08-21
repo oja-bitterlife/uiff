@@ -123,15 +123,15 @@ public enum FADE_TYPE {
 }
 
 public struct FADE {
-    public var fadeType: FADE_TYPE = .NONE
-    public var fadeAlpha: Int = 0
-    public var fadeInSpeed: Int = 0
-    public var fadeOutSpeed: Int = 0
+    private var fadeType: FADE_TYPE = .NONE
+    private var fadeAlpha: UInt16 = 0
+    private var fadeInSpeed: UInt8 = 0
+    private var fadeOutSpeed: UInt8 = 0
 
     // フェードの初期化。スピードを決めておく
     public init(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 4) {
-        self.fadeInSpeed = fadeInSpeed
-        self.fadeOutSpeed = fadeOutSpeed
+        self.fadeInSpeed = UInt8(max(0, min(255, fadeInSpeed)))
+        self.fadeOutSpeed = UInt8(max(0, min(255, fadeOutSpeed)))
     }
 
     // フェード開始
@@ -144,22 +144,22 @@ public struct FADE {
     public mutating func updateFade() {
         switch fadeType {
         case .FADE_BLACK_IN, .FADE_WHITE_IN:
-            fadeAlpha = max(0, min(fadeAlpha + fadeInSpeed, 255))
+            fadeAlpha = min(fadeAlpha + UInt16(fadeInSpeed), 255)
         case .FADE_BLACK_OUT, .FADE_WHITE_OUT:
-            fadeAlpha = max(0, min(fadeAlpha + fadeOutSpeed, 255))
+            fadeAlpha = min(fadeAlpha + UInt16(fadeOutSpeed), 255)
         default:
             return
         }
 
         switch fadeType {
         case .FADE_BLACK_IN:
-            FADE.fadeBlack(alpha: 255 - fadeAlpha)
+            FADE.fadeBlack(alpha: 255 - Int(fadeAlpha))
         case .FADE_BLACK_OUT:
-            FADE.fadeBlack(alpha: fadeAlpha)
+            FADE.fadeBlack(alpha: Int(fadeAlpha))
         case .FADE_WHITE_IN:
-            FADE.fadeWhite(alpha: 255 - fadeAlpha)
+            FADE.fadeWhite(alpha: 255 - Int(fadeAlpha))
         case .FADE_WHITE_OUT:
-            FADE.fadeWhite(alpha: fadeAlpha)
+            FADE.fadeWhite(alpha: Int(fadeAlpha))
         default:
             break
         }
