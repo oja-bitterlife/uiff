@@ -37,6 +37,9 @@ public func strlen(_ str: UnsafePointer<CChar>, maxLen: Int = 256) -> Int {
     var len = 0
     while str.advanced(by: len).pointee != 0 && len < maxLen {
         len += 1
+        if len >= maxLen {
+            FatalMsg("String length exceeded maximum limit")  // FATAL_STRING_TOO_LONG
+        }
     }
     return len
 }
@@ -92,5 +95,18 @@ public struct I2AIter {
             tempDivisor /= 10
         }
         return count
+    }
+
+    // 残りをメモリに書き出す
+    public func WriteBuf(address: UInt) {
+        let buf = WorkMemory(address: address, byteSize: 256)
+
+        var iter = self
+        var offset = 0
+        while let digit = iter.next() {
+            buf.writeUInt8(offset: offset, value: digit)
+            offset += 1
+        }
+        buf.writeUInt8(offset: offset, value: 0)  // NULL終端
     }
 }
