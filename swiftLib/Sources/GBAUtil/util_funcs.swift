@@ -114,18 +114,83 @@ public func MakePalette256(no: Int, color: UInt16, isObj: Bool = false) {
 
 // フェード
 // ****************************************************************************
-public func FadeBlack(alpha: Int) {
-    let DST = 0x3f  // all
-    let BM = 0x3 << 6  // fade black
-    WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
-    WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-        offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+public enum FADE_TYPE {
+    case NONE
+    case FADE_BLACK_IN
+    case FADE_BLACK_OUT
+    case FADE_WHITE_IN
+    case FADE_WHITE_OUT
 }
 
-public func FadeWhite(alpha: Int) {
-    let DST = 0x3f  // all
-    let BM = 0x2 << 6  // fade white
-    WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
-    WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-        offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+public struct FADE {
+    public var fadeType: FADE_TYPE = .NONE
+    public var fadeAlpha: Int = 0
+    public var fadeInSpeed: Int = 0
+    public var fadeOutSpeed: Int = 0
+
+    // フェードの初期化。スピードを決めておく
+    public init(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 4) {
+        self.fadeInSpeed = fadeInSpeed
+        self.fadeOutSpeed = fadeOutSpeed
+    }
+
+    // フェード開始
+    public mutating func startFade(_ fadeType: FADE_TYPE) {
+        self.fadeType = fadeType
+        self.fadeAlpha = 0
+    }
+
+    // フェード更新
+    public mutating func updateFade() {
+        switch fadeType {
+        case .FADE_BLACK_IN, .FADE_WHITE_IN:
+            fadeAlpha = max(0, min(fadeAlpha + fadeInSpeed, 255))
+        case .FADE_BLACK_OUT, .FADE_WHITE_OUT:
+            fadeAlpha = max(0, min(fadeAlpha + fadeOutSpeed, 255))
+        default:
+            return
+        }
+
+        switch fadeType {
+        case .FADE_BLACK_IN:
+            FADE.fadeBlack(alpha: 255 - fadeAlpha)
+        case .FADE_BLACK_OUT:
+            FADE.fadeBlack(alpha: fadeAlpha)
+        case .FADE_WHITE_IN:
+            FADE.fadeWhite(alpha: 255 - fadeAlpha)
+        case .FADE_WHITE_OUT:
+            FADE.fadeWhite(alpha: fadeAlpha)
+        default:
+            break
+        }
+
+        // fade終了
+        if fadeAlpha >= 255 {
+            fadeType = .NONE
+        }
+    }
+
+    // フェード中かどうか
+    public func isFading() -> Bool {
+        return fadeType != .NONE
+    }
+
+    // フェードの実装（GBAレジスタ操作）
+    // --------------------------------------------------------------
+    static public func fadeBlack(alpha: Int) {
+        let DST = 0x3f  // all
+        let BM = 0x3 << 6  // fade black
+        WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
+        WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
+            offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+    }
+
+    static public func fadeWhite(alpha: Int) {
+        let DST = 0x3f  // all
+        let BM = 0x2 << 6  // fade white
+        WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
+        WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
+            offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+    }
+
 }
