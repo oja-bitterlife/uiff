@@ -54,9 +54,8 @@ extension UiffChunk {
             FatalMsg("Invalid memory address")  // 偶数バイト境界でない
         }
 
-        return WorkMemory(
-            address: workMemory.getAddress() + UInt(offsetBytes),
-            byteSize: workMemory.getByteSize() - offsetBytes)
+        return workMemory.take(
+            offset: offsetBytes, byteSize: workMemory.getByteSize() - offsetBytes)
     }
     public var chunkType: UInt16 {
         return chunkMemory[0]
@@ -67,9 +66,7 @@ extension UiffChunk {
     }
 
     public var payload: WorkMemory {
-        return WorkMemory(
-            address: chunkMemory.getAddress() + 4,  // ヘッダの4バイトを加える
-            byteSize: Int(chunkMemory[1]))
+        return chunkMemory.take(offset: 4, byteSize: Int(chunkMemory[1]))  // ヘッダの4バイトを飛ばす
     }
 }
 
@@ -143,8 +140,8 @@ public struct UiffEntry: UiffChunk {
 
     // Entryはヘッダの後をpayloadとして扱う
     public var payload: WorkMemory {
-        return WorkMemory(
-            address: chunkMemory.getAddress() + UInt(UiffEntry.HEADER_BYTESIZE),
+        return chunkMemory.take(
+            offset: UiffEntry.HEADER_BYTESIZE,
             byteSize: chunkSize - UiffEntry.HEADER_BYTESIZE)
     }
 }
@@ -354,8 +351,8 @@ public struct UiffScript: UiffChunk {
         // VMの初期化
         var vm = PYVM(
             codeAddress: payload.getAddress(),
-            stackAddress: lib.vmStack.getAddress(), stackByteSize: lib.vmStack.getByteSize(),
-            memAddress: lib.vmWork.getAddress(), memByteSize: lib.vmWork.getByteSize()
+            vmMem: lib.vmMem,
+            vmStack: lib.vmStack
         )
 
         // VMの実行

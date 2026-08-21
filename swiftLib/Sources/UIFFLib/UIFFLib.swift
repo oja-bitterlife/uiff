@@ -9,8 +9,8 @@ public struct UIFFLib {
     public var uiffWork: WorkMemory
     public var entryList: RingQueueMemory
     public var eventQueue: RingQueueMemory
-    public var vmWork: WorkMemory
-    public var vmStack: WorkMemory
+    public var vmMem: WorkMemory
+    public var vmStack: StackMemory
 
     // MARK: - 初期化
     // ************************************************************************
@@ -19,7 +19,7 @@ public struct UIFFLib {
         uiffWork: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
-        vmWorkSize: Int,  // VMメモリのサイズ
+        vmMemSize: Int,  // VMメモリのサイズ
         vmStackSize: Int,  // VMのスタックサイズ
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
@@ -35,7 +35,11 @@ public struct UIFFLib {
         }
 
         // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
-        let queueTotalByteSize = entryListSize + eventQueueSize + vmWorkSize + vmStackSize
+        let queueTotalByteSize =
+            entryListSize * 2
+            + eventQueueSize * 2
+            + vmMemSize * 2
+            + vmStackSize * 2
         let remainingByteSize = uiffWork.getByteSize() - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
@@ -51,24 +55,20 @@ public struct UIFFLib {
 
         // uiff作業用メモリ
         // 終端を確定させるためサイズはUIFFファイル終端にする
-        self.uiffWork = WorkMemory(address: uiffWork.getAddress(), byteSize: uiff_size)
+        self.uiffWork = uiffWork.take(offset: 0, byteSize: uiff_size)
 
         // 各用途のメモリを固定位置に配置する
         var addr = uiffWork.getAddress() + UInt(remainingByteSize)
-        self.entryList = RingQueueMemory(
-            address: addr, byteSize: entryListSize)
+        self.entryList = RingQueueMemory(address: addr, byteSize: entryListSize * 2)
 
         addr += UInt(self.entryList.getByteSize())
-        self.eventQueue = RingQueueMemory(
-            address: addr, byteSize: eventQueueSize)
+        self.eventQueue = RingQueueMemory(address: addr, byteSize: eventQueueSize * 2)
 
         addr += UInt(self.eventQueue.getByteSize())
-        self.vmWork = WorkMemory(
-            address: addr, byteSize: vmWorkSize)
+        self.vmMem = WorkMemory(address: addr, byteSize: vmMemSize * 2)
 
-        addr += UInt(self.vmWork.getByteSize())
-        self.vmStack = WorkMemory(
-            address: addr, byteSize: vmStackSize)
+        addr += UInt(self.vmMem.getByteSize())
+        self.vmStack = StackMemory(address: addr, byteSize: vmStackSize * 2)
     }
 
     // ユーザー向け関数

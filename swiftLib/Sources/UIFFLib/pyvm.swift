@@ -52,12 +52,12 @@ public struct PYVM {
     // MARK: - 初期化
     public init(
         codeAddress: UInt,
-        stackAddress: UInt, stackByteSize: Int,
-        memAddress: UInt, memByteSize: Int
+        vmMem: WorkMemory,
+        vmStack: StackMemory,
     ) {
         self.code = CodeMemory(address: codeAddress)
-        self.mem = WorkMemory(address: memAddress, byteSize: memByteSize)
-        self.stack = StackMemory(address: stackAddress, byteSize: stackByteSize)
+        self.mem = vmMem
+        self.stack = vmStack
     }
 
     // VMの実行結果を取得
