@@ -3,7 +3,7 @@ import UIFFLib
 
 // 定数
 public let ROM_ADDR: UInt = 0x0800_0000
-public let IWRAM_ADDR: UInt = 0x0300_0000
+public let EWRAM_ADDR: UInt = 0x0202_0000  // EWRAM後半128KB
 public let DISPCNT_ADDR: UInt = 0x0400_0000
 public let PALETTE_ADDR: UInt = 0x0500_0000
 public let VRAM_ADDR: UInt = 0x0600_0000
@@ -12,8 +12,8 @@ public let OAM_ADDR: UInt = 0x0700_0000
 // concurrency safe global variable
 nonisolated(unsafe) public let ROM = WorkMemory(
     address: UInt(ROM_ADDR), byteSize: 8 * 1024 * 1024)  // ROM: 8MB
-nonisolated(unsafe) public let IWRAM = WorkMemory(
-    address: UInt(IWRAM_ADDR), byteSize: 32 * 1024)  // Internal WORK: 32KB
+nonisolated(unsafe) public let EWRAM = WorkMemory(
+    address: UInt(EWRAM_ADDR), byteSize: 32 * 1024)  // Internal WORK: 32KB
 nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
     address: UInt(DISPCNT_ADDR), byteSize: 0x10000)  // DISP_CNT: 64KB
 nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
