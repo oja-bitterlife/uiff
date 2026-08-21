@@ -3,7 +3,6 @@ import UIFFLib
 
 // 定数
 public let ROM_ADDR: UInt = 0x0800_0000
-public let EWRAM_USER_ADDR: UInt = 0x0200_0000
 public let DISPCNT_ADDR: UInt = 0x0400_0000
 public let PALETTE_ADDR: UInt = 0x0500_0000
 public let VRAM_ADDR: UInt = 0x0600_0000
@@ -23,7 +22,7 @@ nonisolated(unsafe) public let OAM = WorkMemory(
 
 // EWRAMの後半128KBを使用する。被らないよう直接扱わない
 nonisolated(unsafe) public let EWRAM_USER = WorkMemory(
-    address: EWRAM_USER_ADDR + 0x20000, byteSize: 128 * 1024)  // EWRAM後半128KB
+    address: 0x0202_0000, byteSize: 120 * 1024)  // EWRAM後半120KB(最後の8KBは他が使うかもなので空けておく)
 
 // DMA
 // ****************************************************************************

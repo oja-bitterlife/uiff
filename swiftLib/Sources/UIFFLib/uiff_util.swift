@@ -83,7 +83,7 @@ public struct UiffEntry: UiffChunk {
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
         // 子チャンクのタイプを確認
         if workMemory[offsetBytes / 2] != UIFF_ENTRY {
-            FatalMsg("UiffEntry must start with UIFF_ENTRY")  // UiffEntry must start with UIFF_ENTRY
+            FatalMsg("UiffEntry must start with UIFF_ENTRY")
         }
 
         self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)

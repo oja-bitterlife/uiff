@@ -97,8 +97,8 @@ public struct I2AIter {
         return count
     }
 
-    // 残りをメモリに書き出す
-    public func WriteBuf(address: UInt) {
+    // 残りをメモリに書き出し書き込んだバイト数を返す
+    public func WriteBuf(address: UInt) -> Int {
         let buf = WorkMemory(address: address, byteSize: 256)
 
         var iter = self
@@ -108,5 +108,6 @@ public struct I2AIter {
             offset += 1
         }
         buf.writeUInt8(offset: offset, value: 0)  // NULL終端
+        return offset + 1
     }
 }
