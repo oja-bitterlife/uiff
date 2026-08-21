@@ -348,4 +348,13 @@ public struct OBJTile {
         OAM.writeUInt16(offset: objNo * 8 + 4, value: oam2)
         OAM.writeUInt16(offset: objNo * 8 + 6, value: oam3)
     }
+
+    static public func clean() {
+        for i in 0..<128 {
+            OAM.writeUInt16(offset: i * 8, value: 160)  // Y座標を画面外に設定
+            OAM.writeUInt16(offset: i * 8 + 2, value: 0)
+            OAM.writeUInt16(offset: i * 8 + 4, value: 0)
+            OAM.writeUInt16(offset: i * 8 + 6, value: 0)
+        }
+    }
 }
