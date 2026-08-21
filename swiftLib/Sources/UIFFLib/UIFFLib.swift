@@ -16,13 +16,15 @@ public struct UIFFLib {
     // ************************************************************************
     public init(
         uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
-        workMemoryAddress: UInt,  // 作業用メモリの先頭アドレス。UIFFデータのコピーが置かれる
-        workMemorySize: Int,  // 作業用メモリの総サイズ
+        uiffWork: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
         vmWorkSize: Int,  // VMメモリのサイズ
         vmStackSize: Int,  // VMのスタックサイズ
     ) {
+        // uiff作業用メモリ
+        self.uiffWork = uiffWork
+
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
         let magic_ok =
@@ -41,7 +43,7 @@ public struct UIFFLib {
             + ExpandEven(value: eventQueueSize)
             + ExpandEven(value: vmWorkSize)
             + ExpandEven(value: vmStackSize)
-        let remainingByteSize = workMemorySize - queueTotalByteSize
+        let remainingByteSize = uiffWork.getByteSize() - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
         let uiff_size = Int(uiffHeader.size)
@@ -50,7 +52,7 @@ public struct UIFFLib {
         }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: workMemoryAddress) {
+        if let mem_ptr = UnsafeMutablePointer<UInt8>(bitPattern: uiffWork.getAddress()) {
             for i in 0..<uiff_size {
                 mem_ptr[i] = uiffHeader.data[i]  // UIFFのデータ部をコピー
             }
@@ -58,11 +60,8 @@ public struct UIFFLib {
             FatalMsg("Invalid memory address")  // 作業用メモリのポインタ作成失敗
         }
 
-        // uiff作業用メモリ
-        self.uiffWork = WorkMemory(address: workMemoryAddress, byteSize: uiff_size)
-
         // 各用途のメモリを固定位置に配置する
-        var addr = workMemoryAddress + UInt(remainingByteSize)
+        var addr = uiffWork.getAddress() + UInt(remainingByteSize)
         self.entryList = RingQueueMemory(
             address: addr, byteSize: ExpandEven(value: entryListSize))
 

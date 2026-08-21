@@ -61,6 +61,14 @@ public struct WorkMemory: MemoryInt16 {
         }
     }
 
+    // メモリの一部を切り出す
+    public func take(offset: Int, byteSize: Int) -> WorkMemory {
+        if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
+            FatalMsg("Invalid memory range")
+        }
+        return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
+    }
+
     // インデックスアクセス
     // --------------------------------------------------------------
     public subscript(index: Int) -> UInt16 {

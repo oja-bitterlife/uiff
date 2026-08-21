@@ -3,7 +3,7 @@ import UIFFLib
 
 // 定数
 public let ROM_ADDR: UInt = 0x0800_0000
-public let EWRAM_ADDR: UInt = 0x0202_0000  // EWRAM後半128KB
+public let EWRAM_USER_ADDR: UInt = 0x0200_0000
 public let DISPCNT_ADDR: UInt = 0x0400_0000
 public let PALETTE_ADDR: UInt = 0x0500_0000
 public let VRAM_ADDR: UInt = 0x0600_0000
@@ -11,15 +11,19 @@ public let OAM_ADDR: UInt = 0x0700_0000
 
 // concurrency safe global variable
 nonisolated(unsafe) public let ROM = WorkMemory(
-    address: UInt(ROM_ADDR), byteSize: 8 * 1024 * 1024)  // ROM: 8MB
+    address: ROM_ADDR, byteSize: 8 * 1024 * 1024)  // ROM: 8MB
 nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
-    address: UInt(DISPCNT_ADDR), byteSize: 0x10000)  // DISP_CNT: 64KB
+    address: DISPCNT_ADDR, byteSize: 0x10000)  // DISP_CNT: 64KB
 nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
-    address: UInt(PALETTE_ADDR), byteSize: 1 * 1024)  // PALETTE: 1KB(BG:0x000-0x1ff, OBJ:0x200-0x3ff)
+    address: PALETTE_ADDR, byteSize: 1 * 1024)  // PALETTE: 1KB(BG:0x000-0x1ff, OBJ:0x200-0x3ff)
 nonisolated(unsafe) public let VRAM = WorkMemory(
-    address: UInt(VRAM_ADDR), byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
+    address: VRAM_ADDR, byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
 nonisolated(unsafe) public let OAM = WorkMemory(
-    address: UInt(OAM_ADDR), byteSize: 1 * 1024)  // OAM: 1KB
+    address: OAM_ADDR, byteSize: 1 * 1024)  // OAM: 1KB
+
+// EWRAMの後半128KBを使用する。被らないよう直接扱わない
+nonisolated(unsafe) public let EWRAM_USER = WorkMemory(
+    address: EWRAM_USER_ADDR + 0x20000, byteSize: 128 * 1024)  // EWRAM後半128KB
 
 // DMA
 // ****************************************************************************
