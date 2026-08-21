@@ -114,18 +114,18 @@ public func MakePalette256(no: Int, color: UInt16, isObj: Bool = false) {
 
 // フェード
 // ****************************************************************************
-public func FadeBlack(alpha: UInt16) {
+public func FadeBlack(alpha: Int) {
     let DST = 0x3f  // all
     let BM = 0x3 << 6  // fade black
     WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
     WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-        offset: 0, value: max(0, min(16, alpha * 16 / 255)))
+        offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
 }
 
-public func FadeWhite(alpha: UInt16) {
+public func FadeWhite(alpha: Int) {
     let DST = 0x3f  // all
     let BM = 0x2 << 6  // fade white
     WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
     WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-        offset: 0, value: max(0, min(16, alpha * 16 / 255)))
+        offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
 }
