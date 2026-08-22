@@ -59,6 +59,8 @@ private struct TileBase {
     // .tileファイルを読み込み、VRAMにタイルデータを転送する
     static public func loadTileData(romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int) {
         checkMagic(romOffset: romTileOffset)
+        let width = Int(ROM.readUInt16(offset: romTileOffset + 8))  // タイルの幅
+        let height = Int(ROM.readUInt16(offset: romTileOffset + 10))  // タイルの高さ
 
         let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset  // タイルデータのオフセットは16KB単位で切り替え可能
 
@@ -71,12 +73,17 @@ private struct TileBase {
             FatalMsg("Tile VRAM offset out of bounds")  // FATAL_TILE_VRAM_OUTOFBOUNDS
         }
 
-        // 何も考えずタイルデータを全部転送すればいいはず
-        DMA3_UInt(
-            srcAddr: ROM_ADDR + UInt(tileDataOffset + 4),
-            dstAddr: VRAM_ADDR + UInt(tileVramOffset),
-            size: tileSize
-        )
+        // タイルデータアクセス用
+        let tileData = ROM.take(offset: tileDataOffset + 4, byteSize: tileSize)
+
+        // タイルデータの転送
+        for y in 0..<height {
+            DMA3_UInt(
+                srcAddr: tileData.getAddress() + UInt(y * width * 2),
+                dstAddr: VRAM_ADDR + UInt(tileVramOffset + y * 256 * 2),
+                size: width * 2
+            )
+        }
     }
 }
 
