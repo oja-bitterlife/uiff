@@ -317,11 +317,11 @@ public struct OBJTile {
     }
 
     public func draw(
-        gridX: Int, gridY: Int,
+        objGridX: Int, objGridY: Int,
         x: Int, y: Int, palBlk: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
-        let tileNo = getTileNoFromGrid(gridX: gridX, gridY: gridY)
+        let tileNo = getTileNoFromGrid(gridX: objGridX, gridY: objGridY)
 
         let OAM0_Y: UInt16 = UInt16(y)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
