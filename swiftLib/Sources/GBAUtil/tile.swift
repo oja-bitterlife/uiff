@@ -287,32 +287,32 @@ public struct OBJTile {
         )
     }
 
-    public func getTileNoFromGrid(gridX: Int, gridY: Int) -> Int {
+    public func getTileNoFromGrid(objGridX: Int, objGridY: Int) -> Int {
         switch sizeMode {
         case .SIZE_8x8:
-            return gridY * 32 + gridX
+            return objGridY * 32 + objGridX
         case .SIZE_16x16:
-            return gridY * 32 * 2 + gridX * 2
+            return objGridY * 32 * 2 + objGridX * 2
         case .SIZE_32x32:
-            return gridY * 32 * 4 + gridX * 4
+            return objGridY * 32 * 4 + objGridX * 4
         case .SIZE_64x64:
-            return gridY * 32 * 8 + gridX * 8
+            return objGridY * 32 * 8 + objGridX * 8
         case .SIZE_16x8:
-            return gridY * 32 + gridX * 2
+            return objGridY * 32 + objGridX * 2
         case .SIZE_32x8:
-            return gridY * 32 + gridX * 4
+            return objGridY * 32 + objGridX * 4
         case .SIZE_32x16:
-            return gridY * 32 * 2 + gridX * 4
+            return objGridY * 32 * 2 + objGridX * 4
         case .SIZE_64x32:
-            return gridY * 32 * 4 + gridX * 8
+            return objGridY * 32 * 4 + objGridX * 8
         case .SIZE_8x16:
-            return gridY * 32 * 2 + gridX
+            return objGridY * 32 * 2 + objGridX
         case .SIZE_8x32:
-            return gridY * 32 * 4 + gridX
+            return objGridY * 32 * 4 + objGridX
         case .SIZE_16x32:
-            return gridY * 32 * 4 + gridX * 2
+            return objGridY * 32 * 4 + objGridX * 2
         case .SIZE_32x64:
-            return gridY * 32 * 8 + gridX * 4
+            return objGridY * 32 * 8 + objGridX * 4
         }
     }
 
@@ -321,7 +321,7 @@ public struct OBJTile {
         x: Int, y: Int, palBlk: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
-        let tileNo = getTileNoFromGrid(gridX: objGridX, gridY: objGridY)
+        let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
 
         let OAM0_Y: UInt16 = UInt16(y)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
