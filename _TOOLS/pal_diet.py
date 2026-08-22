@@ -17,8 +17,7 @@ args = parser.parse_args()
 img = Image.open(args.image_path)
 # パレット画像でなければエラー
 if img.mode != "P":
-    raise ValueError("The provided image is not a palette image (mode 'P').")
-
+    img = img.convert("P")  # パレット画像に変換
 
 # パレット操作
 # *****************************************************************************
