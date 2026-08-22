@@ -273,8 +273,8 @@ public struct OBJTile {
         self.colorMode = colorMode
     }
 
-    static public func loadPaletteData(romOffset: Int, blockNo: Int) {
-        TileBase.loadPaletteData(romOffset: romOffset, palBlock: blockNo, isObj: true)
+    static public func loadPaletteData(romOffset: Int, palBlock: Int) {
+        TileBase.loadPaletteData(romOffset: romOffset, palBlock: palBlock, isObj: true)
     }
 
     static public func loadTileData(
