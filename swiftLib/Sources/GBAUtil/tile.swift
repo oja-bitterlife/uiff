@@ -124,16 +124,16 @@ public struct BGTile {
 
     // タイル番号をタイルサイズ単位で取得する
     // --------------------------------------------------------------
-    public func getTile8No(_ tileX: Int, _ tileY: Int) -> Int {
+    static public func getTile8No(_ tileX: Int, _ tileY: Int) -> Int {
         return tileY * 32 + tileX
     }
-    public func getTile16No(_ tileX: Int, _ tileY: Int) -> Int {
+    static public func getTile16No(_ tileX: Int, _ tileY: Int) -> Int {
         return tileY * 32 * 2 + tileX * 2
     }
-    public func getTile24No(_ tileX: Int, _ tileY: Int) -> Int {
+    static public func getTile24No(_ tileX: Int, _ tileY: Int) -> Int {
         return tileY * 32 * 3 + tileX * 3
     }
-    public func getTile32No(_ tileX: Int, _ tileY: Int) -> Int {
+    static public func getTile32No(_ tileX: Int, _ tileY: Int) -> Int {
         return tileY * 32 * 4 + tileX * 4
     }
 
