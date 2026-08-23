@@ -24,7 +24,7 @@ from PIL import Image
 argparser = argparse.ArgumentParser(description='Convert palette PNG to tile image.')
 argparser.add_argument('input', help='Input palette PNG file')
 argparser.add_argument('-o', '--output', help='Output tile image file')
-argparser.add_argument('-k', '--key-index', type=int, default=0, help='Palette index to be used as transparent color (default: 0)')
+argparser.add_argument('-k', '--key-index', type=int, help='Palette index to be used as transparent (default: left-top-color)')
 args = argparser.parse_args()
 
 # 画像を読み込み、パレットを取得する。パレットがなければエラー終了する。
@@ -48,17 +48,29 @@ if len(palette_rgb555) > palette_num:
     raise Exception(f"Palette has more colors than expected: {len(palette_rgb555)} > {palette_num}")
 
 # 透過パレットを0番にする
-key_index = args.key_index
 # --------------------------------------------------------------
+# 透過パレットが指定されていない場合、左上の色を透過色として使用する
+if args.key_index is None:
+    key_index = img.getpixel((0, 0))
+else:
+    key_index = args.key_index
+
 # key_indexが0でなければ入れ替える
 if key_index != 0:
     # key_index番の色を0番にする
     palette_rgb555[0], palette_rgb555[key_index] = palette_rgb555[key_index], palette_rgb555[0]
-    pixel_data = [key_index if p == 0 else 0 for p in img.get_flattened_data()]
+    def swap_pal(index, key_index):
+        if index == 0:
+            return key_index
+        elif index == key_index:
+            return 0
+        else:
+            return index
+    pixel_data = [swap_pal(p, key_index) for p in img.get_flattened_data()]
 else:
     pixel_data = img.get_flattened_data()
 
-palette_rgb555[0] = 0  # 透過パレットを0にしておく
+# palette_rgb555[0] = 0  # 透過パレットを0にしておく
 
 # タイルデータの作成
 # *****************************************************************************
