@@ -58,30 +58,41 @@ private struct TileBase {
 
     // .tileファイルを読み込み、VRAMにタイルデータを転送する
     static public func loadTileData(romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int) {
+        // tileファイル解析
         checkMagic(romOffset: romTileOffset)
         let width = Int(ROM.readUInt16(offset: romTileOffset + 8))  // タイルの幅
         let height = Int(ROM.readUInt16(offset: romTileOffset + 10))  // タイルの高さ
+        let blockW = (width + 7) / 8  // タイルの幅(ブロック単位)
+        let blockH = (height + 7) / 8  // タイルの高さ(ブロック単位)
 
-        let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset  // タイルデータのオフセットは16KB単位で切り替え可能
-
-        // タイルデータ設定。デカイのでDMAで転送するのが良いかも
+        // タイルデータ
         let tileDataOffset = Int(ROM.readUInt(offset: romTileOffset + 16)) + romTileOffset
-        let tileSize = Int(ROM.readUInt(offset: tileDataOffset))
+        let tileDataSize = Int(ROM.readUInt(offset: tileDataOffset))
+        let tileData = ROM.take(offset: tileDataOffset + 4, byteSize: tileDataSize)
 
-        // タイルデータがVRAMの範囲を超えているか
-        if tileVramOffset + tileSize > 0x18000 {  // VRAMのサイズは96KBまで
-            FatalMsg("Tile VRAM offset out of bounds")  // FATAL_TILE_VRAM_OUTOFBOUNDS
+        // タイルデータのVRAMブロックは16KB単位で切り替え可能
+        let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset
+
+        // パレットの数からカラーモードを判定する
+        let paletteDataOffset = Int(ROM.readUInt(offset: romTileOffset + 12)) + romTileOffset
+        let colorMode =
+            (tileDataOffset - paletteDataOffset) / 2 > 16
+            ? COLOR_MODE.COLOR_256 : COLOR_MODE.COLOR_16
+
+        // タイルデータ１つのサイズ
+        let tileBlockSize = colorMode == .COLOR_256 ? 64 : 32
+
+        // 転送前に範囲を確認(ブロックまたぎは許可)
+        if tileVramOffset + blockH * tileBlockSize * 32 > 0x18000 {  // VRAMのサイズは96KBまで
+            FatalMsg("Tile VRAM offset out of bounds")
         }
 
-        // タイルデータアクセス用
-        let tileData = ROM.take(offset: tileDataOffset + 4, byteSize: tileSize)
-
         // タイルデータの転送
-        for y in 0..<height {
+        for by in 0..<blockH {
             DMA3_UInt(
-                srcAddr: tileData.getAddress() + UInt(y * width * 2),
-                dstAddr: VRAM_ADDR + UInt(tileVramOffset + y * 256 * 2),
-                size: width * 2
+                srcAddr: tileData.getAddress() + UInt(by * tileBlockSize * blockW),
+                dstAddr: VRAM_ADDR + UInt(tileVramOffset + by * tileBlockSize * 32),
+                size: tileBlockSize * blockW
             )
         }
     }
