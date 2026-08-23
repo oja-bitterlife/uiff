@@ -140,7 +140,7 @@ public struct BGTile {
     // マップ描画
     // --------------------------------------------------------------
     public func drawMap8(
-        tileNo: Int, grid8X: Int, grid8Y: Int,
+        tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
@@ -152,11 +152,11 @@ public struct BGTile {
 
         let tileNo = tileNo + offsetGridY * 32  // タイル番号のオフセットを加算
 
-        mapPtr[grid8Y * 32 + grid8X] = PB | VR | HR | UInt16(tileNo)
+        mapPtr[tileGridY * 32 + tileGridX] = PB | VR | HR | UInt16(tileNo)
     }
 
     public func drawMap16(
-        tileNo: Int, grid16X: Int, grid16Y: Int,
+        tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
@@ -187,14 +187,14 @@ public struct BGTile {
             for y in 0..<2 {
                 for x in 0..<2 {
                     let tileNo = tileNoList[y * 2 + x]
-                    mapPtr[(grid16Y + y) * 32 + (grid16X + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
     }
 
     public func drawMap24(
-        tileNo: Int, grid24X: Int, grid24Y: Int,
+        tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
@@ -227,14 +227,14 @@ public struct BGTile {
             for y in 0..<3 {
                 for x in 0..<3 {
                     let tileNo = tileNoList[y * 3 + x]
-                    mapPtr[(grid24Y + y) * 32 + (grid24X + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
     }
 
     public func drawMap32(
-        tileNo: Int, grid32X: Int, grid32Y: Int,
+        tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         let mapOffset = mapBlock * 0x800
@@ -269,7 +269,7 @@ public struct BGTile {
             for y in 0..<4 {
                 for x in 0..<4 {
                     let tileNo = tileNoList[y * 4 + x]
-                    mapPtr[(grid32Y + y) * 32 + (grid32X + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
