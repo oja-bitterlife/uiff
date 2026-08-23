@@ -72,7 +72,7 @@ private func _keysHeld() -> UInt16
 public func keysHeld() -> UInt16 {
     return current_held
 }
-public func keyHeld(key: KEY) -> Bool {
+public func keyHeld(_ key: KEY) -> Bool {
     return current_held & key.rawValue != 0
 }
 
@@ -82,7 +82,7 @@ private func _keysDown() -> UInt16
 public func keysDown() -> UInt16 {
     return current_down
 }
-public func keyDown(key: KEY) -> Bool {
+public func keyDown(_ key: KEY) -> Bool {
     return current_down & key.rawValue != 0
 }
 
@@ -92,6 +92,6 @@ private func _keysUp() -> UInt16
 public func keysUp() -> UInt16 {
     return current_up
 }
-public func keyUp(key: KEY) -> Bool {
+public func keyUp(_ key: KEY) -> Bool {
     return current_up & key.rawValue != 0
 }
