@@ -138,6 +138,10 @@ public struct FADE {
     public mutating func startFade(_ fadeType: FADE_TYPE) {
         self.fadeType = fadeType
         self.fadeAlpha = 0
+
+        // 初回分を適用
+        self.updateFade()
+        self.fadeAlpha = 0
     }
 
     // フェード更新
