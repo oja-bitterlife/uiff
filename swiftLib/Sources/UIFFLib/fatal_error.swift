@@ -47,11 +47,18 @@ public func strlen(_ str: UnsafePointer<CChar>, maxLen: Int = 256) -> Int {
 public struct I2AIter {
     private var value: UInt
     private var divisor: UInt
+    private var negative: Bool
 
     // 初期化
-    public init(_ number: UInt, minDigits: Int = 0) {
-        // 負数は考慮せず正の整数（行番号など）を想定
-        self.value = number
+    public init(_ number: Int, minDigits: Int = 0) {
+        // 負の数の場合は符号を記録し、絶対値を使用
+        if number < 0 {
+            self.negative = true
+            self.value = UInt(-number)
+        } else {
+            self.negative = false
+            self.value = UInt(number)
+        }
 
         // 桁数のベース（例: 123なら 100 を作る）
         var d: UInt = 1
@@ -76,7 +83,14 @@ public struct I2AIter {
 
     // 次の桁を返す
     public mutating func next() -> UInt8? {
+        // divisor が 0 以下の場合は nil を返す
         guard divisor > 0 else { return nil }
+
+        // 負の数の場合は最初に '-' を返す
+        if negative {
+            negative = false  // 符号は一度だけ返す
+            return UInt8(45)  // ASCIIコードで '-' を返す
+        }
 
         let digit = (value / divisor) % 10
         value %= divisor
