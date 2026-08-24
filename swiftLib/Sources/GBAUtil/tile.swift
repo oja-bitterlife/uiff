@@ -139,16 +139,27 @@ public struct BGTile {
 
     // マップ描画
     // --------------------------------------------------------------
+    private func checkDrawArgs(tileNo: Int, tileGridX: Int, tileGridY: Int) {
+        if tileNo < 0 {
+            FatalMsg("Tile number must be non-negative")
+        }
+        if tileGridX < 0 || tileGridY < 0 {
+            FatalMsg("Tile grid coordinates must be non-negative")
+        }
+    }
     public func drawMap8(
         tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
+        checkDrawArgs(
+            tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk) << 12  // Palette Bank
+        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
 
         let tileNo = tileNo + offsetGridY * 32  // タイル番号のオフセットを加算
 
@@ -159,12 +170,14 @@ public struct BGTile {
         tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
+        checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk) << 12  // Palette Bank
+        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 4) { tileNoList in
             // 座標設定
@@ -197,12 +210,15 @@ public struct BGTile {
         tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
+        checkDrawArgs(
+            tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk) << 12  // Palette Bank
+        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 9) { tileNoList in
             // 座標設定
@@ -237,12 +253,14 @@ public struct BGTile {
         tileNo: Int, tileGridX: Int, tileGridY: Int,
         palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
+        checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk) << 12  // Palette Bank
+        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 16) { tileNoList in
             // 座標設定
@@ -285,6 +303,9 @@ public struct OBJTile {
     let colorMode: COLOR_MODE
 
     public init(objNo: Int, size: SIZE_MODE, colorMode: COLOR_MODE = .COLOR_16) {
+        if objNo < 0 || objNo >= 128 {
+            FatalMsg("OBJ number must be in range 0-127")
+        }
         tile = TileBase()
         self.objNo = objNo
         self.sizeMode = size
@@ -306,6 +327,10 @@ public struct OBJTile {
     }
 
     public func getTileNoFromGrid(objGridX: Int, objGridY: Int) -> Int {
+        if objGridX < 0 || objGridY < 0 {
+            FatalMsg("OBJ grid coordinates must be non-negative")
+        }
+
         switch sizeMode {
         case .SIZE_8x8:
             return objGridY * 32 + objGridX
@@ -341,19 +366,19 @@ public struct OBJTile {
     ) {
         let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
 
-        let OAM0_Y: UInt16 = UInt16(y)
+        let OAM0_Y: UInt16 = UInt16(y & 0xff)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
         let OAM0_DM: UInt16 = UInt16(0) << 10  // 描画モード
         let OAM0_MZ: UInt16 = UInt16(0) << 12  // モザイクモード
         let OAM0_CM: UInt16 = UInt16(self.colorMode.rawValue) << 13  // 16色/256色モード
         let OAM0_SZ: UInt16 = UInt16(sizeMode.rawValue >> 2) << 14  // スプライトサイズHB
-        let OAM1_X: UInt16 = UInt16(x)
+        let OAM1_X: UInt16 = UInt16(x & 0x1ff)
         let OAM1_HR: UInt16 = UInt16(HR ? 1 : 0) << 12  // 水平反転OFF
         let OAM1_VR: UInt16 = UInt16(VR ? 1 : 0) << 13  // 垂直反転OFF
         let OAM1_SZ: UInt16 = UInt16(sizeMode.rawValue & 0x3) << 14  // スプライトサイズLB
         let OAM2_TN: UInt16 = UInt16(tileNo)  // タイル番号
-        let OAM2_PR: UInt16 = UInt16(prio) << 10  // 優先度
-        let OAM2_PL: UInt16 = UInt16(palBlk) << 12  // パレット番号
+        let OAM2_PR: UInt16 = UInt16(prio & 0x3) << 10  // 優先度
+        let OAM2_PL: UInt16 = UInt16(palBlk & 0xf) << 12  // パレット番号
         let OAM3_RS: UInt16 = UInt16(0) << 14  // 回転スケール(8bit固定少数点)
 
         let oam0 = OAM0_Y | OAM0_MT | OAM0_DM | OAM0_MZ | OAM0_CM | OAM0_SZ
