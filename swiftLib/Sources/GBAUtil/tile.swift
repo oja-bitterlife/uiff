@@ -42,8 +42,13 @@ private struct TileBase {
         let tileDataOffset = Int(ROM.readUInt(offset: romOffset + 16)) + romOffset
         let paletteNum = (tileDataOffset - paletteDataOffset) / 2  // パレット数
 
+        // パレット数のチェック
+        if paletteNum != 16 && paletteNum != 256 {
+            FatalMsg("Invalid palette number")  // FATAL_TILE_INVALID_PALETTE_NUM
+        }
+
         // indexの範囲チェック
-        if paletteNum * palBlock >= 256 {
+        if palBlock < 0 || paletteNum * palBlock >= 256 {
             FatalMsg("Palette block index out of bounds")  // FATAL_TILE_PALETTE_OUTOFBOUNDS
         }
 
