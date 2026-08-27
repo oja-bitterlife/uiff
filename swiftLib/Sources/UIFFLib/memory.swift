@@ -278,40 +278,42 @@ public struct RingQueueMemory: QueueStack16 {
 }
 
 // StackAllocator
+// mainの外で確保するとEWRAMの.bss(0クリアメモリセクション)に
+// mainの中で確保するとIWRAMのスタックに配置される
 // ****************************************************************************
-public struct StackAlloc16 {
+public struct WRAMAlloc16 {
     let pool: (Int32, Int32, Int32, Int32)
     public init() {
         self.pool = (0, 0, 0, 0)
     }
 }
-public struct StackAlloc64 {
-    let pool: (StackAlloc16, StackAlloc16, StackAlloc16, StackAlloc16)
+public struct WRAMAlloc64 {
+    let pool: (WRAMAlloc16, WRAMAlloc16, WRAMAlloc16, WRAMAlloc16)
     public init() {
-        self.pool = (StackAlloc16(), StackAlloc16(), StackAlloc16(), StackAlloc16())
+        self.pool = (WRAMAlloc16(), WRAMAlloc16(), WRAMAlloc16(), WRAMAlloc16())
     }
 }
-public struct StackAlloc256 {
-    let pool: (StackAlloc64, StackAlloc64, StackAlloc64, StackAlloc64)
+public struct WRAMAlloc256 {
+    let pool: (WRAMAlloc64, WRAMAlloc64, WRAMAlloc64, WRAMAlloc64)
     public init() {
-        self.pool = (StackAlloc64(), StackAlloc64(), StackAlloc64(), StackAlloc64())
+        self.pool = (WRAMAlloc64(), WRAMAlloc64(), WRAMAlloc64(), WRAMAlloc64())
     }
 }
-public struct StackAlloc1k {
-    let pool: (StackAlloc256, StackAlloc256, StackAlloc256, StackAlloc256)
+public struct WRAMAlloc1k {
+    let pool: (WRAMAlloc256, WRAMAlloc256, WRAMAlloc256, WRAMAlloc256)
     public init() {
-        self.pool = (StackAlloc256(), StackAlloc256(), StackAlloc256(), StackAlloc256())
+        self.pool = (WRAMAlloc256(), WRAMAlloc256(), WRAMAlloc256(), WRAMAlloc256())
     }
 }
-public struct StackAlloc4k {
-    let pool: (StackAlloc1k, StackAlloc1k, StackAlloc1k, StackAlloc1k)
+public struct WRAMAlloc4k {
+    let pool: (WRAMAlloc1k, WRAMAlloc1k, WRAMAlloc1k, WRAMAlloc1k)
     public init() {
-        self.pool = (StackAlloc1k(), StackAlloc1k(), StackAlloc1k(), StackAlloc1k())
+        self.pool = (WRAMAlloc1k(), WRAMAlloc1k(), WRAMAlloc1k(), WRAMAlloc1k())
     }
 }
-public struct StackAlloc16k {
-    let pool: (StackAlloc4k, StackAlloc4k, StackAlloc4k, StackAlloc4k)
+public struct WRAMAlloc16k {
+    let pool: (WRAMAlloc4k, WRAMAlloc4k, WRAMAlloc4k, WRAMAlloc4k)
     public init() {
-        self.pool = (StackAlloc4k(), StackAlloc4k(), StackAlloc4k(), StackAlloc4k())
+        self.pool = (WRAMAlloc4k(), WRAMAlloc4k(), WRAMAlloc4k(), WRAMAlloc4k())
     }
 }
