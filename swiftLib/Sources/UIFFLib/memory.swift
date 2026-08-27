@@ -62,6 +62,9 @@ public struct WorkMemory: MemoryInt16 {
         }
         return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
     }
+    public func take(offset: Int) -> WorkMemory {
+        return take(offset: offset, byteSize: self.getByteSize() - offset)
+    }
 
     // インデックスアクセス
     // --------------------------------------------------------------
