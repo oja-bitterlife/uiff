@@ -276,3 +276,24 @@ public struct RingQueueMemory: QueueStack16 {
         return value
     }
 }
+
+// StackAllocator
+// ****************************************************************************
+public struct StackAlloc16 {
+    let pool: (Int32, Int32, Int32, Int32)
+}
+public struct StackAlloc64 {
+    let pool: (StackAlloc16, StackAlloc16, StackAlloc16, StackAlloc16)
+}
+public struct StackAlloc256 {
+    let pool: (StackAlloc64, StackAlloc64, StackAlloc64, StackAlloc64)
+}
+public struct StackAlloc1k {
+    let pool: (StackAlloc256, StackAlloc256, StackAlloc256, StackAlloc256)
+}
+public struct StackAlloc4k {
+    let pool: (StackAlloc1k, StackAlloc1k, StackAlloc1k, StackAlloc1k)
+}
+public struct StackAlloc16k {
+    let pool: (StackAlloc4k, StackAlloc4k, StackAlloc4k, StackAlloc4k)
+}
