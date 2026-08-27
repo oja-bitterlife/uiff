@@ -19,6 +19,7 @@ public func mmVBlank()  // Maxmod の VBlank 更新関数
 
 // SE
 // --------------------------------------------------------
+@discardableResult
 @_silgen_name("mmEffect")
 public func mmEffect(sfxID: UInt16) -> UInt
 

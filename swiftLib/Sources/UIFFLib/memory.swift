@@ -276,3 +276,15 @@ public struct RingQueueMemory: QueueStack16 {
         return value
     }
 }
+
+// 構造体をEWRAM上に確保するためのファクトリ
+// ****************************************************************************
+public struct StructFactory {
+    // ファクトリメソッド経由で、ポインタをラップした構造体を返す
+    public static func Bind<T>(_ address: UInt, _ type: T.Type) -> UnsafeMutablePointer<T> {
+        guard let ptr = UnsafeMutablePointer<T>(bitPattern: address) else {
+            FatalMsg("Invalid memory address")
+        }
+        return ptr
+    }
+}
