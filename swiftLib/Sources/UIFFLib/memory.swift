@@ -278,7 +278,7 @@ public struct RingQueueMemory: QueueStack16 {
 }
 
 // StackAllocator
-// mainの外で確保するとEWRAMの.bss(0クリアメモリセクション)に
+// mainの外で確保するとEWRAMの.data/.bssに
 // mainの中で確保するとIWRAMのスタックに配置される
 // ****************************************************************************
 public struct WRAMAlloc16 {
