@@ -118,6 +118,15 @@ public struct WorkMemory: MemoryInt16 {
             }
         }
     }
+
+    // 構造体単位でアクセスする
+    // --------------------------------------------------------------
+    public func Bind<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
+        guard let ptr = UnsafeMutablePointer<T>(bitPattern: getAddress()) else {
+            FatalMsg("Invalid memory address")
+        }
+        return ptr
+    }
 }
 
 // キュー・スタック
@@ -277,17 +286,5 @@ public struct RingQueueMemory: QueueStack16 {
         let value = self.ptr[self.qBgn]
         self.qBgn = (self.qBgn + 1) % self.capacity
         return value
-    }
-}
-
-// 構造体をEWRAM上に確保するためのファクトリ
-// ****************************************************************************
-public struct StructFactory {
-    // ファクトリメソッド経由で、ポインタをラップした構造体を返す
-    public static func Bind<T>(_ address: UInt, _ type: T.Type) -> UnsafeMutablePointer<T> {
-        guard let ptr = UnsafeMutablePointer<T>(bitPattern: address) else {
-            FatalMsg("Invalid memory address")
-        }
-        return ptr
     }
 }
