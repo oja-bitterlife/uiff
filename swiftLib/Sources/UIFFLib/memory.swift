@@ -25,8 +25,8 @@ extension MemoryInt16 {
 
     // メモリダイレクトアクセス用
     public func getDirectPtr<T>(as type: T.Type, offset: Int = 0) -> UnsafeMutablePointer<T> {
-        if offset < 0 || offset >= self.getByteSize() {
-            FatalMsg("Invalid memory offset")
+        if offset < 0 || offset >= self.getByteSize() {  // out of bounds
+            FatalMsg("Memory offset out of bounds")
         }
         if let bytePtr = UnsafeMutablePointer<T>(bitPattern: self.getAddress() + UInt(offset)) {
             return bytePtr
