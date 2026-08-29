@@ -34,6 +34,28 @@ extension MemoryInt16 {
             FatalMsg("Invalid memory address")
         }
     }
+
+    // デバッグ用
+    public func setMagic(count: Int = 2, magic: UInt16 = 0xBADE) {
+        for i in 0..<count {
+            ptr[i] = magic
+        }
+        for i in capacity - count..<capacity {
+            ptr[i] = magic
+        }
+    }
+    public func checkMagic(count: Int = 2, magic: UInt16 = 0xBADE) {
+        for i in 0..<count {
+            if ptr[i] != magic {
+                FatalMsg("Magic value mismatch at the beginning of memory")
+            }
+        }
+        for i in capacity - count..<capacity {
+            if ptr[i] != magic {
+                FatalMsg("Magic value mismatch at the end of memory")
+            }
+        }
+    }
 }
 
 // MARK: - ワーク用メモリ（RAM領域）

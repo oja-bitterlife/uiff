@@ -125,8 +125,8 @@ public enum FADE_TYPE {
 public struct FADE {
     private var fadeType: FADE_TYPE = .NONE
     private var fadeAlpha: UInt16 = 0
-    private var fadeInSpeed: UInt8 = 0
-    private var fadeOutSpeed: UInt8 = 0
+    private var fadeInSpeed: UInt8
+    private var fadeOutSpeed: UInt8
 
     // フェードの初期化。スピードを決めておく
     public init(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 4) {
