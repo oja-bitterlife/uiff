@@ -18,7 +18,7 @@ public struct PYVM {
     #endif
 
     // MARK: - VM本体のプロパティ
-    public let code: UnsafePointer<UInt16>
+    public let code: UnsafePointer<UInt8>
     public var mem: WorkMemory
     public var stack: StackMemory
 
@@ -28,7 +28,7 @@ public struct PYVM {
         vmMem: WorkMemory,
         vmStack: StackMemory,
     ) {
-        self.code = UnsafePointer<UInt16>(bitPattern: codeAddress)!
+        self.code = UnsafePointer<UInt8>(bitPattern: codeAddress)!
         self.mem = vmMem
         self.stack = vmStack
     }
