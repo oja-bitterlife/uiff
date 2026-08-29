@@ -2,7 +2,7 @@
 
 // MARK: VM本体
 public struct PYVM {
-    var pc = 0  // プログラムカウンタ（命令ポインタ）
+    public var pc = 0  // プログラムカウンタ（命令ポインタ）
     #if !EMBEDDED
         public var traceEnabled = false  // デバッグビルド時のみOPコードの実行をトレースするかどうか
     #endif
