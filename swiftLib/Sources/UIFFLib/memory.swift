@@ -78,13 +78,18 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     // メモリの一部を切り出す
+    // --------------------------------------------------------------
     public func slice(offset: Int = 0, byteSize: Int) -> WorkMemory {
         if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
             FatalMsg("Invalid memory range")
         }
         return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
     }
+    public func slice(offset: Int) -> WorkMemory {
+        return slice(offset: offset, byteSize: self.getByteSize() - offset)
+    }
 
+    @discardableResult
     public mutating func shift(offset: Int) -> WorkMemory {
         // 切り出す前のメモリを保持しておく
         let sliced = slice(offset: 0, byteSize: offset)
@@ -97,6 +102,15 @@ public struct WorkMemory: MemoryInt16 {
         self.capacity = self.capacity - offset / 2
 
         return sliced
+    }
+
+    // bindを同時に行う
+    public func slice<T>(offset: Int = 0, _ type: T.Type) -> UnsafeMutablePointer<T> {
+        return slice(offset: offset, byteSize: MemoryLayout<T>.stride).bind(T.self)
+    }
+
+    public mutating func shift<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
+        return shift(offset: MemoryLayout<T>.stride).bind(T.self)
     }
 
     // インデックスアクセス
