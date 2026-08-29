@@ -122,7 +122,7 @@ public enum FADE_TYPE {
     case WHITE_OUT
 }
 
-public struct FADE {
+public struct FADE_GBA {
     private var fadeType: FADE_TYPE = .NONE
     private var fadeAlpha: UInt16 = 0
     private var fadeInSpeed: UInt8 = 0
@@ -159,13 +159,13 @@ public struct FADE {
 
         switch fadeType {
         case .BLACK_IN:
-            FADE.fadeBlack(alpha: 255 - Int(fadeAlpha))
+            FADE_GBA.fadeBlack(alpha: 255 - Int(fadeAlpha))
         case .BLACK_OUT:
-            FADE.fadeBlack(alpha: Int(fadeAlpha))
+            FADE_GBA.fadeBlack(alpha: Int(fadeAlpha))
         case .WHITE_IN:
-            FADE.fadeWhite(alpha: 255 - Int(fadeAlpha))
+            FADE_GBA.fadeWhite(alpha: 255 - Int(fadeAlpha))
         case .WHITE_OUT:
-            FADE.fadeWhite(alpha: Int(fadeAlpha))
+            FADE_GBA.fadeWhite(alpha: Int(fadeAlpha))
         default:
             break
         }

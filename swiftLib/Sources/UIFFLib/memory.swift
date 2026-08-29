@@ -89,12 +89,20 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     // sliceとbindを組み合わせた便利関数
-    public func take<T>(offset: Int = 0, _ type: T.Type) -> (
+    public func take<T>(
+        offset: Int = 0, _ type: T.Type,
+        body: (@convention(thin) (UnsafeMutablePointer<T>) -> Void)? = nil
+    ) -> (
         WorkMemory, UnsafeMutablePointer<T>
     ) {
-        let obj = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
+        let objMem = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
         let sliced = slice(offset: offset + MemoryLayout<T>.stride)
-        return (sliced, obj.bind(T.self))
+        let objPtr = objMem.bind(T.self)
+
+        if let body = body {
+            body(objPtr)
+        }
+        return (sliced, objPtr)
     }
 
     // インデックスアクセス
