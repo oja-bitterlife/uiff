@@ -90,16 +90,16 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     @discardableResult
-    public mutating func shift(offset: Int) -> WorkMemory {
+    public mutating func shift(byteSize: Int) -> WorkMemory {
         // 切り出す前のメモリを保持しておく
-        let sliced = slice(offset: 0, byteSize: offset)
+        let sliced = slice(offset: 0, byteSize: byteSize)
 
         // 指定のオフセット分、アドレスをシフトして進める
-        if offset % 2 != 0 {
+        if byteSize % 2 != 0 {
             FatalMsg("Offset must be even")
         }
-        self.ptr = self.ptr + offset / 2
-        self.capacity = self.capacity - offset / 2
+        self.ptr = self.ptr + byteSize / 2
+        self.capacity = self.capacity - byteSize / 2
 
         return sliced
     }
@@ -110,7 +110,7 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     public mutating func shift<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
-        return shift(offset: MemoryLayout<T>.stride).bind(T.self)
+        return shift(byteSize: MemoryLayout<T>.stride).bind(T.self)
     }
 
     // インデックスアクセス
