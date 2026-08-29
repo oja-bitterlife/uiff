@@ -36,7 +36,7 @@ extension MemoryInt16 {
     }
 
     // デバッグ用
-    public func setMagic(count: Int = 2, magic: UInt16 = 0xBADE) {
+    public func setMagic(count: Int = 8, magic: UInt16 = 0xBADE) {
         for i in 0..<count {
             ptr[i] = magic
         }
@@ -44,7 +44,7 @@ extension MemoryInt16 {
             ptr[i] = magic
         }
     }
-    public func checkMagic(count: Int = 2, magic: UInt16 = 0xBADE) {
+    public func checkMagic(count: Int = 8, magic: UInt16 = 0xBADE) {
         for i in 0..<count {
             if ptr[i] != magic {
                 FatalMsg("Magic value mismatch at the beginning of memory")
