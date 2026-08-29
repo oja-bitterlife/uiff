@@ -90,7 +90,7 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     @discardableResult
-    public mutating func shift(byteSize: Int) -> WorkMemory {
+    public mutating func pop(byteSize: Int) -> WorkMemory {
         // 切り出す前のメモリを保持しておく
         let sliced = slice(offset: 0, byteSize: byteSize)
 
@@ -109,8 +109,8 @@ public struct WorkMemory: MemoryInt16 {
         return slice(offset: offset, byteSize: MemoryLayout<T>.stride).bind(T.self)
     }
 
-    public mutating func shift<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
-        return shift(byteSize: MemoryLayout<T>.stride).bind(T.self)
+    public mutating func pop<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
+        return pop(byteSize: MemoryLayout<T>.stride).bind(T.self)
     }
 
     // インデックスアクセス
