@@ -14,7 +14,7 @@ public struct UIFFLib {
 
     // MARK: - 初期化
     // ************************************************************************
-    public init(
+    public mutating func initialize(
         uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
         uiffWork: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
