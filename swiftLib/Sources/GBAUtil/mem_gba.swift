@@ -19,13 +19,8 @@ nonisolated(unsafe) public let VRAM = WorkMemory(
     address: VRAM_ADDR, byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
 nonisolated(unsafe) public let OAM = WorkMemory(
     address: OAM_ADDR, byteSize: 1 * 1024)  // OAM: 1KB
-
-// EWRAM。被らないよう直接扱わない
-public let EWRAM_SYSTEM_SIZE = 64 * 1024
-nonisolated(unsafe) public let EWRAM_SYSTEM = WorkMemory(
-    address: 0x0200_0000, byteSize: EWRAM_SYSTEM_SIZE)  // EWRAMの64KB部分
-nonisolated(unsafe) public let EWRAM_USER = WorkMemory(
-    address: 0x0200_0000 + UInt(EWRAM_SYSTEM_SIZE), byteSize: (256 * 1024 - EWRAM_SYSTEM_SIZE))  // EWRAM後半192KB(最後の8KBは他が使うかもなので空けておく)
+nonisolated(unsafe) public let EWRAM = WorkMemory(
+    address: 0x0200_0000, byteSize: 256 * 1024)  // EWRAM: 256KB
 
 // DMA
 // ****************************************************************************
