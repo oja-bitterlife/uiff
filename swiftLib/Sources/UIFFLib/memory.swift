@@ -127,6 +127,9 @@ public struct WorkMemory: MemoryInt16 {
         let dwordPtr = self.getDirectPtr(as: UInt.self, offset: offset)
         dwordPtr.pointee = value
     }
+    public func writeInt(offset: Int = 0, value: Int) {
+        writeUInt(offset: offset, value: UInt(bitPattern: value))
+    }
     public func readUInt(offset: Int = 0) -> UInt {
         let dwordPtr = self.getDirectPtr(as: UInt.self, offset: offset)
         return dwordPtr.pointee
