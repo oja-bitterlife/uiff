@@ -44,16 +44,14 @@ public struct UiffFileHeader {
 // ****************************************************************************
 public protocol UiffChunk {
     var chunkMemory: WorkMemory { get }
-    var chunkType: UInt16 { get }
     var payload: WorkMemory { get }
-    var chunkSize: Int { get }
 }
 extension UiffChunk {
-    public var chunkType: UInt16 {
+    public func getChunkType() -> UInt16 {
         return chunkMemory[0]
     }
 
-    public var chunkSize: Int {
+    public func getChunkSize() -> Int {
         return Int(chunkMemory[1]) + 4  // ヘッダの4バイトを加える
     }
 
@@ -134,7 +132,7 @@ public struct UiffEntry: UiffChunk {
     public var payload: WorkMemory {
         return chunkMemory.slice(
             offset: UiffEntry.HEADER_BYTESIZE,
-            byteSize: chunkSize - UiffEntry.HEADER_BYTESIZE
+            byteSize: getChunkSize() - UiffEntry.HEADER_BYTESIZE
         )
     }
 }
@@ -142,17 +140,15 @@ public struct UiffEntry: UiffChunk {
 // Entryのイテレータ
 public struct UiffEntryIter {
     public private(set) var chunkMemory: WorkMemory
-    private var offsetBytes: Int
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        self.chunkMemory = workMemory
-        self.offsetBytes = offsetBytes
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public mutating func next() -> UiffEntry? {
-        while chunkMemory.getByteSize() > offsetBytes {
-            let entry = UiffEntry(workMemory: chunkMemory, offsetBytes: offsetBytes)
-            offsetBytes += entry.chunkSize
+        while chunkMemory.getByteSize() > 0 {
+            let entry = UiffEntry(workMemory: chunkMemory)
+            chunkMemory.pop(byteSize: entry.getChunkSize())
             return entry
         }
         return nil
@@ -195,9 +191,9 @@ public struct UiffPropIter {
     public mutating func next() -> UiffProp? {
         while chunkMemory.getByteSize() > offsetBytes {
             let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
-            offsetBytes += prop.chunkSize
+            offsetBytes += prop.getChunkSize()
 
-            if !blackList.contains(value: prop.chunkType) {
+            if !blackList.contains(value: prop.getChunkType()) {
                 return prop
             }
         }
@@ -240,7 +236,7 @@ public struct UiffSelect: UiffChunk {
     public func getSelItem(index: Int) -> UiffProp {
         var sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: 2)  // sel_rowsとsel_item_numを飛ばす
         for _ in 0..<index {
-            sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: sel_item.chunkSize)
+            sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: sel_item.getChunkSize())
         }
         return sel_item
     }
@@ -263,7 +259,7 @@ public struct UiffChild: UiffChunk {
     // 最初の子チャンクを取得する
     public func getFirstEntry() -> UiffEntry? {
         // 子のチャンクが存在するか確認する
-        if chunkSize <= 0 {
+        if getChunkSize() <= 0 {
             return nil
         }
 

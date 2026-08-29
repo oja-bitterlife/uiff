@@ -141,7 +141,7 @@ public struct UIFFLib {
             var propIter = UiffPropIter(workMemory: entry.payload)
             while let prop = propIter.next() {
                 // 子があれば再帰
-                if prop.chunkType == UInt16(UIFF_CHILD) {
+                if prop.getChunkType() == UInt16(UIFF_CHILD) {
                     let children = UiffChild(workMemory: prop.chunkMemory)
                     if let first_child = children.getFirstEntry() {
                         traverseEntries(firstEntry: first_child)  // 再帰呼び出し
@@ -188,7 +188,7 @@ public struct UIFFLib {
     public func hasEvent(entry: UiffEntry, eventID: UInt16) -> Bool {
         var propIter = UiffPropIter(workMemory: entry.payload)
         while let prop = propIter.next() {
-            if prop.chunkType == UIFF_EVENTS {
+            if prop.getChunkType() == UIFF_EVENTS {
                 let events = UiffEvents(workMemory: prop.chunkMemory)
                 if events.hasEventID(eventID: eventID) {
                     return true
@@ -202,7 +202,7 @@ public struct UIFFLib {
     public func hasListener(entry: UiffEntry, eventID: UInt16) -> Bool {
         var propIter = UiffPropIter(workMemory: entry.payload)
         while let prop = propIter.next() {
-            if prop.chunkType == UIFF_LISTEN {
+            if prop.getChunkType() == UIFF_LISTEN {
                 let listen = UiffListen(workMemory: prop.chunkMemory)
                 if listen.hasEventID(eventID: eventID) {
                     return true
