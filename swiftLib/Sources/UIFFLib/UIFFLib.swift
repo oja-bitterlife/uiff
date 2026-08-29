@@ -43,19 +43,19 @@ public struct UIFFLib {
         let remainingByteSize = uiffWork.getByteSize() - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
-        let uiff_size = Int(uiffHeader.size)
-        if uiff_size > remainingByteSize {
+        let uiff_file_size = Int(uiffHeader.size)
+        if uiff_file_size > remainingByteSize {
             FatalMsg("UIFF file too large")  // UIFF_ERR_FILE_TOO_LARGE
         }
 
         // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        for i in 0..<uiff_size {
+        for i in 0..<uiff_file_size {
             uiffWork.writeUInt8(offset: i, value: uiffHeader.data[i])
         }
 
         // uiff作業用メモリ
-        // 終端を確定させるためサイズはUIFFファイル終端にする
-        self.uiffWork = uiffWork.slice(offset: 0, byteSize: uiff_size)
+        // 終端を確定させるためサイズはUIFFファイルサイズにする
+        (self.uiffWork, _) = uiffWork.slice(byteSize: uiff_file_size)
 
         // 各用途のメモリを固定位置に配置する
         var addr = uiffWork.getAddress() + UInt(remainingByteSize)

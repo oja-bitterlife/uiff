@@ -7,33 +7,6 @@ public struct PYVM {
         public var traceEnabled = false  // デバッグビルド時のみOPコードの実行をトレースするかどうか
     #endif
 
-    // MARK: - コード用メモリ（バイトコード領域）
-    public struct CodeMemory {
-        private let ptr: UnsafePointer<UInt8>
-
-        fileprivate init(address: UInt) {
-            if let ptr = UnsafePointer<UInt8>(bitPattern: address) {
-                self.ptr = ptr
-            } else {
-                FatalMsg("Invalid code memory address")  // コード用メモリのポインタ作成失敗
-            }
-        }
-
-        public subscript(index: Int) -> UInt8 {
-            get {
-                #if !EMBEDDED
-                    assert(
-                        index >= 0 && index < ADDR_ERROR,
-                        "Code index out of range: \(index)/\(ADDR_ERROR)")
-                #endif
-                if index < 0 || index >= ADDR_ERROR {
-                    FatalMsg("Code index out of range")
-                }
-                return ptr[index]
-            }
-        }
-    }
-
     /// デバッグビルド時のみOPコードの実行をトレースする関数
     #if !EMBEDDED
         public func op_trace(_ items: Any..., separator: String = " ", terminator: String = "\n") {
@@ -45,7 +18,7 @@ public struct PYVM {
     #endif
 
     // MARK: - VM本体のプロパティ
-    public let code: CodeMemory
+    public let code: UnsafePointer<UInt16>
     public var mem: WorkMemory
     public var stack: StackMemory
 
@@ -55,7 +28,7 @@ public struct PYVM {
         vmMem: WorkMemory,
         vmStack: StackMemory,
     ) {
-        self.code = CodeMemory(address: codeAddress)
+        self.code = UnsafePointer<UInt16>(bitPattern: codeAddress)!
         self.mem = vmMem
         self.stack = vmStack
     }

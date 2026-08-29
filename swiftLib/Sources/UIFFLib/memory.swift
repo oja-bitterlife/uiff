@@ -78,31 +78,22 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     // メモリの一部を切り出す
-    public func slice(offset: Int, byteSize: Int) -> WorkMemory {
+    public func slice(offset: Int = 0, byteSize: Int) -> (WorkMemory, WorkMemory) {
         if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
             FatalMsg("Invalid memory range")
         }
-        return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
-    }
-    public func slice(offset: Int) -> WorkMemory {
-        return slice(offset: offset, byteSize: self.getByteSize() - offset)
+        let first = WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
+        let next = WorkMemory(
+            address: self.getAddress() + UInt(offset + byteSize),
+            byteSize: self.getByteSize() - (offset + byteSize))
+        return (first, next)
     }
 
     // sliceとbindを組み合わせた便利関数
-    public func take<T>(
-        offset: Int = 0, _ type: T.Type,
-        body: (@convention(thin) (UnsafeMutablePointer<T>) -> Void)? = nil
-    ) -> (
-        WorkMemory, UnsafeMutablePointer<T>
-    ) {
-        let objMem = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
-        let sliced = slice(offset: offset + MemoryLayout<T>.stride)
+    public func take<T>(offset: Int = 0, _ type: T.Type) -> (UnsafeMutablePointer<T>, WorkMemory) {
+        let (objMem, sliced) = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
         let objPtr = objMem.bind(T.self)
-
-        if let body = body {
-            body(objPtr)
-        }
-        return (sliced, objPtr)
+        return (objPtr, sliced)
     }
 
     // インデックスアクセス
