@@ -26,6 +26,8 @@ public enum COLOR_MODE: Int {
 // .tileファイルの読み込み基本クラス
 // ********************************************************************
 private struct TileBase {
+    fileprivate init() {}  // 外部からのインスタンス化を禁止
+
     // .tileファイルのmagicをチェックする
     static private func checkMagic(romOffset: Int) {
         let magic = ROM.readUInt(offset: romOffset)  // タイルデータの存在確認
@@ -106,10 +108,12 @@ private struct TileBase {
 // タイルをマップ描画する
 // ********************************************************************
 public struct BGTile {
-    let mapBlock: Int
-    let offsetGridY: Int
+    var mapBlock = 0
+    var offsetGridY = 0
 
-    public init(mapBlock: Int, offsetGridY: Int = 0) {
+    private init() {}
+
+    public mutating func initialize(mapBlock: Int = 0, offsetGridY: Int = 0) {
         self.mapBlock = mapBlock
         self.offsetGridY = offsetGridY
     }
@@ -302,16 +306,20 @@ public struct BGTile {
 // タイルをスプライト描画する
 // ********************************************************************
 public struct OBJTile {
-    private var tile: TileBase
-    let objNo: Int
-    let sizeMode: SIZE_MODE
-    let colorMode: COLOR_MODE
+    private var tile = TileBase()
+    var objNo = 0
+    var sizeMode = SIZE_MODE.SIZE_8x8
+    var colorMode = COLOR_MODE.COLOR_16
 
-    public init(objNo: Int, size: SIZE_MODE, colorMode: COLOR_MODE = .COLOR_16) {
+    private init() {}
+
+    public mutating func initialize(
+        objNo: Int, size: SIZE_MODE, colorMode: COLOR_MODE = COLOR_MODE.COLOR_16
+    ) {
         if objNo < 0 || objNo >= 128 {
             FatalMsg("OBJ number must be in range 0-127")
         }
-        tile = TileBase()
+        self.tile = TileBase()
         self.objNo = objNo
         self.sizeMode = size
         self.colorMode = colorMode
