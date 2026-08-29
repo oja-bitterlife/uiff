@@ -49,14 +49,6 @@ public protocol UiffChunk {
     var chunkSize: Int { get }
 }
 extension UiffChunk {
-    public static func assign(workMemory: WorkMemory, offsetBytes: Int) -> WorkMemory {
-        if offsetBytes % 2 != 0 {
-            FatalMsg("Invalid memory address")  // 偶数バイト境界でない
-        }
-        return workMemory.slice(
-            offset: offsetBytes, byteSize: workMemory.getByteSize() - offsetBytes)
-    }
-
     public var chunkType: UInt16 {
         return chunkMemory[0]
     }
@@ -83,7 +75,7 @@ public struct UiffEntry: UiffChunk {
             FatalMsg("UiffEntry must start with UIFF_ENTRY")
         }
 
-        self.chunkMemory = UiffEntry.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public var typeID: UInt16 {
@@ -218,7 +210,7 @@ public struct UiffProp: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        self.chunkMemory = UiffProp.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 }
 
@@ -233,7 +225,7 @@ public struct UiffSelect: UiffChunk {
             FatalMsg("UiffSelect must start with UIFF_SELECT")  // UiffSelect must start with UIFF_SELECT
         }
 
-        self.chunkMemory = UiffSelect.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     // 選択肢を横に並べる数
@@ -265,7 +257,7 @@ public struct UiffChild: UiffChunk {
             FatalMsg("UiffChild must start with UIFF_CHILD")  // UiffChild
         }
 
-        self.chunkMemory = UiffChild.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     // 最初の子チャンクを取得する
@@ -287,7 +279,7 @@ public struct UiffEvents: UiffChunk {
             FatalMsg("UiffEvents must start with UIFF_EVENTS")  // UiffEvents
         }
 
-        self.chunkMemory = UiffEvents.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public func getEventNum() -> Int {
@@ -316,7 +308,7 @@ public struct UiffListen: UiffChunk {
             FatalMsg("UiffListen must start with UIFF_LISTEN")  // UiffListen
         }
 
-        self.chunkMemory = UiffListen.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public func getEventNum() -> Int {
@@ -345,7 +337,7 @@ public struct UiffScript: UiffChunk {
             FatalMsg("UiffScript must start with UIFF_SCRIPT")  // UiffScript
         }
 
-        self.chunkMemory = UiffScript.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public func run(lib: UIFFLib) -> Int {
@@ -372,7 +364,7 @@ public struct UiffColors: UiffChunk {
             FatalMsg("UiffColors must start with UIFF_COLORS")  // UiffColors
         }
 
-        self.chunkMemory = UiffColors.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public func getColorNum() -> Int {
@@ -394,7 +386,7 @@ public struct UiffText: UiffChunk {
             FatalMsg("UiffText must start with UIFF_TEXT")  // UiffText
         }
 
-        self.chunkMemory = UiffText.assign(workMemory: workMemory, offsetBytes: offsetBytes)
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
     public func getTextLength() -> Int {
