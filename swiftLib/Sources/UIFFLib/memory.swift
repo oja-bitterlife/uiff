@@ -78,22 +78,25 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     // メモリの一部を切り出す
-    public func slice(offset: Int = 0, byteSize: Int) -> (WorkMemory, WorkMemory) {
+    public func slice(offset: Int = 0, byteSize: Int) -> WorkMemory {
         if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
             FatalMsg("Invalid memory range")
         }
-        let first = WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
-        let next = WorkMemory(
-            address: self.getAddress() + UInt(offset + byteSize),
-            byteSize: self.getByteSize() - (offset + byteSize))
-        return (first, next)
+        return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
     }
 
-    // sliceとbindを組み合わせた便利関数
-    public func take<T>(offset: Int = 0, _ type: T.Type) -> (UnsafeMutablePointer<T>, WorkMemory) {
-        let (objMem, sliced) = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
-        let objPtr = objMem.bind(T.self)
-        return (objPtr, sliced)
+    public mutating func shift(offset: Int) -> WorkMemory {
+        // 切り出す前のメモリを保持しておく
+        let sliced = slice(offset: 0, byteSize: offset)
+
+        // 指定のオフセット分、アドレスをシフトして進める
+        if offset % 2 != 0 {
+            FatalMsg("Offset must be even")
+        }
+        self.ptr = self.ptr + offset / 2
+        self.capacity = self.capacity - offset / 2
+
+        return sliced
     }
 
     // インデックスアクセス
