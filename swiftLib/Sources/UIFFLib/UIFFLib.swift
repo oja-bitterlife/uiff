@@ -55,7 +55,7 @@ public struct UIFFLib {
 
         // uiff作業用メモリ
         // 終端を確定させるためサイズはUIFFファイル終端にする
-        self.uiffWork = uiffWork.take(offset: 0, byteSize: uiff_size)
+        self.uiffWork = uiffWork.slice(offset: 0, byteSize: uiff_size)
 
         // 各用途のメモリを固定位置に配置する
         var addr = uiffWork.getAddress() + UInt(remainingByteSize)

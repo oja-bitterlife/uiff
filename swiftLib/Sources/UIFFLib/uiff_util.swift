@@ -54,7 +54,7 @@ extension UiffChunk {
             FatalMsg("Invalid memory address")  // 偶数バイト境界でない
         }
 
-        return workMemory.take(
+        return workMemory.slice(
             offset: offsetBytes, byteSize: workMemory.getByteSize() - offsetBytes)
     }
     public var chunkType: UInt16 {
@@ -66,7 +66,7 @@ extension UiffChunk {
     }
 
     public var payload: WorkMemory {
-        return chunkMemory.take(offset: 4, byteSize: Int(chunkMemory[1]))  // ヘッダの4バイトを飛ばす
+        return chunkMemory.slice(offset: 4, byteSize: Int(chunkMemory[1]))  // ヘッダの4バイトを飛ばす
     }
 }
 
@@ -140,7 +140,7 @@ public struct UiffEntry: UiffChunk {
 
     // Entryはヘッダの後をpayloadとして扱う
     public var payload: WorkMemory {
-        return chunkMemory.take(
+        return chunkMemory.slice(
             offset: UiffEntry.HEADER_BYTESIZE,
             byteSize: chunkSize - UiffEntry.HEADER_BYTESIZE)
     }

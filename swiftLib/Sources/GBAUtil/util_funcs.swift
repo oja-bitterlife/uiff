@@ -125,11 +125,13 @@ public enum FADE_TYPE {
 public struct FADE {
     private var fadeType: FADE_TYPE = .NONE
     private var fadeAlpha: UInt16 = 0
-    private var fadeInSpeed: UInt8
-    private var fadeOutSpeed: UInt8
+    private var fadeInSpeed: UInt8 = 0
+    private var fadeOutSpeed: UInt8 = 0
+
+    private init() {}  // 外部からのインスタンス化を禁止
 
     // フェードの初期化。スピードを決めておく
-    public init(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 4) {
+    public mutating func initialize(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 4) {
         self.fadeInSpeed = UInt8(max(0, min(255, fadeInSpeed)))
         self.fadeOutSpeed = UInt8(max(0, min(255, fadeOutSpeed)))
     }

@@ -78,14 +78,23 @@ public struct WorkMemory: MemoryInt16 {
     }
 
     // メモリの一部を切り出す
-    public func take(offset: Int, byteSize: Int) -> WorkMemory {
+    public func slice(offset: Int, byteSize: Int) -> WorkMemory {
         if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
             FatalMsg("Invalid memory range")
         }
         return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
     }
-    public func take(offset: Int) -> WorkMemory {
-        return take(offset: offset, byteSize: self.getByteSize() - offset)
+    public func slice(offset: Int) -> WorkMemory {
+        return slice(offset: offset, byteSize: self.getByteSize() - offset)
+    }
+
+    // sliceとbindを組み合わせた便利関数
+    public func take<T>(offset: Int = 0, _ type: T.Type) -> (
+        WorkMemory, UnsafeMutablePointer<T>
+    ) {
+        let obj = slice(offset: offset, byteSize: MemoryLayout<T>.stride)
+        let sliced = slice(offset: offset + MemoryLayout<T>.stride)
+        return (sliced, obj.bind(T.self))
     }
 
     // インデックスアクセス
@@ -146,7 +155,7 @@ public struct WorkMemory: MemoryInt16 {
 
     // 構造体単位でアクセスする
     // --------------------------------------------------------------
-    public func Bind<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
+    public func bind<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
         guard let ptr = UnsafeMutablePointer<T>(bitPattern: getAddress()) else {
             FatalMsg("Invalid memory address")
         }

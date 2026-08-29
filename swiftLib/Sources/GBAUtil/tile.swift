@@ -75,7 +75,7 @@ private struct TileBase {
         // タイルデータ
         let tileDataOffset = Int(ROM.readUInt(offset: romTileOffset + 16)) + romTileOffset
         let tileDataSize = Int(ROM.readUInt(offset: tileDataOffset))
-        let tileData = ROM.take(offset: tileDataOffset + 4, byteSize: tileDataSize)
+        let tileData = ROM.slice(offset: tileDataOffset + 4, byteSize: tileDataSize)
 
         // タイルデータのVRAMブロックは16KB単位で切り替え可能
         let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset
