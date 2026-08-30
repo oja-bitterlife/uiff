@@ -346,3 +346,21 @@ public struct RingQueueMemory: QueueStack16 {
         return value
     }
 }
+
+// MARK: 便利型
+// ****************************************************************************
+// SwiftのBoolは1バイトだけどメモリ操作関数は16ビット単位なので、
+// アライメント合わせが必要なときは@UInt16Boolをつけるようにする
+@propertyWrapper
+public struct UInt16Bool {
+    private var storage: UInt16
+
+    public init(wrappedValue: Bool = false) {
+        self.storage = wrappedValue ? 1 : 0
+    }
+
+    public var wrappedValue: Bool {
+        get { return storage != 0 }
+        set { storage = newValue ? 1 : 0 }
+    }
+}
