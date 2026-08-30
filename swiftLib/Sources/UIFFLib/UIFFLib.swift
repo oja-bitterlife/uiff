@@ -60,64 +60,16 @@ public struct UIFFLib {
         traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffData))
     }
 
-    // ユーザー向け関数
-    // ************************************************************************
-    // MARK: - 発生したUIイベントの登録
-    public mutating func notify(eventID: UInt16) {
-        if eventID == 0 {
-            FatalMsg("Invalid event ID")  // UIFF_ERR_EVENT_INVALID
-        }
-
-        self.eventQueue.enqueue(value: eventID)
-    }
-
-    // MARK: - UIFFの逐次処理
-    public mutating func run<T: UIFFEntryHandler>(handler: T) {
-
-        // イベントの処理
-        processEvents()  // eventキューが空になるまで処理される
-
-        // entryQueueの処理
-        for i in 0..<self.entryList.getLength() {
-            // entryQueueからエントリを取り出す
-            let offsetBytes = self.entryList.peek(i)
-            let entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
-
-            // propIterを用意する。使う時に便利用
-            var propIter = UiffPropIter(workMemory: entry.payload)
-
-            // システムで処理するプロパティは無視する
-            propIter.addBlackList(eventID: UIFF_CHILD)
-            propIter.addBlackList(eventID: UIFF_EVENTS)
-            propIter.addBlackList(eventID: UIFF_LISTEN)
-
-            // エントリーの処理を呼び出す
-            var handler = handler  // mutatingを呼び出すためにvarにする
-            handler.OnUIFFEntry(lib: self, entry: entry, propIter: propIter)
-        }
-    }
-
-    // エントリートラバース用
-    // ************************************************************************
-    // MARK: - エントリーをentryListに積み込む
-    private mutating func appendEntry(entry: UiffEntry) {
-        // Entryのオフセットアドレスを記録する
-        let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
-
-        if offsetBytes > 0xffff {
-            FatalMsg("UIFF child chunk offset exceeds UInt16 max value")  // UIFF子チャンクのオフセットがUInt16の最大値を超える
-        }
-
-        self.entryList.enqueue(value: UInt16(offsetBytes))
-    }
-
-    // entryQueueに積み込むだけ
+    // MARK: EntryをトラバースしてentryQueueに積み込む
+    // ------------------------------------------------------------------------
+    // entryを再帰的にトラバース
     private mutating func traverseEntries(firstEntry: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
         var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
         while let entry = entryIter.next() {
-            appendEntry(entry: entry)
+            let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
+            self.entryList.enqueue(value: UInt16(offsetBytes))
         }
 
         // 子Entryを処理する
@@ -138,7 +90,7 @@ public struct UIFFLib {
         }
     }
 
-    // イベントの処理
+    // イベントの割り当て処理
     // ************************************************************************
     private mutating func processEvents() {
         // 現在のイベントのクリア
@@ -168,6 +120,42 @@ public struct UIFFLib {
                     break  // Eventはブロック
                 }
             }
+        }
+    }
+
+    // ユーザー向け関数
+    // ************************************************************************
+    // MARK: - 発生したUIイベントの登録
+    public mutating func notify(eventID: UInt16) {
+        if eventID == 0 {
+            FatalMsg("Invalid event ID")  // UIFF_ERR_EVENT_INVALID
+        }
+
+        self.eventQueue.enqueue(value: eventID)
+    }
+
+    // MARK: - UIFFの逐次処理
+    public mutating func run<T: UIFFEntryHandler>(handler: T) {
+        // イベントの割り当て処理
+        processEvents()  // eventキューが空になるまで処理される
+
+        // entryQueueの処理
+        for i in 0..<self.entryList.getLength() {
+            // entryQueueからエントリを取り出す
+            let offsetBytes = self.entryList.peek(i)
+            let entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
+
+            // propIterを用意する。使う時に便利用
+            var propIter = UiffPropIter(workMemory: entry.payload)
+
+            // システムで処理するプロパティは無視する
+            propIter.addBlackList(eventID: UIFF_CHILD)
+            propIter.addBlackList(eventID: UIFF_EVENTS)
+            propIter.addBlackList(eventID: UIFF_LISTEN)
+
+            // エントリーの処理を呼び出す
+            var handler = handler  // mutatingを呼び出すためにvarにする
+            handler.OnUIFFEntry(lib: self, entry: entry, propIter: propIter)
         }
     }
 
