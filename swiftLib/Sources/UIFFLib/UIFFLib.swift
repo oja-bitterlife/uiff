@@ -9,8 +9,6 @@ public struct UIFFLib {
     public var uiffWork: WorkMemory
     public var entryList: RingQueueMemory
     public var eventQueue: RingQueueMemory
-    public var vmMem: WorkMemory
-    public var vmStack: StackMemory
 
     // MARK: - 初期化
     // ************************************************************************
@@ -19,8 +17,6 @@ public struct UIFFLib {
         uiffWork: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
-        vmMemSize: Int,  // VMメモリのサイズ
-        vmStackSize: Int,  // VMのスタックサイズ
     ) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
@@ -38,8 +34,6 @@ public struct UIFFLib {
         let queueTotalByteSize =
             entryListSize * 2
             + eventQueueSize * 2
-            + vmMemSize * 2
-            + vmStackSize * 2
         let remainingByteSize = uiffWork.getByteSize() - queueTotalByteSize
 
         // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
@@ -63,12 +57,6 @@ public struct UIFFLib {
 
         addr += UInt(self.entryList.getByteSize())
         self.eventQueue = RingQueueMemory(address: addr, byteSize: eventQueueSize * 2)
-
-        addr += UInt(self.eventQueue.getByteSize())
-        self.vmMem = WorkMemory(address: addr, byteSize: vmMemSize * 2)
-
-        addr += UInt(self.vmMem.getByteSize())
-        self.vmStack = StackMemory(address: addr, byteSize: vmStackSize * 2)
     }
 
     // ユーザー向け関数

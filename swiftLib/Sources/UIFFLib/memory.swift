@@ -212,6 +212,10 @@ public struct StackMemory: QueueStack16 {
         public var stackMax: Int = 0  // スタックの最大使用量を追跡するためのデバッグ用変数
     #endif
 
+    public init(_ workMemory: WorkMemory) {
+        self.init(address: workMemory.getAddress(), byteSize: workMemory.getByteSize())
+    }
+
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
@@ -278,6 +282,10 @@ public struct RingQueueMemory: QueueStack16 {
     #if !EMBEDDED
         public var queueMax: Int = 0  // キューの最大使用量を追跡するためのデバッグ用変数
     #endif
+
+    public init(_ workMemory: WorkMemory) {
+        self.init(address: workMemory.getAddress(), byteSize: workMemory.getByteSize())
+    }
 
     public init(address: UInt, byteSize: Int) {
         if byteSize % 2 != 0 {

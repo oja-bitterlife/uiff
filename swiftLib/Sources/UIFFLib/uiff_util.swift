@@ -328,21 +328,6 @@ public struct UiffScript: UiffChunk {
             FatalMsg("UiffScript must start with UIFF_SCRIPT")  // UiffScript
         }
     }
-
-    public func run(lib: UIFFLib) -> Int {
-        // VMの初期化
-        var vm = PYVM(
-            codeAddress: payload.getAddress(),
-            vmMem: lib.vmMem,
-            vmStack: lib.vmStack
-        )
-
-        // VMの実行
-        while vm.step() {}
-
-        // VMの結果を返す
-        return vm.result()
-    }
 }
 
 public struct UiffColors: UiffChunk {

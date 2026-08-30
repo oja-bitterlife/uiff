@@ -33,6 +33,17 @@ public struct PYVM {
         self.stack = vmStack
     }
 
+    // step実行をHALTまで繰り返し、VMの実行結果を返す
+    @discardableResult
+    public mutating func run(callback: ((PYVM) -> Bool)? = nil) -> Int {
+        while self.step() {
+            if let shouldContinue = callback?(self), !shouldContinue {
+                break
+            }
+        }
+        return self.result()
+    }
+
     // VMの実行結果を取得
     public func result() -> Int {
         return Int(self.stack.peek())
