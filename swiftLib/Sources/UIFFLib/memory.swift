@@ -184,17 +184,17 @@ public struct WorkMemory: MemoryInt16 {
 public protocol QueueStack16: MemoryInt16 {
     func isEmpty() -> Bool
     func getLength() -> Int
-    func peek(index: Int) -> UInt16
+    func peek(_ index: Int) -> UInt16
     mutating func clear()  // キュー・スタックをクリアする
 
-    func contains(value: UInt16) -> Bool
+    func contains(_ value: UInt16) -> Bool
 }
 
 // 共通実装
 extension QueueStack16 {
-    public func contains(value: UInt16) -> Bool {
+    public func contains(_ value: UInt16) -> Bool {
         for i in 0..<self.getLength() {
-            if self.peek(index: i) == value {
+            if self.peek(i) == value {
                 return true
             }
         }
@@ -237,7 +237,7 @@ public struct StackMemory: QueueStack16 {
     public func getLength() -> Int {
         return self.sp
     }
-    public func peek(index: Int = 0) -> UInt16 {
+    public func peek(_ index: Int = 0) -> UInt16 {
         if index < 0 || index >= self.sp {
             FatalMsg("Index out of bounds")
         }
@@ -309,7 +309,7 @@ public struct RingQueueMemory: QueueStack16 {
     public func getLength() -> Int {
         return (self.qEnd - self.qBgn + self.capacity) % self.capacity
     }
-    public func peek(index: Int = 0) -> UInt16 {
+    public func peek(_ index: Int = 0) -> UInt16 {
         if self.qBgn == self.qEnd {
             FatalMsg("Queue underflow")
         }

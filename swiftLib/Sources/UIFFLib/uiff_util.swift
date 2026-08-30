@@ -28,9 +28,9 @@ public struct UiffFileHeader {
         return ptr[2]
     }
 
-    public var data: UnsafeMutablePointer<UInt8> {
+    public var data: UnsafeMutablePointer<UInt16> {
         let data_offset: UInt = 4 + 2  // magic + size
-        if let ptr = UnsafeMutablePointer<UInt8>(
+        if let ptr = UnsafeMutablePointer<UInt16>(
             bitPattern: UInt(bitPattern: self.ptr) + data_offset)
         {
             return ptr
@@ -191,7 +191,7 @@ public struct UiffPropIter {
             let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
             offsetBytes += prop.getChunkSize()
 
-            if !blackList.contains(value: prop.getChunkType()) {
+            if !blackList.contains(prop.getChunkType()) {
                 return prop
             }
         }

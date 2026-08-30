@@ -6,18 +6,35 @@ public protocol UIFFEntryHandler {
 // UI用のUIFFデータを扱う
 public struct UIFFLib {
     // MARK: - VM本体のプロパティ
-    public var uiffWork: WorkMemory
+    public var uiffMemory: WorkMemory
+
+    // 個別用途スライス
     public var entryList: RingQueueMemory
     public var eventQueue: RingQueueMemory
+    public var uiffData: WorkMemory
 
     // MARK: - 初期化
     // ************************************************************************
     public init(
-        uiffRomAddress: UInt,  // uiffデータのROM上の先頭アドレス
-        uiffWork: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
-        entryListSize: Int,  // 作用用メモリ内の中間Entryリストのサイズ
-        eventQueueSize: Int,  // 作用用メモリ内のイベントキューのサイズ
+        uiffRomAddress: UInt? = nil,  // uiffデータのROM上の先頭アドレス
+        uiffMemory: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
+        entryListSize: Int = 64,  // 作用用メモリ内の中間Entryリストのサイズ
+        eventQueueSize: Int = 32,  // 作用用メモリ内のイベントキューのサイズ
     ) {
+        // 各メモリ割り当て
+        self.uiffMemory = uiffMemory
+        self.entryList = RingQueueMemory(self.uiffMemory.pop(byteSize: entryListSize * 2))
+        self.eventQueue = RingQueueMemory(self.uiffMemory.pop(byteSize: eventQueueSize * 2))
+        self.uiffData = self.uiffMemory.slice(offset: 0)  // 一旦残り全部で初期化
+
+        // ROMからUIFFのデータを読み込む
+        if uiffRomAddress != nil {
+            loadUIFFData(uiffRomAddress: uiffRomAddress!)
+        }
+    }
+
+    // UIFFデータをROMから読み込む
+    public mutating func loadUIFFData(uiffRomAddress: UInt) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
         let magic_ok =
@@ -30,33 +47,17 @@ public struct UIFFLib {
             FatalMsg("Invalid UIFF file")  // UIFF_ERR_FILE_INVALID
         }
 
-        // workMemoryのサイズから、キューのサイズを引いた残りのサイズを計算する
-        let queueTotalByteSize =
-            entryListSize * 2
-            + eventQueueSize * 2
-        let remainingByteSize = uiffWork.getByteSize() - queueTotalByteSize
+        // データ置き場サイズ修正
+        self.uiffData = self.uiffMemory.slice(byteSize: Int(uiffHeader.size))
 
-        // uiffのサイズを取得し、memSizeと比較してuiffがメモリに収まるか確認する
-        let uiff_file_size = Int(uiffHeader.size)
-        if uiff_file_size > remainingByteSize {
-            FatalMsg("UIFF file too large")  // UIFF_ERR_FILE_TOO_LARGE
+        // uiffの内容をROMからEWRAMにコピーする(状態変化対応)
+        for i in 0..<Int(uiffHeader.size / 2) {
+            self.uiffData[i] = uiffHeader.data[i]
         }
 
-        // uiffの内容を書き換え可能メモリにコピーする(状態変化対応)
-        for i in 0..<uiff_file_size {
-            uiffWork.writeUInt8(offset: i, value: uiffHeader.data[i])
-        }
-
-        // uiff作業用メモリ
-        // 終端を確定させるためサイズはUIFFファイルサイズにする
-        self.uiffWork = uiffWork.slice(byteSize: uiff_file_size)
-
-        // 各用途のメモリを固定位置に配置する
-        var addr = uiffWork.getAddress() + UInt(remainingByteSize)
-        self.entryList = RingQueueMemory(address: addr, byteSize: entryListSize * 2)
-
-        addr += UInt(self.entryList.getByteSize())
-        self.eventQueue = RingQueueMemory(address: addr, byteSize: eventQueueSize * 2)
+        // ルートから子をトラバースして、entryQueueに積み込んでおく
+        // 入れ替え対応をしてないので基本的に処理順は変わらないはず
+        traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffData))
     }
 
     // ユーザー向け関数
@@ -72,17 +73,15 @@ public struct UIFFLib {
 
     // MARK: - UIFFの逐次処理
     public mutating func run<T: UIFFEntryHandler>(handler: T) {
-        // ルートから子をトラバースして、entryQueueに積み込む
-        traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffWork))
 
         // イベントの処理
         processEvents()  // eventキューが空になるまで処理される
 
         // entryQueueの処理
-        while !self.entryList.isEmpty() {  // entryQueueが空になるまで処理される
+        for i in 0..<self.entryList.getLength() {
             // entryQueueからエントリを取り出す
-            let offsetBytes = self.entryList.dequeue()
-            let entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+            let offsetBytes = self.entryList.peek(i)
+            let entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
 
             // propIterを用意する。使う時に便利用
             var propIter = UiffPropIter(workMemory: entry.payload)
@@ -103,7 +102,7 @@ public struct UIFFLib {
     // MARK: - エントリーをentryListに積み込む
     private mutating func appendEntry(entry: UiffEntry) {
         // Entryのオフセットアドレスを記録する
-        let offsetBytes = entry.chunkMemory.getAddress() - self.uiffWork.getAddress()
+        let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
 
         if offsetBytes > 0xffff {
             FatalMsg("UIFF child chunk offset exceeds UInt16 max value")  // UIFF子チャンクのオフセットがUInt16の最大値を超える
@@ -144,8 +143,8 @@ public struct UIFFLib {
     private mutating func processEvents() {
         // 現在のイベントのクリア
         for i in 0..<self.entryList.getLength() {
-            let offsetBytes = self.entryList.peek(index: i)
-            var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+            let offsetBytes = self.entryList.peek(i)
+            var entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
             entry.recvEventID = 0
         }
 
@@ -156,8 +155,8 @@ public struct UIFFLib {
 
             // 後ろから前へ、つまり子を優先する。子で消費したら親へは届かない
             for i in stride(from: self.entryList.getLength() - 1, through: 0, by: -1) {
-                let offsetBytes = self.entryList.peek(index: i)
-                var entry = UiffEntry(workMemory: self.uiffWork, offsetBytes: Int(offsetBytes))
+                let offsetBytes = self.entryList.peek(i)
+                var entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
 
                 // Listenerがあれば処理する
                 if hasListener(entry: entry, eventID: eventID) {
