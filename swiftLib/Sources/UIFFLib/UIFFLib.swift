@@ -1,6 +1,6 @@
 // OnEntryの呼び出しを、UIFFLibIFプロトコルに準拠した型のメソッドとして呼び出すように変更
 public protocol UIFFEntryHandler {
-    mutating func OnUIFFEntry(lib: UIFFLib, entry: UiffEntry, propIter: UiffPropIter)
+    mutating func OnUIFFEntry(lib: inout UIFFLib, entry: inout UiffEntry, propIter: UiffPropIter)
 }
 
 // UI用のUIFFデータを扱う
@@ -143,7 +143,7 @@ public struct UIFFLib {
         for i in 0..<self.entryList.getLength() {
             // entryQueueからエントリを取り出す
             let offsetBytes = self.entryList.peek(i)
-            let entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
+            var entry = UiffEntry(workMemory: self.uiffData, offsetBytes: Int(offsetBytes))
 
             // propIterを用意する。使う時に便利用
             var propIter = UiffPropIter(workMemory: entry.payload)
@@ -155,7 +155,7 @@ public struct UIFFLib {
 
             // エントリーの処理を呼び出す
             var handler = handler  // mutatingを呼び出すためにvarにする
-            handler.OnUIFFEntry(lib: self, entry: entry, propIter: propIter)
+            handler.OnUIFFEntry(lib: &self, entry: &entry, propIter: propIter)
         }
     }
 
