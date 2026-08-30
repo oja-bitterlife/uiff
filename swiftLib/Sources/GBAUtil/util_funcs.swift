@@ -131,7 +131,7 @@ public struct FADE_GBA {
     private init() {}  // 外部からのインスタンス化を禁止
 
     // フェードの初期化。スピードを決めておく
-    public mutating func initialize(fadeInSpeed: Int = 4, fadeOutSpeed: Int = 12) {
+    public mutating func initialize(fadeInSpeed: Int = 16, fadeOutSpeed: Int = 8) {
         self.fadeInSpeed = UInt8(max(0, min(255, fadeInSpeed)))
         self.fadeOutSpeed = UInt8(max(0, min(255, fadeOutSpeed)))
     }
