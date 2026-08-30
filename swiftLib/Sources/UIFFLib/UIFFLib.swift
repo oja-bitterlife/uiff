@@ -115,7 +115,7 @@ public struct UIFFLib {
                     entry.recvEventID = eventID
                 }
                 // Eventがあれば処理する
-                if hasEvent(entry: entry, eventID: eventID) {
+                if hasEventBlocker(entry: entry, eventID: eventID) {
                     entry.recvEventID = eventID
                     break  // Eventはブロック
                 }
@@ -160,7 +160,7 @@ public struct UIFFLib {
     }
 
     // MARK: - UIFFのイベントブロッカー有無チェック
-    public func hasEvent(entry: UiffEntry, eventID: UInt16) -> Bool {
+    public func hasEventBlocker(entry: UiffEntry, eventID: UInt16) -> Bool {
         var propIter = UiffPropIter(workMemory: entry.payload)
         while let prop = propIter.next() {
             if prop.getChunkType() == UIFF_EVENTS {
