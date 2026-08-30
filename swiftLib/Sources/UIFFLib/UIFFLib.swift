@@ -6,7 +6,7 @@ public protocol UIFFEntryHandler {
 // UI用のUIFFデータを扱う
 public struct UIFFLib {
     // MARK: - VM本体のプロパティ
-    public var uiffMemory: WorkMemory
+    public var uiffWorkMemory: WorkMemory
 
     // 個別用途スライス
     public var entryList: RingQueueMemory
@@ -16,16 +16,16 @@ public struct UIFFLib {
     // MARK: - 初期化
     // ************************************************************************
     public init(
-        uiffMemory: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
+        uiffWorkMemory: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int = 64,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int = 32,  // 作用用メモリ内のイベントキューのサイズ
         uiffRomAddress: UInt? = nil,  // uiffデータのROM上の先頭アドレス
     ) {
         // 各メモリ割り当て
-        self.uiffMemory = uiffMemory
-        self.entryList = RingQueueMemory(self.uiffMemory.pop(byteSize: entryListSize * 2))
-        self.eventQueue = RingQueueMemory(self.uiffMemory.pop(byteSize: eventQueueSize * 2))
-        self.uiffData = self.uiffMemory.slice(offset: 0)  // 一旦残り全部で初期化
+        self.uiffWorkMemory = uiffWorkMemory
+        self.entryList = RingQueueMemory(self.uiffWorkMemory.pop(byteSize: entryListSize * 2))
+        self.eventQueue = RingQueueMemory(self.uiffWorkMemory.pop(byteSize: eventQueueSize * 2))
+        self.uiffData = self.uiffWorkMemory.slice(offset: 0)  // 一旦残り全部で初期化
 
         // ROMからUIFFのデータを読み込む
         if uiffRomAddress != nil {
@@ -48,7 +48,7 @@ public struct UIFFLib {
         }
 
         // データ置き場サイズ修正
-        self.uiffData = self.uiffMemory.slice(byteSize: Int(uiffHeader.size))
+        self.uiffData = self.uiffWorkMemory.slice(byteSize: Int(uiffHeader.size))
 
         // uiffの内容をROMからEWRAMにコピーする(状態変化対応)
         for i in 0..<Int(uiffHeader.size / 2) {
