@@ -179,7 +179,7 @@ public struct WorkMemory: MemoryInt16 {
     }
 }
 
-// キュー・スタック
+// MARK: キュー・スタック
 // ****************************************************************************
 public protocol QueueStack16: MemoryInt16 {
     func isEmpty() -> Bool
