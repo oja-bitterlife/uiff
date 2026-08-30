@@ -16,10 +16,10 @@ public struct UIFFLib {
     // MARK: - 初期化
     // ************************************************************************
     public init(
-        uiffRomAddress: UInt? = nil,  // uiffデータのROM上の先頭アドレス
         uiffMemory: WorkMemory,  // 作業用メモリ。UIFFデータのコピーと各種キュー/VMが置かれる
         entryListSize: Int = 64,  // 作用用メモリ内の中間Entryリストのサイズ
         eventQueueSize: Int = 32,  // 作用用メモリ内のイベントキューのサイズ
+        uiffRomAddress: UInt? = nil,  // uiffデータのROM上の先頭アドレス
     ) {
         // 各メモリ割り当て
         self.uiffMemory = uiffMemory
@@ -29,12 +29,12 @@ public struct UIFFLib {
 
         // ROMからUIFFのデータを読み込む
         if uiffRomAddress != nil {
-            loadUIFFData(uiffRomAddress: uiffRomAddress!)
+            load(uiffRomAddress: uiffRomAddress!)
         }
     }
 
     // UIFFデータをROMから読み込む
-    public mutating func loadUIFFData(uiffRomAddress: UInt) {
+    public mutating func load(uiffRomAddress: UInt) {
         // uiffのヘッダを解析して、必要な情報を取得する
         let uiffHeader = UiffFileHeader(address: uiffRomAddress)
         let magic_ok =
