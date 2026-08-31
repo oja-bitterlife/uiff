@@ -1,8 +1,3 @@
-// OnEntryの呼び出しを、UIFFLibIFプロトコルに準拠した型のメソッドとして呼び出すように変更
-public protocol UIFFEntryHandler {
-    mutating func OnUIFFEntry(lib: inout UIFFLib, entry: inout UiffEntry, propIter: UiffPropIter)
-}
-
 // UI用のUIFFデータを扱う
 public struct UIFFLib {
     // MARK: - VM本体のプロパティ
@@ -63,13 +58,14 @@ public struct UIFFLib {
     // MARK: EntryをトラバースしてentryQueueに積み込む
     // ------------------------------------------------------------------------
     // entryを再帰的にトラバース
-    private mutating func traverseEntries(firstEntry: UiffEntry) {
+    private func traverseEntries(firstEntry: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
+        var entryList = self.entryList
         var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
         while let entry = entryIter.next() {
             let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
-            self.entryList.enqueue(value: UInt16(offsetBytes))
+            entryList.enqueue(value: UInt16(offsetBytes))
         }
 
         // 子Entryを処理する
@@ -92,7 +88,7 @@ public struct UIFFLib {
 
     // イベントの割り当て処理
     // ************************************************************************
-    private mutating func processEvents() {
+    private func processEvents() {
         // 現在のイベントのクリア
         for i in 0..<self.entryList.getLength() {
             let offsetBytes = self.entryList.peek(i)
@@ -101,8 +97,9 @@ public struct UIFFLib {
         }
 
         // イベントをEntryに配っていく
-        while !self.eventQueue.isEmpty() {
-            let eventID = self.eventQueue.dequeue()
+        var eventQueue = self.eventQueue
+        while !eventQueue.isEmpty() {
+            let eventID = eventQueue.dequeue()
             if eventID == 0 { continue }  // 無効なイベントは無視する
 
             // 後ろから前へ、つまり子を優先する。子で消費したら親へは届かない
@@ -126,16 +123,19 @@ public struct UIFFLib {
     // ユーザー向け関数
     // ************************************************************************
     // MARK: - 発生したUIイベントの登録
-    public mutating func notify(eventID: UInt16) {
+    public func notify(eventID: UInt16) {
         if eventID == 0 {
             FatalMsg("Invalid event ID")  // UIFF_ERR_EVENT_INVALID
         }
 
-        self.eventQueue.enqueue(value: eventID)
+        var eventQueue = self.eventQueue
+        eventQueue.enqueue(value: eventID)
     }
 
     // MARK: - UIFFの逐次処理
-    public mutating func run<T: UIFFEntryHandler>(handler: T) {
+    public func run<T>(
+        caller: inout T, callback: (inout T, inout UiffEntry, UiffPropIter) -> Void
+    ) {
         // イベントの割り当て処理
         processEvents()  // eventキューが空になるまで処理される
 
@@ -154,8 +154,7 @@ public struct UIFFLib {
             propIter.addBlackList(eventID: UIFF_LISTEN)
 
             // エントリーの処理を呼び出す
-            var handler = handler  // mutatingを呼び出すためにvarにする
-            handler.OnUIFFEntry(lib: &self, entry: &entry, propIter: propIter)
+            callback(&caller, &entry, propIter)
         }
     }
 
