@@ -143,8 +143,7 @@ public struct UiffEntryIter {
         self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
-    public func next() -> UiffEntry? {
-        var chunkMemory = self.chunkMemory
+    public mutating func next() -> UiffEntry? {
         while chunkMemory.getByteSize() > 0 {
             let entry = UiffEntry(workMemory: chunkMemory)
             chunkMemory.pop(byteSize: entry.getChunkSize())
@@ -185,8 +184,7 @@ public struct UiffPropIter {
         blackList.clear()
     }
 
-    public func next() -> UiffProp? {
-        var chunkMemory = self.chunkMemory
+    public mutating func next() -> UiffProp? {
         while chunkMemory.getByteSize() > 0 {
             let prop = UiffProp(workMemory: chunkMemory)
             chunkMemory.pop(byteSize: prop.getChunkSize())

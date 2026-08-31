@@ -52,18 +52,17 @@ public struct UIFFLib {
 
         // ルートから子をトラバースして、entryQueueに積み込んでおく
         // 入れ替え対応をしてないので基本的に処理順は変わらないはず
-        traverseEntries(firstEntry: UiffEntry(workMemory: self.uiffData))
+        traverseEntries(entries: UiffEntry(workMemory: self.uiffData))
     }
 
     // MARK: EntryをトラバースしてentryQueueに積み込む
     // ------------------------------------------------------------------------
     // entryを再帰的にトラバース
-    private func traverseEntries(firstEntry: UiffEntry) {
+    private func traverseEntries(entries: UiffEntry) {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
         var entryList = self.entryList
-
-        var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        var entryIter = UiffEntryIter(workMemory: entries.chunkMemory)
         while let entry = entryIter.next() {
             let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
             entryList.enqueue(UInt16(offsetBytes))
@@ -71,16 +70,16 @@ public struct UIFFLib {
 
         // 子Entryを処理する
         // ----------------------------------------------------------
-        entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
+        entryIter = UiffEntryIter(workMemory: entries.chunkMemory)
         while let entry = entryIter.next() {
             // propertiesからプロパティを取得する
-            let propIter = UiffPropIter(workMemory: entry.payload)
+            var propIter = UiffPropIter(workMemory: entry.payload)
             while let prop = propIter.next() {
                 // 子があれば再帰
                 if prop.getChunkType() == UInt16(UIFF_CHILD) {
                     let children = UiffChild(workMemory: prop.chunkMemory)
                     if let first_child = children.getFirstEntry() {
-                        traverseEntries(firstEntry: first_child)  // 再帰呼び出し
+                        traverseEntries(entries: first_child)  // 再帰呼び出し
                     }
                 }
             }
@@ -169,7 +168,7 @@ public struct UIFFLib {
 
     // MARK: - UIFFのイベントブロッカー有無チェック
     public func hasEventBlocker(entry: UiffEntry, eventID: UInt16) -> Bool {
-        let propIter = UiffPropIter(workMemory: entry.payload)
+        var propIter = UiffPropIter(workMemory: entry.payload)
         while let prop = propIter.next() {
             if prop.getChunkType() == UIFF_EVENTS {
                 let events = UiffEvents(workMemory: prop.chunkMemory)
@@ -183,7 +182,7 @@ public struct UIFFLib {
 
     // MARK: - UIFFのイベントリスナーの有無チェック
     public func hasListener(entry: UiffEntry, eventID: UInt16) -> Bool {
-        let propIter = UiffPropIter(workMemory: entry.payload)
+        var propIter = UiffPropIter(workMemory: entry.payload)
         while let prop = propIter.next() {
             if prop.getChunkType() == UIFF_LISTEN {
                 let listen = UiffListen(workMemory: prop.chunkMemory)
