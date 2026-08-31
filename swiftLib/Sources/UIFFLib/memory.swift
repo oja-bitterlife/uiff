@@ -248,10 +248,10 @@ public struct StackMemory: QueueStack16 {
     // 同じメモリ内に管理領域を入れる
     var sp: Int {
         get {
-            return Int(ptr[TYPES.SP_OFFSET.rawValue])
+            return Int(rawPtr[TYPES.SP_OFFSET.rawValue])
         }
         set {
-            ptr[TYPES.SP_OFFSET.rawValue] = UInt16(newValue)
+            rawPtr[TYPES.SP_OFFSET.rawValue] = UInt16(newValue)
         }
     }
 
