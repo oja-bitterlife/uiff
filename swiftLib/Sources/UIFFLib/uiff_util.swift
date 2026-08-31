@@ -143,7 +143,8 @@ public struct UiffEntryIter {
         self.chunkMemory = workMemory.slice(offset: offsetBytes)
     }
 
-    public mutating func next() -> UiffEntry? {
+    public func next() -> UiffEntry? {
+        var chunkMemory = self.chunkMemory
         while chunkMemory.getByteSize() > 0 {
             let entry = UiffEntry(workMemory: chunkMemory)
             chunkMemory.pop(byteSize: entry.getChunkSize())
@@ -158,7 +159,6 @@ public struct UiffEntryIter {
 // プロパティ管理用チャンク
 public struct UiffPropIter {
     public private(set) var chunkMemory: WorkMemory
-    private var offsetBytes: Int
 
     /// ブラックリスト。ここに含まれるchunkTypeは無視する。最大8個まで
     private var blackListBuf:
@@ -169,8 +169,7 @@ public struct UiffPropIter {
     private var blackList: RingQueueMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
-        self.chunkMemory = workMemory
-        self.offsetBytes = offsetBytes
+        self.chunkMemory = workMemory.slice(offset: offsetBytes)
 
         // 8個のUInt16を格納するリングバッファ
         let blackListPtr = withUnsafeMutablePointer(to: &self.blackListBuf) { ptr in
@@ -186,10 +185,11 @@ public struct UiffPropIter {
         blackList.clear()
     }
 
-    public mutating func next() -> UiffProp? {
-        while chunkMemory.getByteSize() > offsetBytes {
-            let prop = UiffProp(workMemory: chunkMemory, offsetBytes: offsetBytes)
-            offsetBytes += prop.getChunkSize()
+    public func next() -> UiffProp? {
+        var chunkMemory = self.chunkMemory
+        while chunkMemory.getByteSize() > 0 {
+            let prop = UiffProp(workMemory: chunkMemory)
+            chunkMemory.pop(byteSize: prop.getChunkSize())
 
             if !blackList.contains(prop.getChunkType()) {
                 return prop
