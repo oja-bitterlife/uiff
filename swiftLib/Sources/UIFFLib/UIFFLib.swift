@@ -133,7 +133,7 @@ public struct UIFFLib {
     }
 
     // MARK: - UIFFの逐次処理
-    public func run(onEntry: (inout UiffEntry, UiffPropIter) -> Void) {
+    public func run<T>(caller: inout T, onEntry: (inout T, inout UiffEntry, UiffPropIter) -> Void) {
         // イベントの割り当て処理
         processEvents()  // eventキューが空になるまで処理される
 
@@ -152,7 +152,7 @@ public struct UIFFLib {
             propIter.addBlackList(eventID: UIFF_LISTEN)
 
             // エントリーの処理を呼び出す
-            onEntry(&entry, propIter)
+            onEntry(&caller, &entry, propIter)
         }
     }
 
