@@ -205,9 +205,14 @@ extension QueueStack16 {
 // MARK: - スタック操作
 // ------------------------------------------------------------------
 public struct StackMemory: QueueStack16 {
+    enum TYPES: Int {
+        case SP_OFFSET
+        case MANAGE_BUF_END
+    }
+
     public private(set) var ptr: UnsafeMutablePointer<UInt16>
-    public private(set) var capacity: Int
-    private var sp: Int
+    public let capacity: Int
+
     #if !EMBEDDED
         public var stackMax: Int = 0  // スタックの最大使用量を追跡するためのデバッグ用変数
     #endif
@@ -220,14 +225,28 @@ public struct StackMemory: QueueStack16 {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
         }
+        if byteSize < TYPES.MANAGE_BUF_END.rawValue * 2 {  // 管理領域分は必要
+            FatalMsg("Byte size is too small")
+        }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
             FatalMsg("Invalid memory address")
         }
-        self.capacity = byteSize / 2  // UInt16のサイズで割る
+
+        self.capacity = (byteSize - TYPES.MANAGE_BUF_END.rawValue * 2) / 2  // UInt16のサイズで割る
         self.sp = 0
+    }
+
+    // 同じメモリ内に管理領域を入れる
+    var sp: Int {
+        get {
+            return Int(ptr[TYPES.SP_OFFSET.rawValue])
+        }
+        set {
+            ptr[TYPES.SP_OFFSET.rawValue] = UInt16(newValue)
+        }
     }
 
     // IFの実装
@@ -241,7 +260,7 @@ public struct StackMemory: QueueStack16 {
         if index < 0 || index >= self.sp {
             FatalMsg("Index out of bounds")
         }
-        return self.ptr[self.sp - 1 - index]
+        return self.ptr[self.sp - 1 - index + TYPES.MANAGE_BUF_END.rawValue]
     }
     public mutating func clear() {
         self.sp = 0
@@ -253,7 +272,7 @@ public struct StackMemory: QueueStack16 {
             FatalMsg("Stack overflow")
         }
 
-        self.ptr[self.sp] = value
+        self.ptr[self.sp + TYPES.MANAGE_BUF_END.rawValue] = value
         self.sp += 1
         #if !EMBEDDED
             if self.sp > self.stackMax {
@@ -267,18 +286,22 @@ public struct StackMemory: QueueStack16 {
         }
 
         self.sp -= 1
-        return self.ptr[self.sp]
+        return self.ptr[self.sp + TYPES.MANAGE_BUF_END.rawValue]
     }
 }
 
 // MARK: - キュー操作(Ringバッファ)
 // ------------------------------------------------------------------
 public struct RingQueueMemory: QueueStack16 {
-    public private(set) var ptr: UnsafeMutablePointer<UInt16>
-    public private(set) var capacity: Int
+    enum TYPES: Int {
+        case QBGN_OFFSET
+        case QEND_OFFSET
+        case MANAGE_BUF_END
+    }
 
-    private var qBgn: Int
-    private var qEnd: Int
+    public private(set) var ptr: UnsafeMutablePointer<UInt16>
+    public let capacity: Int
+
     #if !EMBEDDED
         public var queueMax: Int = 0  // キューの最大使用量を追跡するためのデバッグ用変数
     #endif
@@ -291,15 +314,40 @@ public struct RingQueueMemory: QueueStack16 {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
         }
+        if byteSize > UInt16.max {  // 管理領域をケチったので16bit以下で
+            FatalMsg("Byte size exceeds UInt16 capacity")
+        }
+        if byteSize < TYPES.MANAGE_BUF_END.rawValue * 2 {  // 管理領域分以上は必要
+            FatalMsg("Byte size is too small")
+        }
 
         if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
             self.ptr = ptr
         } else {
             FatalMsg("Invalid memory address")
         }
-        self.capacity = byteSize / 2  // UInt16のサイズで割る
+
+        self.capacity = (byteSize - TYPES.MANAGE_BUF_END.rawValue * 2) / 2
         self.qBgn = 0
         self.qEnd = 0
+    }
+
+    // 同じメモリ内に管理領域を入れる
+    public var qBgn: Int {
+        get {
+            return Int(ptr[TYPES.QBGN_OFFSET.rawValue])
+        }
+        set {
+            ptr[TYPES.QBGN_OFFSET.rawValue] = UInt16(newValue)
+        }
+    }
+    public var qEnd: Int {
+        get {
+            return Int(ptr[TYPES.QEND_OFFSET.rawValue])
+        }
+        set {
+            ptr[TYPES.QEND_OFFSET.rawValue] = UInt16(newValue)
+        }
     }
 
     // IFの実装
@@ -313,8 +361,7 @@ public struct RingQueueMemory: QueueStack16 {
         if self.qBgn == self.qEnd {
             FatalMsg("Queue underflow")
         }
-
-        return self.ptr[(self.qBgn + index) % self.capacity]
+        return self.ptr[(self.qBgn + index) % self.capacity + TYPES.MANAGE_BUF_END.rawValue]
     }
     public mutating func clear() {
         self.qBgn = 0
@@ -327,7 +374,7 @@ public struct RingQueueMemory: QueueStack16 {
             FatalMsg("Queue overflow")
         }
 
-        self.ptr[self.qEnd] = value
+        self.ptr[self.qEnd + TYPES.MANAGE_BUF_END.rawValue] = value
         self.qEnd = (self.qEnd + 1) % self.capacity
         #if !EMBEDDED
             let currentSize = (self.qEnd - self.qBgn + self.capacity) % self.capacity
@@ -341,7 +388,7 @@ public struct RingQueueMemory: QueueStack16 {
             FatalMsg("Queue underflow")
         }
 
-        let value = self.ptr[self.qBgn]
+        let value = self.ptr[self.qBgn + TYPES.MANAGE_BUF_END.rawValue]
         self.qBgn = (self.qBgn + 1) % self.capacity
         return value
     }
