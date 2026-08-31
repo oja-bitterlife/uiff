@@ -129,7 +129,7 @@ public struct PYVM {
     @inline(__always)
     public mutating func PUSHA() {
         let addr = self.stack.pop()
-        self.stack.push(value: self.mem[Int(addr)])
+        self.stack.push(self.mem[Int(addr)])
         #if !EMBEDDED
             self.op_trace("PUSHA \(self.mem[Int(addr)]) from VM[\(Int(addr))]")
         #endif
@@ -138,7 +138,7 @@ public struct PYVM {
     public mutating func PUSHB() {
         let value = self.code[self.pc]
         self.pc += 1
-        self.stack.push(value: UInt16(value))
+        self.stack.push(UInt16(value))
         #if !EMBEDDED
             self.op_trace("PUSHB \(value)")
         #endif
@@ -147,7 +147,7 @@ public struct PYVM {
     public mutating func PUSHW() {
         let value = UInt16(self.code[self.pc + 1]) << 8 | UInt16(self.code[self.pc])
         self.pc += 2
-        self.stack.push(value: value)
+        self.stack.push(value)
         #if !EMBEDDED
             self.op_trace("PUSHW \(value)")
         #endif
@@ -164,7 +164,7 @@ public struct PYVM {
     @inline(__always)
     public mutating func DUP() {
         let value = self.stack.peek()
-        self.stack.push(value: value)
+        self.stack.push(value)
         #if !EMBEDDED
             self.op_trace("DUP \(value)")
         #endif
@@ -173,9 +173,9 @@ public struct PYVM {
     public mutating func OVER() {
         let top1 = self.stack.pop()
         let top2 = self.stack.pop()
-        self.stack.push(value: top2)
-        self.stack.push(value: top1)
-        self.stack.push(value: top2)
+        self.stack.push(top2)
+        self.stack.push(top1)
+        self.stack.push(top2)
         #if !EMBEDDED
             self.op_trace("OVER [\(top2), \(top1)] => [\(top2), \(top1), \(top2)]")
         #endif
@@ -184,8 +184,8 @@ public struct PYVM {
     public mutating func SWP() {
         let top1 = self.stack.pop()
         let top2 = self.stack.pop()
-        self.stack.push(value: top1)
-        self.stack.push(value: top2)
+        self.stack.push(top1)
+        self.stack.push(top2)
         #if !EMBEDDED
             self.op_trace("SWP [\(top2), \(top1)] => [\(top1), \(top2)]")
         #endif
@@ -248,7 +248,7 @@ public struct PYVM {
         }
 
         // 比較結果をスタックにプッシュ
-        self.stack.push(value: result)
+        self.stack.push(result)
 
         #if !EMBEDDED
             let subcodes = ["==", "!=", "<", "<=", ">", ">="]
@@ -261,7 +261,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left & right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("AND \(left) & \(right) => \(result)")
         #endif
@@ -271,7 +271,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left | right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("OR \(left) | \(right) => \(result)")
         #endif
@@ -281,7 +281,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left ^ right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("XOR \(left) ^ \(right) => \(result)")
         #endif
@@ -292,7 +292,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left &+ right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("ADD \(left) + \(right) => \(result)")
         #endif
@@ -302,7 +302,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left &- right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("SUB \(left) - \(right) => \(result)")
         #endif
@@ -312,7 +312,7 @@ public struct PYVM {
         let right = self.stack.pop()
         let left = self.stack.pop()
         let result = left &* right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("MUL \(left) * \(right) => \(result)")
         #endif
@@ -328,7 +328,7 @@ public struct PYVM {
             FatalMsg("Division by zero")  // ゼロ除算の場合はエラー終了
         }
         let result = left / right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("DIV \(left) / \(right) => \(result)")
         #endif
@@ -344,7 +344,7 @@ public struct PYVM {
             FatalMsg("Division by zero")  // ゼロ除算の場合はエラー終了
         }
         let result = left % right
-        self.stack.push(value: result)
+        self.stack.push(result)
         #if !EMBEDDED
             self.op_trace("MOD \(left) % \(right) => \(result)")
         #endif

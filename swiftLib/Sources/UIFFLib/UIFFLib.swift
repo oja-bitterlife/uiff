@@ -62,10 +62,11 @@ public struct UIFFLib {
         // 兄弟Entryを先に処理する
         // ----------------------------------------------------------
         var entryList = self.entryList
+
         var entryIter = UiffEntryIter(workMemory: firstEntry.chunkMemory)
         while let entry = entryIter.next() {
             let offsetBytes = entry.chunkMemory.getAddress() - self.uiffData.getAddress()
-            entryList.enqueue(value: UInt16(offsetBytes))
+            entryList.enqueue(UInt16(offsetBytes))
         }
 
         // 子Entryを処理する
@@ -129,7 +130,7 @@ public struct UIFFLib {
         }
 
         var eventQueue = self.eventQueue
-        eventQueue.enqueue(value: eventID)
+        eventQueue.enqueue(eventID)
     }
 
     // MARK: - UIFFの逐次処理

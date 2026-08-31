@@ -248,7 +248,7 @@ public struct StackMemory: QueueStack16 {
     }
 
     // スタック操作
-    public mutating func push(value: UInt16) {
+    public mutating func push(_ value: UInt16) {
         if self.sp >= self.capacity {
             FatalMsg("Stack overflow")
         }
@@ -322,7 +322,7 @@ public struct RingQueueMemory: QueueStack16 {
     }
 
     // キュー操作
-    public mutating func enqueue(value: UInt16) {
+    public mutating func enqueue(_ value: UInt16) {
         if (self.qEnd + 1) % self.capacity == self.qBgn {
             FatalMsg("Queue overflow")
         }

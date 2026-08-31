@@ -179,7 +179,7 @@ public struct UiffPropIter {
     }
 
     public mutating func addBlackList(eventID: UInt16) {
-        blackList.enqueue(value: eventID)
+        blackList.enqueue(eventID)
     }
     public mutating func clearBlackList() {
         blackList.clear()
