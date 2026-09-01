@@ -43,6 +43,7 @@ public struct UiffFileHeader {
 // uiffチャンク共通
 // ****************************************************************************
 public protocol UiffChunk {
+    init(workMemory: WorkMemory, offsetBytes: Int)
     var chunkMemory: WorkMemory { get }
     var payload: WorkMemory { get }
 }
@@ -190,6 +191,26 @@ public struct UiffPropIter {
             chunkMemory.pop(byteSize: prop.getChunkSize())
 
             if !blackList.contains(prop.getChunkType()) {
+                return prop
+            }
+        }
+        return nil
+    }
+
+    public func find<T: UiffChunk>(typeID: UInt16, _: T.Type) -> T? {
+        var tmp = UiffPropIter(workMemory: chunkMemory)
+        while let prop = tmp.next() {
+            if prop.getChunkType() == typeID {
+                return T(workMemory: prop.chunkMemory, offsetBytes: 0)
+            }
+        }
+        return nil
+    }
+
+    public func find(typeID: UInt16) -> UiffProp? {
+        var tmp = UiffPropIter(workMemory: chunkMemory)
+        while let prop = tmp.next() {
+            if prop.getChunkType() == typeID {
                 return prop
             }
         }
@@ -360,10 +381,10 @@ public struct UiffText: UiffChunk {
     }
 
     public func getTextLength() -> Int {
-        return payload.getByteSize() - 2  // textLengthの2バイトを減らす
+        return Int(payload.readUInt16(offset: 0))  // payloadの最初の2byte
     }
 
-    public func getTextAddr() -> UInt {
-        return payload.getAddress() + 2  // textLengthの2バイトを飛ばす
+    public func textAt(_ index: Int) -> UInt8 {
+        return payload.readUInt8(offset: 2 + index)
     }
 }
