@@ -9,34 +9,26 @@ public let ENTRY_TYPE_SELECT: UInt16 = 4
 // ファイルヘッダー用
 // ****************************************************************************
 public struct UiffFileHeader {
-    private let ptr: UnsafeMutablePointer<UInt16>
+    private let ptr: UnsafeMutableRawPointer
 
-    public init(address: UInt) {
-        if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
-            self.ptr = ptr
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+    public init(address: UnsafeMutableRawPointer) {
+        ptr = address
     }
 
     public var magic: UInt {
-        return UInt(ptr[0] & 0xff) | (UInt(ptr[0] >> 8) << 8) | (UInt(ptr[1] & 0xff) << 16)
-            | (UInt(ptr[1] >> 8) << 24)
+        return UInt(ptr.load(fromByteOffset: 0, as: UInt16.self) & 0xff)
+            | (UInt(ptr.load(fromByteOffset: 0, as: UInt16.self) >> 8) << 8)
+            | (UInt(ptr.load(fromByteOffset: 2, as: UInt16.self) & 0xff) << 16)
+            | (UInt(ptr.load(fromByteOffset: 2, as: UInt16.self) >> 8) << 24)
     }
 
     public var size: UInt16 {
-        return ptr[2]
+        return ptr.load(fromByteOffset: 4, as: UInt16.self)
     }
 
     public var data: UnsafeMutablePointer<UInt16> {
-        let data_offset: UInt = 4 + 2  // magic + size
-        if let ptr = UnsafeMutablePointer<UInt16>(
-            bitPattern: UInt(bitPattern: self.ptr) + data_offset)
-        {
-            return ptr
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+        let dataOffset = 6  // 4バイト(magic) + 2バイト(size)
+        return ptr.advanced(by: dataOffset).bindMemory(to: UInt16.self, capacity: 1)
     }
 }
 
