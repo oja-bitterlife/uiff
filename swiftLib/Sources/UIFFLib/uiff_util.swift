@@ -40,6 +40,10 @@ public protocol UiffChunk {
     var payload: WorkMemory { get }
 }
 extension UiffChunk {
+    public init<T: UiffChunk>(from: T) where T: UiffChunk {
+        self.init(workMemory: from.chunkMemory, offsetBytes: 0)
+    }
+
     public func getChunkType() -> UInt16 {
         return chunkMemory[0]
     }
