@@ -57,8 +57,8 @@ private struct TileBase {
         // DMAでパレットデータを転送する
         let palOffset = palBlock * (paletteNum * 2) + (isObj ? 0x200 : 0)
         DMA3_UInt(
-            srcAddr: ROM_ADDR + UInt(paletteDataOffset),
-            dstAddr: PALETTE_ADDR + UInt(palOffset),
+            srcAddr: UnsafeMutableRawPointer(bitPattern: ROM_ADDR + UInt(paletteDataOffset))!,
+            dstAddr: UnsafeMutableRawPointer(bitPattern: PALETTE_ADDR + UInt(palOffset))!,
             size: paletteNum * 2
         )
     }
@@ -97,8 +97,9 @@ private struct TileBase {
         // タイルデータの転送
         for by in 0..<blockH {
             DMA3_UInt(
-                srcAddr: tileData.getAddress() + UInt(by * tileBlockSize * blockW),
-                dstAddr: VRAM_ADDR + UInt(tileVramOffset + by * tileBlockSize * 32),
+                srcAddr: tileData.getAddress(offset: by * tileBlockSize * blockW),
+                dstAddr: UnsafeMutableRawPointer(
+                    bitPattern: VRAM_ADDR + UInt(tileVramOffset + by * tileBlockSize * 32))!,
                 size: tileBlockSize * blockW
             )
         }

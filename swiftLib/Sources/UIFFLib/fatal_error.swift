@@ -112,7 +112,7 @@ public struct I2AIter {
     }
 
     // 残りをメモリに書き出し書き込んだバイト数を返す
-    public func WriteBuf(address: UInt) -> Int {
+    public func WriteBuf(address: UnsafeMutableRawPointer) -> Int {
         let buf = WorkMemory(address: address, byteSize: 256)
 
         var iter = self

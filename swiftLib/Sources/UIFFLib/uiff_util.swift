@@ -167,7 +167,7 @@ public struct UiffPropIter {
         let blackListPtr = withUnsafeMutablePointer(to: &self.blackListBuf) { ptr in
             UnsafeMutableRawPointer(ptr).assumingMemoryBound(to: UInt8.self)
         }
-        self.blackList = RingQueueMemory(address: UInt(bitPattern: blackListPtr), byteSize: 8 * 2)
+        self.blackList = RingQueueMemory(address: blackListPtr, byteSize: 8 * 2)
     }
 
     public mutating func addBlackList(eventID: UInt16) {

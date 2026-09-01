@@ -24,11 +24,11 @@ public struct PYVM {
 
     // MARK: - 初期化
     public init(
-        codeAddress: UInt,
+        codeAddress: UnsafeMutableRawPointer,
         vmMem: WorkMemory,
         vmStack: StackMemory,
     ) {
-        self.code = UnsafePointer<UInt8>(bitPattern: codeAddress)!
+        self.code = UnsafePointer<UInt8>(codeAddress.assumingMemoryBound(to: UInt8.self))
         self.mem = vmMem
         self.stack = vmStack
     }

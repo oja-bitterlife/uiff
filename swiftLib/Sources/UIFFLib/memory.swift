@@ -8,13 +8,13 @@ public protocol MemoryInt16 {
     var ptr: UnsafeMutablePointer<UInt16> { get }
     var capacity: Int { get }
 
-    func getAddress() -> UInt
+    func getAddress(offset: Int) -> UnsafeMutableRawPointer
     func getByteSize() -> Int
 }
 
 extension MemoryInt16 {
-    public func getAddress() -> UInt {
-        return UInt(bitPattern: ptr)
+    public func getAddress(offset: Int = 0) -> UnsafeMutableRawPointer {
+        return UnsafeMutableRawPointer(ptr).advanced(by: offset)
     }
     public func getByteSize() -> Int {
         return capacity * 2  // バイト単位で返す
@@ -23,16 +23,12 @@ extension MemoryInt16 {
         return capacity
     }
 
-    // メモリダイレクトアクセス用
     public func getDirectPtr<T>(as type: T.Type, offset: Int = 0) -> UnsafeMutablePointer<T> {
-        if offset < 0 || offset >= self.getByteSize() {  // out of bounds
+        if offset < 0 || offset >= self.getByteSize() {
             FatalMsg("Memory offset out of bounds")
         }
-        if let bytePtr = UnsafeMutablePointer<T>(bitPattern: self.getAddress() + UInt(offset)) {
-            return bytePtr
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+        let rawPtr = UnsafeMutableRawPointer(ptr).advanced(by: offset)
+        return rawPtr.bindMemory(to: type, capacity: 1)
     }
 
     // デバッグ用
@@ -64,17 +60,13 @@ public struct WorkMemory: MemoryInt16 {
     public private(set) var ptr: UnsafeMutablePointer<UInt16>
     public private(set) var capacity: Int
 
-    public init(address: UInt, byteSize: Int) {
+    public init(address: UnsafeMutableRawPointer, byteSize: Int) {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
         }
 
-        if let ptr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
-            self.ptr = ptr
-            self.capacity = byteSize / 2  // UInt16のサイズで割る
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+        self.ptr = address.bindMemory(to: UInt16.self, capacity: byteSize / 2)
+        self.capacity = byteSize / 2  // UInt16のサイズで割る
     }
 
     // メモリの一部を切り出す
@@ -83,7 +75,7 @@ public struct WorkMemory: MemoryInt16 {
         if offset < 0 || byteSize < 0 || (offset + byteSize) > self.getByteSize() {
             FatalMsg("Invalid memory range")
         }
-        return WorkMemory(address: self.getAddress() + UInt(offset), byteSize: byteSize)
+        return WorkMemory(address: self.getAddress(offset: offset), byteSize: byteSize)
     }
     public func slice(offset: Int) -> WorkMemory {
         return slice(offset: offset, byteSize: self.getByteSize() - offset)
@@ -172,10 +164,7 @@ public struct WorkMemory: MemoryInt16 {
     // 構造体単位でアクセスする
     // --------------------------------------------------------------
     public func bind<T>(_ type: T.Type) -> UnsafeMutablePointer<T> {
-        guard let ptr = UnsafeMutablePointer<T>(bitPattern: getAddress()) else {
-            FatalMsg("Invalid memory address")
-        }
-        return ptr
+        return self.getAddress().assumingMemoryBound(to: T.self)
     }
 }
 
@@ -227,7 +216,7 @@ public struct StackMemory: QueueStack16 {
         self.init(address: workMemory.getAddress(), byteSize: workMemory.getByteSize())
     }
 
-    public init(address: UInt, byteSize: Int) {
+    public init(address: UnsafeMutableRawPointer, byteSize: Int) {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
         }
@@ -235,11 +224,7 @@ public struct StackMemory: QueueStack16 {
             FatalMsg("Byte size is too small")
         }
 
-        if let rawPtr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
-            self.rawPtr = rawPtr
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+        self.rawPtr = address.bindMemory(to: UInt16.self, capacity: byteSize / 2)
 
         self.capacity = (byteSize - TYPES.MANAGE_BUF_END.rawValue * 2) / 2  // UInt16のサイズで割る
         self.sp = 0
@@ -322,7 +307,7 @@ public struct RingQueueMemory: QueueStack16 {
         self.init(address: workMemory.getAddress(), byteSize: workMemory.getByteSize())
     }
 
-    public init(address: UInt, byteSize: Int) {
+    public init(address: UnsafeMutableRawPointer, byteSize: Int) {
         if byteSize % 2 != 0 {
             FatalMsg("Byte size must be even")
         }
@@ -333,11 +318,7 @@ public struct RingQueueMemory: QueueStack16 {
             FatalMsg("Byte size is too small")
         }
 
-        if let rawPtr = UnsafeMutablePointer<UInt16>(bitPattern: address) {
-            self.rawPtr = rawPtr
-        } else {
-            FatalMsg("Invalid memory address")
-        }
+        self.rawPtr = address.bindMemory(to: UInt16.self, capacity: byteSize / 2)
 
         self.capacity = (byteSize - TYPES.MANAGE_BUF_END.rawValue * 2) / 2
         self.qBgn = 0

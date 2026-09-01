@@ -10,18 +10,18 @@ public let OAM_ADDR: UInt = 0x0700_0000
 
 // concurrency safe global variable
 nonisolated(unsafe) public let ROM = WorkMemory(
-    address: ROM_ADDR, byteSize: 8 * 1024 * 1024)  // ROM: 8MB
+    address: UnsafeMutableRawPointer(bitPattern: ROM_ADDR)!, byteSize: 8 * 1024 * 1024)  // ROM: 8MB
 nonisolated(unsafe) public let DISPCNT_MEM = WorkMemory(
-    address: DISPCNT_ADDR, byteSize: 0x10000)  // DISP_CNT: 64KB
+    address: UnsafeMutableRawPointer(bitPattern: DISPCNT_ADDR)!, byteSize: 0x10000)  // DISP_CNT: 64KB
 nonisolated(unsafe) public let PALETTE_MEM = WorkMemory(
-    address: PALETTE_ADDR, byteSize: 1 * 1024)  // PALETTE: 1KB(BG:0x000-0x1ff, OBJ:0x200-0x3ff)
+    address: UnsafeMutableRawPointer(bitPattern: PALETTE_ADDR)!, byteSize: 1 * 1024)  // PALETTE: 1KB(BG:0x000-0x1ff, OBJ:0x200-0x3ff)
 nonisolated(unsafe) public let VRAM = WorkMemory(
-    address: VRAM_ADDR, byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
+    address: UnsafeMutableRawPointer(bitPattern: VRAM_ADDR)!, byteSize: 96 * 1024)  // VRAM: 96KB(BG:64k, OBJ:32k)
 nonisolated(unsafe) public let OAM = WorkMemory(
-    address: OAM_ADDR, byteSize: 1 * 1024)  // OAM: 1KB
+    address: UnsafeMutableRawPointer(bitPattern: OAM_ADDR)!, byteSize: 1 * 1024)  // OAM: 1KB
 // EWRAMの先頭16KBは他のライブラリ(maxmod等)が使うため空けておく
 nonisolated(unsafe) public let EWRAM = WorkMemory(
-    address: 0x0200_4000, byteSize: 256 * 1024 - 0x4000)  // EWRAM: 256KB - 16KB
+    address: UnsafeMutableRawPointer(bitPattern: 0x0200_4000)!, byteSize: 256 * 1024 - 0x4000)  // EWRAM: 256KB - 16KB
 
 // DMA
 // ****************************************************************************
@@ -29,12 +29,15 @@ private let DMA_THRESHOLD: UInt16 = 64
 
 // 32bitDMA
 @_optimize(none)
-public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = false) {
+public func DMA3_UInt(
+    srcAddr: UnsafeMutableRawPointer, dstAddr: UnsafeMutableRawPointer, size: Int,
+    fixedSrc: Bool = false
+) {
     if size < 0 {
         FatalMsg("DMA size error")  // FATAL_DMA_SIZE
     }
     // 転送量が4バイト境界に揃っていない場合はエラー
-    if (srcAddr | dstAddr | UInt(size)) & 3 != 0 {
+    if (UInt(bitPattern: srcAddr) | UInt(bitPattern: dstAddr) | UInt(size)) & 3 != 0 {
         FatalMsg("Memory alignment error")  // FATAL_MEM_ALIGN
     }
     if size < 0 || size > 0xFFFF * 4 {
@@ -51,8 +54,8 @@ public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = 
         return
     }
 
-    DISPCNT_MEM.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
-    DISPCNT_MEM.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd4, value: UInt(bitPattern: srcAddr))  // 転送元アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd8, value: UInt(bitPattern: dstAddr))  // 転送先アドレス
     DISPCNT_MEM.writeUInt16(offset: 0xdc, value: UInt16(size / 4))  // 転送量(32bit単位)
 
     // 転送開始
@@ -69,13 +72,16 @@ public func DMA3_UInt(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = 
 
 // 16bitDMA
 @_optimize(none)
-public func DMA3_UInt16(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool = false) {
+public func DMA3_UInt16(
+    srcAddr: UnsafeMutableRawPointer, dstAddr: UnsafeMutableRawPointer, size: Int,
+    fixedSrc: Bool = false
+) {
     if size < 0 {
         FatalMsg("DMA size error")  // FATAL_DMA_SIZE
     }
 
     // 転送量が2バイト境界に揃っていない場合はエラー
-    if (srcAddr | dstAddr | UInt(size)) & 1 != 0 {
+    if (UInt(bitPattern: srcAddr) | UInt(bitPattern: dstAddr) | UInt(size)) & 1 != 0 {
         FatalMsg("Memory alignment error")  // FATAL_MEM_ALIGN
     }
     if size < 0 || size > 0xFFFF * 2 {
@@ -92,8 +98,8 @@ public func DMA3_UInt16(srcAddr: UInt, dstAddr: UInt, size: Int, fixedSrc: Bool 
         return
     }
 
-    DISPCNT_MEM.writeUInt(offset: 0xd4, value: srcAddr)  // 転送元アドレス
-    DISPCNT_MEM.writeUInt(offset: 0xd8, value: dstAddr)  // 転送先アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd4, value: UInt(bitPattern: srcAddr))  // 転送元アドレス
+    DISPCNT_MEM.writeUInt(offset: 0xd8, value: UInt(bitPattern: dstAddr))  // 転送先アドレス
     DISPCNT_MEM.writeUInt16(offset: 0xdc, value: UInt16(size / 2))  // 転送量(16bit単位)
 
     // 転送開始

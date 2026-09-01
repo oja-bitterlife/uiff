@@ -186,17 +186,21 @@ public struct FADE_GBA {
     static public func fadeBlack(alpha: Int) {
         let DST = 0x3f  // all
         let BM = 0x3 << 6  // fade black
-        WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
-        WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-            offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+        WorkMemory(address: UnsafeMutableRawPointer(bitPattern: 0x4000050)!, byteSize: 2)
+            .writeUInt16(offset: 0, value: UInt16(DST | BM))
+        WorkMemory(address: UnsafeMutableRawPointer(bitPattern: 0x4000054)!, byteSize: 2)
+            .writeUInt16(
+                offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
     }
 
     static public func fadeWhite(alpha: Int) {
         let DST = 0x3f  // all
         let BM = 0x2 << 6  // fade white
-        WorkMemory(address: 0x4000050, byteSize: 2).writeUInt16(offset: 0, value: UInt16(DST | BM))
-        WorkMemory(address: 0x4000054, byteSize: 2).writeUInt16(
-            offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
+        WorkMemory(address: UnsafeMutableRawPointer(bitPattern: 0x4000050)!, byteSize: 2)
+            .writeUInt16(offset: 0, value: UInt16(DST | BM))
+        WorkMemory(address: UnsafeMutableRawPointer(bitPattern: 0x4000054)!, byteSize: 2)
+            .writeUInt16(
+                offset: 0, value: UInt16(max(0, min(16, alpha * 16 / 255))))
     }
 
 }
