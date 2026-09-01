@@ -230,7 +230,7 @@ public struct UiffProp: UiffChunk {
 // 特別なType
 // ****************************************************************************
 // IFF_SELECTチャンク
-public struct UiffSelect: UiffChunk {
+public struct UiffSelInfo: UiffChunk {
     public private(set) var chunkMemory: WorkMemory
 
     public init(workMemory: WorkMemory, offsetBytes: Int = 0) {
@@ -241,20 +241,32 @@ public struct UiffSelect: UiffChunk {
     }
 
     // 選択肢を横に並べる数
-    public var selRows: Int {
-        return Int(chunkMemory[0])
+    public func getSelRows() -> Int {
+        return Int(payload[0])
     }
 
-    public var selItemNum: Int {
-        return Int(chunkMemory[1])
+    public func getSelItemNum() -> Int {
+        return Int(payload[1])
     }
 
     public func getSelItem(index: Int) -> UiffProp {
-        var sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: 2)  // sel_rowsとsel_item_numを飛ばす
+        var sel_item = UiffProp(workMemory: payload, offsetBytes: 2 * 2)  // sel_rowsとsel_item_numを飛ばす
+        if index < 0 || index >= getSelItemNum() {
+            FatalMsg("UiffSelect item index out of range")  // UiffSelect item index out of range
+        }
         for _ in 0..<index {
-            sel_item = UiffProp(workMemory: chunkMemory, offsetBytes: sel_item.getChunkSize())
+            sel_item = UiffProp(
+                workMemory: sel_item.chunkMemory, offsetBytes: sel_item.getChunkSize())
         }
         return sel_item
+    }
+
+    public func getSelItem<T: UiffChunk>(index: Int, typeID: UInt16, _: T.Type) -> T? {
+        let sel_item = getSelItem(index: index)
+        if sel_item.getChunkType() != typeID {
+            return nil
+        }
+        return T(workMemory: sel_item.chunkMemory, offsetBytes: 0)
     }
 }
 
@@ -384,7 +396,7 @@ public struct UiffText: UiffChunk {
         return Int(payload.readUInt16(offset: 0))  // payloadの最初の2byte
     }
 
-    public func textAt(_ index: Int) -> UInt8 {
-        return payload.readUInt8(offset: 2 + index)
+    public func textAt(_ index: Int) -> Int {
+        return Int(payload.readUInt8(offset: 2 + index))
     }
 }
