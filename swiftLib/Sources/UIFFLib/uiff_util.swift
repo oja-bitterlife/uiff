@@ -197,7 +197,7 @@ public struct UiffPropIter {
         var tmp = UiffPropIter(workMemory: chunkMemory)
         while let prop = tmp.next() {
             if prop.getChunkType() == typeID {
-                return T(workMemory: prop.chunkMemory, offsetBytes: 0)
+                return T(from: prop)
             }
         }
         return nil
@@ -262,7 +262,7 @@ public struct UiffSelInfo: UiffChunk {
         if sel_item.getChunkType() != typeID {
             return nil
         }
-        return T(workMemory: sel_item.chunkMemory, offsetBytes: 0)
+        return T(from: sel_item)
     }
 }
 
