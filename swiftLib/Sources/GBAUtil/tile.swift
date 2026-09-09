@@ -159,7 +159,7 @@ public struct BGTile {
     }
     public func drawMap8(
         tileNo: Int, tileGridX: Int, tileGridY: Int,
-        palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
+        palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(
             tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
@@ -169,7 +169,7 @@ public struct BGTile {
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
+        let PB = UInt16(palBlock & 0xf) << 12  // Palette Bank
 
         let tileNo = tileNo + offsetGridY * 32  // タイル番号のオフセットを加算
 
@@ -375,7 +375,7 @@ public struct OBJTile {
 
     public func draw(
         objGridX: Int, objGridY: Int,
-        x: Int, y: Int, palBlk: Int = 0,
+        x: Int, y: Int, palBlock: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
         let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
@@ -392,7 +392,7 @@ public struct OBJTile {
         let OAM1_SZ: UInt16 = UInt16(sizeMode.rawValue & 0x3) << 14  // スプライトサイズLB
         let OAM2_TN: UInt16 = UInt16(tileNo)  // タイル番号
         let OAM2_PR: UInt16 = UInt16(prio & 0x3) << 10  // 優先度
-        let OAM2_PL: UInt16 = UInt16(palBlk & 0xf) << 12  // パレット番号
+        let OAM2_PL: UInt16 = UInt16(palBlock & 0xf) << 12  // パレット番号
         let OAM3_RS: UInt16 = UInt16(0) << 14  // 回転スケール(8bit固定少数点)
 
         let oam0 = OAM0_Y | OAM0_MT | OAM0_DM | OAM0_MZ | OAM0_CM | OAM0_SZ
