@@ -178,7 +178,7 @@ public struct BGTile {
 
     public func drawMap16(
         tileNo: Int, tileGridX: Int, tileGridY: Int,
-        palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
+        palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
 
@@ -187,7 +187,7 @@ public struct BGTile {
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
+        let PB = UInt16(palBlock & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 4) { tileNoList in
             // 座標設定
@@ -218,7 +218,7 @@ public struct BGTile {
 
     public func drawMap24(
         tileNo: Int, tileGridX: Int, tileGridY: Int,
-        palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
+        palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(
             tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
@@ -228,7 +228,7 @@ public struct BGTile {
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
+        let PB = UInt16(palBlock & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 9) { tileNoList in
             // 座標設定
@@ -261,7 +261,7 @@ public struct BGTile {
 
     public func drawMap32(
         tileNo: Int, tileGridX: Int, tileGridY: Int,
-        palBlk: Int = 0, HR: Bool = false, VR: Bool = false,
+        palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
 
@@ -270,7 +270,7 @@ public struct BGTile {
 
         let HR = UInt16(HR ? 1 : 0) << 10  // Horizontal Flip
         let VR = UInt16(VR ? 1 : 0) << 11  // Vertical Flip
-        let PB = UInt16(palBlk & 0xf) << 12  // Palette Bank
+        let PB = UInt16(palBlock & 0xf) << 12  // Palette Bank
 
         withUnsafeTemporaryAllocation(of: Int.self, capacity: 16) { tileNoList in
             // 座標設定
