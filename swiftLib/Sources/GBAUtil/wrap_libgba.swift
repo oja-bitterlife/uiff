@@ -102,10 +102,13 @@ public func keyUp(_ key: KEY) -> Bool {
 // ****************************************************************************
 @_silgen_name("sbrk")
 public func _sbrk(_ increment: Int) -> UnsafeMutableRawPointer?
-public func sbrk(_ increment: Int = 0) -> Int {
+public func sbrk(_ increment: Int = 0) -> UnsafeMutableRawPointer {
     // 4byte境界チェック
     if increment % 4 != 0 {
         FatalMsg("sbrk increment must be 4-byte aligned")  // FATAL_MEM_WRITE
     }
-    return Int(bitPattern: _sbrk(increment)!)
+    guard let ptr = _sbrk(increment) else {
+        FatalMsg("sbrk failed")  // FATAL_MEM_WRITE
+    }
+    return ptr
 }
