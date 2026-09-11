@@ -213,3 +213,34 @@ public struct FADE_GBA {
     }
 
 }
+
+// ランダム
+// ****************************************************************************
+public struct RANDOM {
+    static public let defaultSeed: UInt32 = 20_260_911
+    var xorshiftState: UInt32
+
+    public init(seed: UInt32 = RANDOM.defaultSeed) {
+        self.xorshiftState = seed
+    }
+
+    public mutating func next() -> UInt32 {
+        var x = xorshiftState
+
+        // 0はシフトしても0になってしまうのでガード
+        if x == 0 {
+            x = RANDOM.defaultSeed
+        }
+
+        x ^= x << 13
+        x ^= x >> 17
+        x ^= x << 5
+        xorshiftState = x
+
+        return x
+    }
+
+    public mutating func nextInt() -> Int {
+        return Int(next() & 0x7fff_ffff)
+    }
+}
