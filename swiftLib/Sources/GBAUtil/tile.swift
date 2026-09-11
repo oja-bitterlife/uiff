@@ -321,9 +321,9 @@ public struct BGTile {
 // ********************************************************************
 public struct OBJTile {
     private var tile = TileBase()
-    var objNo = 0
-    var sizeMode = SIZE_MODE.SIZE_8x8
-    var colorMode = COLOR_MODE.COLOR_16
+    public private(set) var objNo = 0
+    public private(set) var sizeMode = SIZE_MODE.SIZE_8x8
+    public private(set) var colorMode = COLOR_MODE.COLOR_16
 
     private init() {}
 
