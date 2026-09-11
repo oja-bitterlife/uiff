@@ -109,8 +109,8 @@ private struct TileBase {
 // タイルをマップ描画する
 // ********************************************************************
 public struct BGTile {
-    var mapBlock = 0
-    var offsetGridY = 0
+    public private(set) var mapBlock = 0
+    public private(set) var offsetGridY = 0
 
     private init() {}
 
@@ -130,6 +130,19 @@ public struct BGTile {
             romTileOffset: romOffset, tileBlock: tileBlock,
             tileBlockOffset: offsetGridY * (colorMode == .COLOR_256 ? 256 : 128) * 8
         )
+    }
+
+    static public func clearMap(mapBlock: Int) {
+        var zero: Int = 0
+        let mapOffset = mapBlock * 0x800
+        // zeroのアドレスの内容をDMA転送する(0クリア)
+        withUnsafeBytes(of: &zero) { zeroBytes in
+            DMA3_UInt(
+                srcAddr: UnsafeMutableRawPointer(mutating: zeroBytes.baseAddress!),
+                dstAddr: UnsafeMutableRawPointer(bitPattern: VRAM_ADDR + UInt(mapOffset))!,
+                size: 0x800, fixedSrc: true
+            )
+        }
     }
 
     // タイル番号をタイルサイズ単位で取得する
