@@ -81,7 +81,7 @@ public func LogWarn(_ msg: StaticString) {
 
 // 画面表示用
 public func LogDisp(
-    _ msg: StaticString, x: Int, y: Int, drawFunc: (Int, Int, Int) -> Void
+    _ msg: StaticString, _ x: Int, _ y: Int, drawFunc: (Int, Int, Int) -> Void
 ) {
     for i in 0..<msg.utf8CodeUnitCount {
         drawFunc(Int(msg.utf8Start[i]), x + i * 8, y)
