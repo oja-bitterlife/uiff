@@ -356,6 +356,12 @@ public struct RingQueueMemory: QueueStack16 {
         }
         return self.ptr[(self.qBgn + index) % self.capacity]
     }
+    public mutating func set(_ index: Int = 0, value: UInt16) {
+        if index < 0 || index >= self.getLength() {
+            FatalMsg("Index out of bounds")
+        }
+        self.ptr[(self.qBgn + index) % self.capacity] = value
+    }
     public mutating func clear() {
         self.qBgn = 0
         self.qEnd = 0
