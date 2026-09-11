@@ -79,6 +79,15 @@ public func LogWarn(_ msg: StaticString) {
     LogPrint(logLv: .WARN, msg: msg)
 }
 
+// 画面表示用
+public func LogDisp(
+    _ msg: StaticString, x: Int, y: Int, drawFunc: (Int, Int, Int) -> Void
+) {
+    for i in 0..<msg.utf8CodeUnitCount {
+        drawFunc(Int(msg.utf8Start[i]), x + i * 8, y)
+    }
+}
+
 // パレット操作
 // ****************************************************************************
 public func RGB555(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> UInt16 {
