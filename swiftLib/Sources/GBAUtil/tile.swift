@@ -132,8 +132,8 @@ public struct BGTile {
         )
     }
 
-    static public func clearMap(mapBlock: Int) {
-        var zero: Int = 0
+    static public func clearMap(mapBlock: Int, value: UInt16 = 0) {
+        var zero: UInt = UInt(value) | (UInt(value) << 16)
         let mapOffset = mapBlock * 0x800
         // zeroのアドレスの内容をDMA転送する(0クリア)
         withUnsafeBytes(of: &zero) { zeroBytes in
