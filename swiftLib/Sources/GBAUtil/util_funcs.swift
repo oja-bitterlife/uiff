@@ -88,6 +88,18 @@ public func LogDisp(
     }
 }
 
+public func LogDispFill(
+    _ msg: StaticString, _ x: Int, _ y: Int, minLen: Int = 0, fill: Int = 0x20,
+    drawFunc: (Int, Int, Int) -> Void
+) {
+    for i in 0..<msg.utf8CodeUnitCount {
+        drawFunc(Int(msg.utf8Start[i]), x + i * 8, y)
+    }
+    for i in msg.utf8CodeUnitCount..<minLen {
+        drawFunc(fill, x + i * 8, y)
+    }
+}
+
 // パレット操作
 // ****************************************************************************
 public func RGB555(_ red: UInt8, _ green: UInt8, _ blue: UInt8) -> UInt16 {
