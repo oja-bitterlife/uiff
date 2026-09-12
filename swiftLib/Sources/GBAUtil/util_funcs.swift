@@ -19,11 +19,11 @@ public enum LOG_LEVEL: UInt16 {
 }
 
 // mGBAのログに1メッセージを飛ばす関数（ゼロアロケーション）
-public func LogPrintPtr(logLv: LOG_LEVEL, msgAddr: UInt) {
+public func LogPrintPtr(logLv: LOG_LEVEL, ptr: UnsafeMutableRawPointer) {
     // デバッグ機能が有効か最初に一度フラグを立てておく（0xC0DEを書き込むお作法）
     REG_DEBUG_ENABLE.pointee = 0xC0DE
 
-    let ptr = UnsafePointer<UInt8>(bitPattern: msgAddr)!
+    let ptr = ptr.assumingMemoryBound(to: UInt8.self)
 
     // レジスタのバッファに文字をコピー
     var idx = 0
@@ -44,26 +44,22 @@ public func LogPrintPtr(logLv: LOG_LEVEL, msgAddr: UInt) {
 }
 
 public func LogPrint(logLv: LOG_LEVEL, msg: StaticString) {
-    msg.withUTF8Buffer { buffer in
-        buffer.withMemoryRebound(to: UInt8.self) { ptr in
-            LogPrintPtr(logLv: logLv, msgAddr: UInt(bitPattern: ptr.baseAddress!))
-        }
-    }
+    LogPrintPtr(logLv: logLv, ptr: UnsafeMutableRawPointer(mutating: msg.utf8Start))
 }
 
 // ロギングのラッパー。普段使い用
 // ------------------------------------------------------------------
-public func LogErrorPtr(_ msgAddr: UInt) {
-    LogPrintPtr(logLv: .ERROR, msgAddr: msgAddr)
+public func LogErrorPtr(_ ptr: UnsafeMutableRawPointer) {
+    LogPrintPtr(logLv: .ERROR, ptr: ptr)
 }
-public func LogDebugPtr(_ msgAddr: UInt) {
-    LogPrintPtr(logLv: .DEBUG, msgAddr: msgAddr)
+public func LogDebugPtr(_ ptr: UnsafeMutableRawPointer) {
+    LogPrintPtr(logLv: .DEBUG, ptr: ptr)
 }
-public func LogInfoPtr(_ msgAddr: UInt) {
-    LogPrintPtr(logLv: .INFO, msgAddr: msgAddr)
+public func LogInfoPtr(_ ptr: UnsafeMutableRawPointer) {
+    LogPrintPtr(logLv: .INFO, ptr: ptr)
 }
-public func LogWarnPtr(_ msgAddr: UInt) {
-    LogPrintPtr(logLv: .WARN, msgAddr: msgAddr)
+public func LogWarnPtr(_ ptr: UnsafeMutableRawPointer) {
+    LogPrintPtr(logLv: .WARN, ptr: ptr)
 }
 
 public func LogError(_ msg: StaticString) {
