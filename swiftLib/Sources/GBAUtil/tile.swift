@@ -130,11 +130,8 @@ public struct BGTile {
     }
 
     static public func loadTileData(romOffset: Int, tileBlock: Int, offsetGridY: Int = 0) {
-        let colorMode = TileBase.loadColorMode(romOffset: romOffset)
         TileBase.loadTileData(
-            romTileOffset: romOffset, tileBlock: tileBlock,
-            tileBlockOffset: offsetGridY * (colorMode == .COLOR_256 ? 256 : 128) * 8
-        )
+            romTileOffset: romOffset, tileBlock: tileBlock, tileBlockOffset: offsetGridY * 128 * 8)
     }
 
     static public func clearMap(mapBlock: Int, value: UInt16 = 0) {
@@ -349,13 +346,9 @@ public struct OBJTile {
     }
 
     static public func loadTileData(romOffset: Int, offsetGridY: Int = 0) {
-        let colorMode = TileBase.loadColorMode(romOffset: romOffset)
-
         // OBJのタイルデータはキャラクターブロック4以降に配置される
         TileBase.loadTileData(
-            romTileOffset: romOffset, tileBlock: 4,
-            tileBlockOffset: offsetGridY * (colorMode == .COLOR_256 ? 256 : 128) * 8
-        )
+            romTileOffset: romOffset, tileBlock: 4, tileBlockOffset: offsetGridY * 128 * 8)
     }
 
     public func getTileNoFromGrid(objGridX: Int, objGridY: Int) -> Int {
