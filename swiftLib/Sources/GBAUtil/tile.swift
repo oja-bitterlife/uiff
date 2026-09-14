@@ -390,9 +390,6 @@ public struct OBJTile {
         prio: Int, HR: Bool, VR: Bool,
     ) {
         var tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
-        if colorMode == .COLOR_256 {
-            tileNo = 322 * 2
-        }
 
         let OAM0_Y: UInt16 = UInt16(y & 0xff)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
