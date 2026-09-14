@@ -101,11 +101,13 @@ private struct TileBase {
         }
 
         // タイルデータの転送
+        let dstBlockOffset = colorMode == .COLOR_256 ? 16 : 32
         for by in 0..<blockH {
             DMA3_UInt(
                 srcAddr: tileData.getAddress(offset: by * tileBlockSize * blockW),
                 dstAddr: UnsafeMutableRawPointer(
-                    bitPattern: VRAM_ADDR + UInt(tileVramOffset + by * tileBlockSize * 32))!,
+                    bitPattern: VRAM_ADDR
+                        + UInt(tileVramOffset + by * tileBlockSize * destBlockOffset))!,
                 size: tileBlockSize * blockW
             )
         }
@@ -387,7 +389,10 @@ public struct OBJTile {
         x: Int, y: Int, palBlock: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
-        let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
+        var tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
+        if colorMode == .COLOR_256 {
+            tileNo = 322 * 2
+        }
 
         let OAM0_Y: UInt16 = UInt16(y & 0xff)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF

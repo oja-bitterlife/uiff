@@ -24,7 +24,6 @@ from PIL import Image
 argparser = argparse.ArgumentParser(description='Convert palette PNG to tile image.')
 argparser.add_argument('input', help='Input palette PNG file')
 argparser.add_argument('-o', '--output', help='Output tile image file')
-argparser.add_argument('-k', '--key-index', type=int, help='Palette index to be used as transparent (default: left-top-color)')
 args = argparser.parse_args()
 
 # 画像を読み込み、パレットを取得する。パレットがなければエラー終了する。
@@ -45,7 +44,6 @@ elif img.palette.mode == 'RGB':
 else:
     raise Exception(f"Unsupported palette mode: {img.palette.mode}")
 
-
 # パレットを16bitのRGB555に変換して、リストに格納する。
 def rgb_to_rgb555(r, g, b):
     return ((b >> 3) << 10) | ((g >> 3) << 5) | (r >> 3)
@@ -53,33 +51,11 @@ palette_rgb555 = [rgb_to_rgb555(palette[i], palette[i+1], palette[i+2]) for i in
 if len(palette_rgb555) > palette_num:
     raise Exception(f"Palette has more colors than expected: {len(palette_rgb555)} > {palette_num}")
 
-# 透過パレットを0番にする
-# --------------------------------------------------------------
-# 透過パレットが指定されていない場合、左上の色を透過色として使用する
-if args.key_index is None:
-    key_index = img.getpixel((0, 0))
-else:
-    key_index = args.key_index
-
-# key_indexが0でなければ入れ替える
-if key_index != 0:
-    # key_index番の色を0番にする
-    palette_rgb555[0], palette_rgb555[key_index] = palette_rgb555[key_index], palette_rgb555[0]
-    def swap_pal(index, key_index):
-        if index == 0:
-            return key_index
-        elif index == key_index:
-            return 0
-        else:
-            return index
-    pixel_data = [swap_pal(p, key_index) for p in img.get_flattened_data()]
-else:
-    pixel_data = img.get_flattened_data()
-
-# palette_rgb555[0] = 0  # 透過パレットを0にしておく
 
 # タイルデータの作成
 # *****************************************************************************
+pixel_data = list(img.getdata())
+
 # 8x8のタイルに分割して、タイルごとにピクセルデータを格納する
 tile_data = []
 width, height = img.size
