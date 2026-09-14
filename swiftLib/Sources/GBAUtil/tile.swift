@@ -167,20 +167,20 @@ public struct BGTile {
 
     // マップ描画
     // --------------------------------------------------------------
-    private func checkDrawArgs(tileNo: Int, tileGridX: Int, tileGridY: Int) {
+    private func checkDrawArgs(tileNo: Int, mapGridX: Int, mapGridY: Int) {
         if tileNo < 0 {
             FatalMsg("Tile number must be non-negative")
         }
-        if tileGridX < 0 || tileGridY < 0 {
+        if mapGridX < 0 || mapGridY < 0 {
             FatalMsg("Tile grid coordinates must be non-negative")
         }
     }
     public func drawMap8(
-        tileNo: Int, tileGridX: Int, tileGridY: Int,
+        tileNo: Int, mapGridX: Int, mapGridY: Int,
         palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(
-            tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+            tileNo: tileNo, mapGridX: mapGridX, mapGridY: mapGridY)
 
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
@@ -191,14 +191,14 @@ public struct BGTile {
 
         let tileNo = tileNo + offsetGridY * 32  // タイル番号のオフセットを加算
 
-        mapPtr[tileGridY * 32 + tileGridX] = PB | VR | HR | UInt16(tileNo)
+        mapPtr[mapGridY * 32 + mapGridX] = PB | VR | HR | UInt16(tileNo)
     }
 
     public func drawMap16(
-        tileNo: Int, tileGridX: Int, tileGridY: Int,
+        tileNo: Int, mapGridX: Int, mapGridY: Int,
         palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
-        checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+        checkDrawArgs(tileNo: tileNo, mapGridX: mapGridX, mapGridY: mapGridY)
 
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
@@ -228,18 +228,18 @@ public struct BGTile {
             for y in 0..<2 {
                 for x in 0..<2 {
                     let tileNo = tileNoList[y * 2 + x]
-                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(mapGridY + y) * 32 + (mapGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
     }
 
     public func drawMap24(
-        tileNo: Int, tileGridX: Int, tileGridY: Int,
+        tileNo: Int, mapGridX: Int, mapGridY: Int,
         palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
         checkDrawArgs(
-            tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+            tileNo: tileNo, mapGridX: mapGridX, mapGridY: mapGridY)
 
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
@@ -271,17 +271,17 @@ public struct BGTile {
             for y in 0..<3 {
                 for x in 0..<3 {
                     let tileNo = tileNoList[y * 3 + x]
-                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(mapGridY + y) * 32 + (mapGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
     }
 
     public func drawMap32(
-        tileNo: Int, tileGridX: Int, tileGridY: Int,
+        tileNo: Int, mapGridX: Int, mapGridY: Int,
         palBlock: Int = 0, HR: Bool = false, VR: Bool = false,
     ) {
-        checkDrawArgs(tileNo: tileNo, tileGridX: tileGridX, tileGridY: tileGridY)
+        checkDrawArgs(tileNo: tileNo, mapGridX: mapGridX, mapGridY: mapGridY)
 
         let mapOffset = mapBlock * 0x800
         let mapPtr = VRAM.getDirectPtr(as: UInt16.self, offset: mapOffset)
@@ -315,7 +315,7 @@ public struct BGTile {
             for y in 0..<4 {
                 for x in 0..<4 {
                     let tileNo = tileNoList[y * 4 + x]
-                    mapPtr[(tileGridY + y) * 32 + (tileGridX + x)] = PB | VR | HR | UInt16(tileNo)
+                    mapPtr[(mapGridY + y) * 32 + (mapGridX + x)] = PB | VR | HR | UInt16(tileNo)
                 }
             }
         }
