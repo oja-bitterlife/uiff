@@ -37,8 +37,14 @@ if img.mode != 'P':
 # パレットの処理
 # *****************************************************************************
 # パレットのbit数
-palette_num = 16 if len(img.getcolors()) <= 16 else 256
 palette = img.getpalette()
+if img.palette.mode == 'RGBA':
+    palette_num = 16 if len(palette) // 4 <= 16 else 256
+elif img.palette.mode == 'RGB':
+    palette_num = 16 if len(palette) // 3 <= 16 else 256
+else:
+    raise Exception(f"Unsupported palette mode: {img.palette.mode}")
+
 
 # パレットを16bitのRGB555に変換して、リストに格納する。
 def rgb_to_rgb555(r, g, b):

@@ -50,7 +50,7 @@ private struct TileBase {
         }
 
         // indexの範囲チェック
-        if palBlock < 0 || paletteNum * palBlock >= 256 {
+        if palBlock < 0 || paletteNum * palBlock > 256 {
             FatalMsg("Palette block index out of bounds")  // FATAL_TILE_PALETTE_OUTOFBOUNDS
         }
 
