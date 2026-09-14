@@ -107,7 +107,7 @@ private struct TileBase {
                 srcAddr: tileData.getAddress(offset: by * tileBlockSize * blockW),
                 dstAddr: UnsafeMutableRawPointer(
                     bitPattern: VRAM_ADDR
-                        + UInt(tileVramOffset + by * tileBlockSize * destBlockOffset))!,
+                        + UInt(tileVramOffset + by * tileBlockSize * dstBlockOffset))!,
                 size: tileBlockSize * blockW
             )
         }
