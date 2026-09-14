@@ -38,11 +38,11 @@ private struct TileBase {
 
     // パレットデータ部を読み込んで転送
     static public func loadPaletteData(romOffset: Int, palBlock: Int, isObj: Bool) {
-        checkMagic(romOffset: romOffset)
+        // magicチェックとカラーモードの取得
+        let colorMode = TileBase.loadColorMode(romOffset: romOffset)
 
         let paletteDataOffset = Int(ROM.readUInt(offset: romOffset + 12)) + romOffset
-        let tileDataOffset = Int(ROM.readUInt(offset: romOffset + 16)) + romOffset
-        let paletteNum = (tileDataOffset - paletteDataOffset) / 2  // パレット数
+        let paletteNum = colorMode == .COLOR_256 ? 256 : 16  // パレット数
 
         // パレット数のチェック
         if paletteNum != 16 && paletteNum != 256 {
@@ -63,10 +63,22 @@ private struct TileBase {
         )
     }
 
+    static public func loadColorMode(romOffset: Int) -> COLOR_MODE {
+        // .tileファイルのマジックをチェックして正当性を確認する
+        checkMagic(romOffset: romOffset)
+
+        let paletteDataOffset = Int(ROM.readUInt(offset: romOffset + 12)) + romOffset
+        let tileDataOffset = Int(ROM.readUInt(offset: romOffset + 16)) + romOffset
+        return (tileDataOffset - paletteDataOffset) / 2 > 16
+            ? COLOR_MODE.COLOR_256 : COLOR_MODE.COLOR_16
+    }
+
     // .tileファイルを読み込み、VRAMにタイルデータを転送する
     static public func loadTileData(romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int) {
+        // magicチェックとカラーモードの取得
+        let colorMode = TileBase.loadColorMode(romOffset: romTileOffset)
+
         // tileファイル解析
-        checkMagic(romOffset: romTileOffset)
         let width = Int(ROM.readUInt16(offset: romTileOffset + 8))  // タイルの幅
         let height = Int(ROM.readUInt16(offset: romTileOffset + 10))  // タイルの高さ
         let blockW = (width + 7) / 8  // タイルの幅(ブロック単位)
@@ -79,12 +91,6 @@ private struct TileBase {
 
         // タイルデータのVRAMブロックは16KB単位で切り替え可能
         let tileVramOffset = tileBlock * 0x4000 + tileBlockOffset
-
-        // パレットの数からカラーモードを判定する
-        let paletteDataOffset = Int(ROM.readUInt(offset: romTileOffset + 12)) + romTileOffset
-        let colorMode =
-            (tileDataOffset - paletteDataOffset) / 2 > 16
-            ? COLOR_MODE.COLOR_256 : COLOR_MODE.COLOR_16
 
         // タイルデータ１つのサイズ
         let tileBlockSize = colorMode == .COLOR_256 ? 64 : 32
@@ -123,9 +129,8 @@ public struct BGTile {
         TileBase.loadPaletteData(romOffset: romOffset, palBlock: palBlock, isObj: false)
     }
 
-    static public func loadTileData(
-        romOffset: Int, tileBlock: Int, colorMode: COLOR_MODE = .COLOR_16, offsetGridY: Int = 0
-    ) {
+    static public func loadTileData(romOffset: Int, tileBlock: Int, offsetGridY: Int = 0) {
+        let colorMode = TileBase.loadColorMode(romOffset: romOffset)
         TileBase.loadTileData(
             romTileOffset: romOffset, tileBlock: tileBlock,
             tileBlockOffset: offsetGridY * (colorMode == .COLOR_256 ? 256 : 128) * 8
@@ -343,9 +348,9 @@ public struct OBJTile {
         TileBase.loadPaletteData(romOffset: romOffset, palBlock: palBlock, isObj: true)
     }
 
-    static public func loadTileData(
-        romOffset: Int, colorMode: COLOR_MODE = .COLOR_16, offsetGridY: Int = 0
-    ) {
+    static public func loadTileData(romOffset: Int, offsetGridY: Int = 0) {
+        let colorMode = TileBase.loadColorMode(romOffset: romOffset)
+
         // OBJのタイルデータはキャラクターブロック4以降に配置される
         TileBase.loadTileData(
             romTileOffset: romOffset, tileBlock: 4,
