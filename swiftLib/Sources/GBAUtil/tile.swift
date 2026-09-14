@@ -356,6 +356,12 @@ public struct OBJTile {
             FatalMsg("OBJ grid coordinates must be non-negative")
         }
 
+        // 8bitカラーの場合はY座標を半分にする
+        var objGridY = objGridY
+        if colorMode == .COLOR_256 {
+            objGridY /= 2
+        }
+
         switch sizeMode {
         case .SIZE_8x8:
             return objGridY * 32 + objGridX
@@ -389,7 +395,7 @@ public struct OBJTile {
         x: Int, y: Int, palBlock: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
-        var tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
+        let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
 
         let OAM0_Y: UInt16 = UInt16(y & 0xff)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
