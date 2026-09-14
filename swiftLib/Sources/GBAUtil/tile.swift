@@ -74,7 +74,9 @@ private struct TileBase {
     }
 
     // .tileファイルを読み込み、VRAMにタイルデータを転送する
-    static public func loadTileData(romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int) {
+    static public func loadTileData(
+        romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int, isObj: Bool = false
+    ) {
         // magicチェックとカラーモードの取得
         let colorMode = TileBase.loadColorMode(romOffset: romTileOffset)
 
@@ -101,7 +103,7 @@ private struct TileBase {
         }
 
         // タイルデータの転送
-        let dstBlockOffset = colorMode == .COLOR_256 ? 16 : 32
+        let dstBlockOffset = colorMode == .COLOR_256 && isObj ? 16 : 32
         for by in 0..<blockH {
             DMA3_UInt(
                 srcAddr: tileData.getAddress(offset: by * tileBlockSize * blockW),
