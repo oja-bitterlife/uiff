@@ -329,9 +329,7 @@ public struct OBJTile {
 
     private init() {}
 
-    public mutating func initialize(
-        objNo: Int, size: SIZE_MODE, colorMode: COLOR_MODE = COLOR_MODE.COLOR_16
-    ) {
+    public mutating func initialize(objNo: Int, size: SIZE_MODE, colorMode: COLOR_MODE) {
         if objNo < 0 || objNo >= 128 {
             FatalMsg("OBJ number must be in range 0-127")
         }
