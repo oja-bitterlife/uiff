@@ -156,13 +156,13 @@ public struct BGTile {
         return tileY * 32 + tileX
     }
     static public func getTile16No(_ tileX: Int, _ tileY: Int) -> Int {
-        return tileY * 32 * 2 + tileX * 2
+        return Self.getTile8No(tileX, tileY) * 2
     }
     static public func getTile24No(_ tileX: Int, _ tileY: Int) -> Int {
-        return tileY * 32 * 3 + tileX * 3
+        return Self.getTile8No(tileX, tileY) * 3
     }
     static public func getTile32No(_ tileX: Int, _ tileY: Int) -> Int {
-        return tileY * 32 * 4 + tileX * 4
+        return Self.getTile8No(tileX, tileY) * 4
     }
 
     // マップ描画
