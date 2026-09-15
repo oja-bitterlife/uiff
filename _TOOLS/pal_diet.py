@@ -7,7 +7,7 @@ from PIL import Image
 parser = argparse.ArgumentParser(description="Sort palette image by unused colors")
 parser.add_argument("image_path", help="Path to the palette image")
 parser.add_argument("-o", "--output", required=True, help="Output path for the sorted palette image")  # 必須
-parser.add_argument("-m", "--num-palette", type=int, help="Number of colors in the palette")
+parser.add_argument("-n", "--num-palette", type=int, help="Number of colors in the palette")
 parser.add_argument("-k", "--key-index", help="Transparent palette index")
 parser.add_argument("-p", "--gba-palette", action="store_true", help="Use GBA555 format for palette sorting")
 args = parser.parse_args()
