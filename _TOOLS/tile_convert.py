@@ -54,7 +54,7 @@ if len(palette_rgb555) > palette_num:
 
 # タイルデータの作成
 # *****************************************************************************
-pixel_data = list(img.getdata())
+pixel_data = list(img.get_flattened_data())
 
 # 8x8のタイルに分割して、タイルごとにピクセルデータを格納する
 tile_data = []
