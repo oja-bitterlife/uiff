@@ -75,7 +75,7 @@ private struct TileBase {
 
     // .tileファイルを読み込み、VRAMにタイルデータを転送する
     static public func loadTileData(
-        romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int, isObj: Bool = false
+        romTileOffset: Int, tileBlock: Int, tileBlockOffset: Int, sizeMode: SIZE_MODE? = nil
     ) {
         // magicチェックとカラーモードの取得
         let colorMode = TileBase.loadColorMode(romOffset: romTileOffset)
@@ -103,15 +103,56 @@ private struct TileBase {
         }
 
         // タイルデータの転送
-        let dstBlockOffset = colorMode == .COLOR_256 && isObj ? 16 : 32
-        for by in 0..<blockH {
-            DMA3_UInt(
-                srcAddr: tileData.getAddress(offset: by * tileBlockSize * blockW),
-                dstAddr: UnsafeMutableRawPointer(
-                    bitPattern: VRAM_ADDR
-                        + UInt(tileVramOffset + by * tileBlockSize * dstBlockOffset))!,
-                size: tileBlockSize * blockW
-            )
+        if sizeMode != nil {
+            var sizeX = 1
+            var sizeY = 1
+            switch sizeMode {
+            case .SIZE_32x32:
+                sizeX = 4
+                sizeY = 4
+            default:
+                break
+            }
+            let sizeObj = sizeX * sizeY
+            // serial =
+            //  0,  1,  2,  3,   4,  5,  6,  7,   8,  9, 10, 11,  12, 13, 14, 15
+            // 16, 17, 18, 19,  20, 21, 22, 23,  24, 25, 26, 27,  28, 29, 30, 31
+            // 32, 33, 34, 35,  36, 37, 38, 39,  40, 41, 42, 43,  44, 45, 46, 47
+            // 48, 49, 50, 51,  52, 53, 54, 55,  56, 57, 58, 59,  60, 61, 62, 63
+            // convert =
+            //  0,  1,  2,  3,  16, 17, 18, 19,  32, 33, 34, 35,  48, 49, 50, 51
+            //  4,  5,  6,  7,  20, 21, 22, 23,  36, 37, 38, 39,  52, 53, 54, 55
+            //  8,  9, 10, 11,  24, 25, 26, 27,  40, 41, 42, 43,  56, 57, 58, 59
+            // 12, 13, 14, 15,  28, 29, 30, 31,  44, 45, 46, 47,  60, 61, 62, 63
+            // 1Dモードなのでタイルごとに転送
+            for by in 0..<blockH {
+                for bx in 0..<blockW {
+                    let serial = (by * blockW + bx)
+                    let convert =
+                        (by / sizeY * sizeX * sizeObj) + (bx / sizeX * sizeObj)
+                        + (by * sizeY) + (bx % sizeX)
+
+                    let srcOffset = serial * tileBlockSize
+                    let dstOffset = tileVramOffset + convert * tileBlockSize
+                    DMA3_UInt(
+                        srcAddr: tileData.getAddress(offset: srcOffset),
+                        dstAddr: UnsafeMutableRawPointer(bitPattern: VRAM_ADDR + UInt(dstOffset))!,
+                        size: tileBlockSize
+                    )
+                }
+            }
+
+        } else {
+            // 2Dモードなので画像イメージのまま転送
+            for by in 0..<blockH {
+                DMA3_UInt(
+                    srcAddr: tileData.getAddress(offset: by * blockW * tileBlockSize),
+                    dstAddr: UnsafeMutableRawPointer(
+                        bitPattern: VRAM_ADDR
+                            + UInt(tileVramOffset + by * 32 * tileBlockSize))!,
+                    size: tileBlockSize * blockW
+                )
+            }
         }
     }
 }
@@ -338,10 +379,11 @@ public struct OBJTile {
         TileBase.loadPaletteData(romOffset: romOffset, palBlock: palBlock, isObj: true)
     }
 
-    static public func loadTileData(romOffset: Int, offsetGridY: Int = 0) {
+    static public func loadTileData(romOffset: Int, offsetTile: Int = 0) {
         // OBJのタイルデータはキャラクターブロック4以降に配置される
         TileBase.loadTileData(
-            romTileOffset: romOffset, tileBlock: 4, tileBlockOffset: offsetGridY * 128 * 8)
+            romTileOffset: romOffset, tileBlock: 4, tileBlockOffset: offsetTile * 32,
+            sizeMode: SIZE_MODE.SIZE_32x32)
     }
 
     public func getTileNoFromGrid(objGridX: Int, objGridY: Int) -> Int {
@@ -384,12 +426,10 @@ public struct OBJTile {
     }
 
     public func draw(
-        objGridX: Int, objGridY: Int,
+        tileOffset: Int,
         x: Int, y: Int, palBlock: Int = 0,
         prio: Int, HR: Bool, VR: Bool,
     ) {
-        let tileNo = getTileNoFromGrid(objGridX: objGridX, objGridY: objGridY)
-
         let OAM0_Y: UInt16 = UInt16(y & 0xff)
         let OAM0_MT: UInt16 = UInt16(0) << 8  // 回転OFF
         let OAM0_DM: UInt16 = UInt16(0) << 10  // 描画モード
@@ -400,7 +440,7 @@ public struct OBJTile {
         let OAM1_HR: UInt16 = UInt16(HR ? 1 : 0) << 12  // 水平反転OFF
         let OAM1_VR: UInt16 = UInt16(VR ? 1 : 0) << 13  // 垂直反転OFF
         let OAM1_SZ: UInt16 = UInt16(sizeMode.rawValue & 0x3) << 14  // スプライトサイズLB
-        let OAM2_TN: UInt16 = UInt16(tileNo)  // タイル番号
+        let OAM2_TN: UInt16 = UInt16(tileOffset)  // タイル番号
         let OAM2_PR: UInt16 = UInt16(prio & 0x3) << 10  // 優先度
         let OAM2_PL: UInt16 = UInt16(palBlock & 0xf) << 12  // パレット番号
         let OAM3_RS: UInt16 = UInt16(0) << 14  // 回転スケール(8bit固定少数点)

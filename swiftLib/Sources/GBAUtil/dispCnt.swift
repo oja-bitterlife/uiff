@@ -9,13 +9,18 @@ public struct DISPCNT {
         BG0: Bool = false, BG1: Bool = false, BG2: Bool = false, BG3: Bool = false,
         OBJ: Bool = false, WIN: Bool = false
     ) {
+        // 基本設定
+        let BGM: UInt16 = 0  // BG Mode
+        let OM: UInt16 = 1 << 6  // 0:2D,1:1D
+
+        // Enableフラグ
         let BG0E: UInt16 = UInt16(BG0 ? 1 : 0) << 8  // BG0 Enable
         let BG1E: UInt16 = UInt16(BG1 ? 1 : 0) << 9  // BG1 Enable
         let BG2E: UInt16 = UInt16(BG2 ? 1 : 0) << 10  // BG2 Enable
         let BG3E: UInt16 = UInt16(BG3 ? 1 : 0) << 11  // BG3 Enable
         let OBJE: UInt16 = UInt16(OBJ ? 1 : 0) << 12  // OBJ Enable
         let WINE: UInt16 = UInt16(WIN ? 1 : 0) << 15  // WIN Enable
-        DISPCNT_MEM.writeUInt16(value: BG0E | BG1E | BG2E | BG3E | OBJE | WINE)
+        DISPCNT_MEM.writeUInt16(value: BGM | OM | BG0E | BG1E | BG2E | BG3E | OBJE | WINE)
     }
 
     static public func setBG(
