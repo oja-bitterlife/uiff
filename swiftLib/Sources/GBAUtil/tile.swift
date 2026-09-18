@@ -107,6 +107,9 @@ private struct TileBase {
             var sizeX = 1
             var sizeY = 1
             switch sizeMode {
+            case .SIZE_16x16:
+                sizeX = 2
+                sizeY = 2
             case .SIZE_32x32:
                 sizeX = 4
                 sizeY = 4
@@ -114,16 +117,7 @@ private struct TileBase {
                 break
             }
             let sizeObj = sizeX * sizeY
-            // serial =
-            //  0,  1,  2,  3,   4,  5,  6,  7,   8,  9, 10, 11,  12, 13, 14, 15
-            // 16, 17, 18, 19,  20, 21, 22, 23,  24, 25, 26, 27,  28, 29, 30, 31
-            // 32, 33, 34, 35,  36, 37, 38, 39,  40, 41, 42, 43,  44, 45, 46, 47
-            // 48, 49, 50, 51,  52, 53, 54, 55,  56, 57, 58, 59,  60, 61, 62, 63
-            // convert =
-            //  0,  1,  2,  3,  16, 17, 18, 19,  32, 33, 34, 35,  48, 49, 50, 51
-            //  4,  5,  6,  7,  20, 21, 22, 23,  36, 37, 38, 39,  52, 53, 54, 55
-            //  8,  9, 10, 11,  24, 25, 26, 27,  40, 41, 42, 43,  56, 57, 58, 59
-            // 12, 13, 14, 15,  28, 29, 30, 31,  44, 45, 46, 47,  60, 61, 62, 63
+
             // 1Dモードなのでタイルごとに転送
             for by in 0..<blockH {
                 for bx in 0..<blockW {
@@ -379,11 +373,11 @@ public struct OBJTile {
         TileBase.loadPaletteData(romOffset: romOffset, palBlock: palBlock, isObj: true)
     }
 
-    static public func loadTileData(romOffset: Int, offsetTile: Int = 0) {
+    static public func loadTileData(romOffset: Int, sizeMode: SIZE_MODE, tileOffset: Int = 0) {
         // OBJのタイルデータはキャラクターブロック4以降に配置される
         TileBase.loadTileData(
-            romTileOffset: romOffset, tileBlock: 4, tileBlockOffset: offsetTile * 32,
-            sizeMode: SIZE_MODE.SIZE_32x32)
+            romTileOffset: romOffset, tileBlock: 4, tileBlockOffset: tileOffset * 32,
+            sizeMode: sizeMode)
     }
 
     public func getTileNoFromGrid(objGridX: Int, objGridY: Int) -> Int {
