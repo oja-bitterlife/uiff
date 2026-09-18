@@ -17,6 +17,38 @@ public enum SIZE_MODE: Int {
     case SIZE_16x32 = 10
     case SIZE_32x64 = 11
 }
+public func getSizeModeX(sizeMode: SIZE_MODE) -> Int {
+    switch sizeMode {
+    case .SIZE_8x8: return 8
+    case .SIZE_16x16: return 16
+    case .SIZE_32x32: return 32
+    case .SIZE_64x64: return 64
+    case .SIZE_16x8: return 16
+    case .SIZE_32x8: return 32
+    case .SIZE_32x16: return 32
+    case .SIZE_64x32: return 64
+    case .SIZE_8x16: return 8
+    case .SIZE_8x32: return 8
+    case .SIZE_16x32: return 16
+    case .SIZE_32x64: return 32
+    }
+}
+public func getSizeModeY(sizeMode: SIZE_MODE) -> Int {
+    switch sizeMode {
+    case .SIZE_8x8: return 8
+    case .SIZE_16x16: return 16
+    case .SIZE_32x32: return 32
+    case .SIZE_64x64: return 64
+    case .SIZE_16x8: return 8
+    case .SIZE_32x8: return 8
+    case .SIZE_32x16: return 16
+    case .SIZE_64x32: return 32
+    case .SIZE_8x16: return 16
+    case .SIZE_8x32: return 32
+    case .SIZE_16x32: return 32
+    case .SIZE_32x64: return 64
+    }
+}
 
 public enum COLOR_MODE: Int {
     case COLOR_16 = 0
@@ -104,30 +136,26 @@ private struct TileBase {
 
         // タイルデータの転送
         if sizeMode != nil {
-            var sizeX = 1
-            var sizeY = 1
-            switch sizeMode {
-            case .SIZE_16x16:
-                sizeX = 2
-                sizeY = 2
-            case .SIZE_32x32:
-                sizeX = 4
-                sizeY = 4
-            default:
-                break
-            }
+            let sizeX = getSizeModeX(sizeMode: sizeMode!) / 8
+            let sizeY = getSizeModeY(sizeMode: sizeMode!) / 8
             let sizeObj = sizeX * sizeY
+            let numX = blockW / sizeX
 
             // 1Dモードなのでタイルごとに転送
             for by in 0..<blockH {
                 for bx in 0..<blockW {
-                    let serial = (by * blockW + bx)
-                    let convert =
-                        (by / sizeY * sizeX * sizeObj) + (bx / sizeX * sizeObj)
-                        + (by * sizeY) + (bx % sizeX)
+                    // bx,byを1Dに変換
+                    let serial = by * blockW + bx
+                    let objNo = serial / sizeObj
+                    let objX = objNo % numX
+                    let objY = objNo / numX
+                    let inTileIndex = serial % sizeObj
+                    let tileX = inTileIndex % sizeX
+                    let tileY = inTileIndex / sizeX
+                    let pick = (objY * sizeY * blockW) + (objX * sizeX) + tileY * blockW + tileX
 
-                    let srcOffset = serial * tileBlockSize
-                    let dstOffset = tileVramOffset + convert * tileBlockSize
+                    let srcOffset = pick * tileBlockSize
+                    let dstOffset = tileVramOffset + serial * tileBlockSize
                     DMA3_UInt(
                         srcAddr: tileData.getAddress(offset: srcOffset),
                         dstAddr: UnsafeMutableRawPointer(bitPattern: VRAM_ADDR + UInt(dstOffset))!,
@@ -391,32 +419,9 @@ public struct OBJTile {
             objGridY /= 2
         }
 
-        switch sizeMode {
-        case .SIZE_8x8:
-            return objGridY * 32 + objGridX
-        case .SIZE_16x16:
-            return objGridY * 32 * 2 + objGridX * 2
-        case .SIZE_32x32:
-            return objGridY * 32 * 4 + objGridX * 4
-        case .SIZE_64x64:
-            return objGridY * 32 * 8 + objGridX * 8
-        case .SIZE_16x8:
-            return objGridY * 32 + objGridX * 2
-        case .SIZE_32x8:
-            return objGridY * 32 + objGridX * 4
-        case .SIZE_32x16:
-            return objGridY * 32 * 2 + objGridX * 4
-        case .SIZE_64x32:
-            return objGridY * 32 * 4 + objGridX * 8
-        case .SIZE_8x16:
-            return objGridY * 32 * 2 + objGridX
-        case .SIZE_8x32:
-            return objGridY * 32 * 4 + objGridX
-        case .SIZE_16x32:
-            return objGridY * 32 * 4 + objGridX * 2
-        case .SIZE_32x64:
-            return objGridY * 32 * 8 + objGridX * 4
-        }
+        let sizeX = getSizeModeX(sizeMode: sizeMode) / 8
+        let sizeY = getSizeModeY(sizeMode: sizeMode) / 8
+        return objGridY * 32 * sizeY + objGridX * sizeX
     }
 
     public func draw(
